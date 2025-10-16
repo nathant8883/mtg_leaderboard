@@ -43,7 +43,11 @@ export interface MatchState {
 
 const STORAGE_KEY = 'mtg_active_match';
 
-function MatchTracker() {
+interface MatchTrackerProps {
+  onExitToHome: () => void;
+}
+
+function MatchTracker({ onExitToHome }: MatchTrackerProps) {
   const [matchState, setMatchState] = useState<MatchState>(() => {
     // Try to load from localStorage on mount
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -207,6 +211,7 @@ function MatchTracker() {
           initialLayout={matchState.layout}
           initialStartingLife={matchState.startingLife}
           onComplete={handleGameConfig}
+          onExit={onExitToHome}
         />
       )}
 

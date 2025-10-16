@@ -101,72 +101,76 @@ function App() {
   return (
     <div className="app">
       <Toaster />
-      {/* Header */}
-      <div className="header">
-        <div className="header-content">
-          <div className="header-left">
-            <div className="logo" onClick={() => setActiveView('dashboard')} style={{ cursor: 'pointer' }}>🏆</div>
-            <h1 className="header-title">Commander League</h1>
-          </div>
-          <div className="nav-buttons">
-            <button
-              className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveView('dashboard')}
-            >
-              🚀 Launchpad
-            </button>
-            <button
-              className="record-match-btn"
-              onClick={() => setActiveView('match-tracker')}
-            >
-              🎮 Match Tracker
-            </button>
-            <button
-              className="record-match-btn"
-              onClick={() => setShowMatchForm(true)}
-            >
-              ➕ Record Match
-            </button>
-            <div className="hamburger-menu">
+      {/* Header - Hidden in match tracker */}
+      {activeView !== 'match-tracker' && (
+        <div className="header">
+          <div className="header-content">
+            <div className="header-left">
+              <div className="logo" onClick={() => setActiveView('dashboard')} style={{ cursor: 'pointer' }}>🏆</div>
+              <h1 className="header-title">Commander League</h1>
+            </div>
+            <div className="nav-buttons">
               <button
-                className="hamburger-btn"
-                onClick={() => setShowMenu(!showMenu)}
+                className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveView('dashboard')}
               >
-                ☰
+                🚀 Launchpad
               </button>
-              {showMenu && (
-                <div className="menu-dropdown">
-                  <button
-                    className="menu-item"
-                    onClick={() => {
-                      setActiveView('leaderboard')
-                      setShowMenu(false)
-                    }}
-                  >
-                    🏆 Leaderboard
-                  </button>
-                  {currentPlayer?.is_superuser && (
+              <button
+                className="record-match-btn"
+                onClick={() => setActiveView('match-tracker')}
+              >
+                🎮 Match Tracker
+              </button>
+              <button
+                className="record-match-btn"
+                onClick={() => setShowMatchForm(true)}
+              >
+                ➕ Record Match
+              </button>
+              <div className="hamburger-menu">
+                <button
+                  className="hamburger-btn"
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  ☰
+                </button>
+                {showMenu && (
+                  <div className="menu-dropdown">
                     <button
                       className="menu-item"
                       onClick={() => {
-                        setActiveView('admin')
+                        setActiveView('leaderboard')
                         setShowMenu(false)
                       }}
                     >
-                      ⚙️ Admin
+                      🏆 Leaderboard
                     </button>
-                  )}
-                </div>
-              )}
+                    {currentPlayer?.is_superuser && (
+                      <button
+                        className="menu-item"
+                        onClick={() => {
+                          setActiveView('admin')
+                          setShowMenu(false)
+                        }}
+                      >
+                        ⚙️ Admin
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <ProfileDropdown />
             </div>
-            <ProfileDropdown />
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <div className="container">
-        {activeView === 'match-tracker' && <MatchTracker />}
+        {activeView === 'match-tracker' && (
+          <MatchTracker onExitToHome={() => setActiveView('dashboard')} />
+        )}
         {activeView !== 'match-tracker' && (
           <>
           {activeView === 'dashboard' && (

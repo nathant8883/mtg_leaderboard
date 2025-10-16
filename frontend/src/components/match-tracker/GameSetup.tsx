@@ -6,9 +6,10 @@ interface GameSetupProps {
   initialLayout: LayoutType;
   initialStartingLife: number;
   onComplete: (playerCount: number, layout: LayoutType, startingLife: number) => void;
+  onExit: () => void;
 }
 
-function GameSetup({ initialPlayerCount, initialLayout, initialStartingLife, onComplete }: GameSetupProps) {
+function GameSetup({ initialPlayerCount, initialLayout, initialStartingLife, onComplete, onExit }: GameSetupProps) {
   const [playerCount, setPlayerCount] = useState<number>(initialPlayerCount);
   const [startingLife, setStartingLife] = useState<number>(initialStartingLife);
   const [layout, setLayout] = useState<LayoutType>(initialLayout);
@@ -177,6 +178,9 @@ function GameSetup({ initialPlayerCount, initialLayout, initialStartingLife, onC
   return (
     <div className="game-setup">
       <div className="setup-header">
+        <button className="exit-btn" onClick={onExit} title="Exit to Home">
+          ✕
+        </button>
         <h1>Match Setup</h1>
       </div>
 
@@ -196,34 +200,22 @@ function GameSetup({ initialPlayerCount, initialLayout, initialStartingLife, onC
         </div>
       </div>
 
-      {/* Starting Life Selector with +/- buttons */}
+      {/* Starting Life Selector */}
       <div className="setup-section">
         <h3 className="section-label">Starting Life</h3>
         <div className="life-adjuster">
           <button
-            className="life-btn"
-            onClick={() => handleStartingLifeChange(-5)}
-          >
-            -5
-          </button>
-          <button
-            className="life-btn"
+            className="life-btn-large"
             onClick={() => handleStartingLifeChange(-1)}
           >
-            -1
+            −
           </button>
           <div className="life-display">{startingLife}</div>
           <button
-            className="life-btn"
+            className="life-btn-large"
             onClick={() => handleStartingLifeChange(1)}
           >
-            +1
-          </button>
-          <button
-            className="life-btn"
-            onClick={() => handleStartingLifeChange(5)}
-          >
-            +5
+            +
           </button>
         </div>
         <div className="life-presets">
