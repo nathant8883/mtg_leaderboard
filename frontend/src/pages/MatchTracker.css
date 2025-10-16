@@ -304,12 +304,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 56px;
-  height: 56px;
-  background: rgba(26, 27, 30, 0.95);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  background: transparent;
+  border: none;
   color: #fff;
   font-size: 24px;
   cursor: pointer;
@@ -318,12 +316,51 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+}
+
+/* Hexagon border */
+.floating-menu-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  clip-path: polygon(
+    25% 5%, 30% 0%, 70% 0%, 75% 5%,
+    95% 35%, 100% 50%, 95% 65%,
+    75% 95%, 70% 100%, 30% 100%, 25% 95%,
+    5% 65%, 0% 50%, 5% 35%
+  );
+  z-index: -1;
+  transition: all 0.2s ease;
+}
+
+/* Hexagon inner background */
+.floating-menu-btn::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: rgba(26, 27, 30, 0.95);
+  backdrop-filter: blur(10px);
+  clip-path: polygon(
+    25% 5%, 30% 0%, 70% 0%, 75% 5%,
+    95% 35%, 100% 50%, 95% 65%,
+    75% 95%, 70% 100%, 30% 100%, 25% 95%,
+    5% 65%, 0% 50%, 5% 35%
+  );
+  z-index: -1;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.floating-menu-btn:hover::before {
+  background: rgba(102, 126, 234, 0.8);
+}
+
+.floating-menu-btn:hover::after {
+  background: rgba(102, 126, 234, 0.2);
 }
 
 .floating-menu-btn:hover {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.5);
   transform: translate(-50%, -50%) scale(1.05);
 }
 
@@ -407,8 +444,9 @@
   right: 0;
   bottom: 0;
   display: grid;
-  gap: 2px;
-  background: #141517;
+  gap: 8px;
+  background: #000000;
+  padding: 4px;
 }
 
 /* Grid Layout - 3 players */
@@ -682,6 +720,7 @@
   overflow: hidden;
   min-height: 0;
   min-width: 0;
+  border-radius: 16px;
 }
 
 .player-slot:active {
