@@ -174,41 +174,37 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
       {/* Player Select Modal */}
       {modalState.type === 'player-select' && (
-        <div className="modal-overlay">
-          <div className="modal-content player-select-modal">
+        <div className="modal-overlay" onClick={() => setModalState({ type: 'none' })}>
+          <div className="modal-content player-select-modal" onClick={(e) => e.stopPropagation()}>
             <h2>Select Player {modalState.position}</h2>
-            <div className="player-select-tabs">
-              <div className="tab-content">
-                <h3>Regular Players</h3>
-                <div className="player-list">
-                  {availablePlayers.map((player) => (
-                    <button
-                      key={player.id}
-                      className="player-list-item"
-                      onClick={() => handlePlayerSelect(player, modalState.position)}
-                    >
-                      <div className="player-avatar-small">
-                        {player.picture ? (
-                          <img src={player.picture} alt={player.name} />
-                        ) : (
-                          player.avatar || player.name[0]
-                        )}
-                      </div>
-                      <span className="player-list-name">{player.name}</span>
-                    </button>
-                  ))}
-                </div>
+            <div className="player-select-grid">
+              {availablePlayers.map((player) => (
                 <button
-                  className="guest-tab-btn"
-                  onClick={() => handleGuestTabClick(modalState.position)}
+                  key={player.id}
+                  className="player-select-card"
+                  onClick={() => handlePlayerSelect(player, modalState.position)}
                 >
-                  Or add a Guest →
+                  <div className="player-avatar-small">
+                    {player.picture ? (
+                      <img src={player.picture} alt={player.name} />
+                    ) : (
+                      player.avatar || player.name[0]
+                    )}
+                  </div>
+                  <div className="player-select-name">{player.name}</div>
                 </button>
-              </div>
+              ))}
             </div>
             <button
-              className="btn-secondary modal-cancel"
+              className="guest-tab-btn"
+              onClick={() => handleGuestTabClick(modalState.position)}
+            >
+              + Add Guest Player
+            </button>
+            <button
+              className="btn-secondary"
               onClick={() => setModalState({ type: 'none' })}
+              style={{ width: '100%', marginTop: '8px' }}
             >
               Cancel
             </button>

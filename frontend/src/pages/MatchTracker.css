@@ -1015,35 +1015,68 @@
 
 /* Player Select Modal */
 .player-select-modal {
-  max-width: 400px;
-}
-
-.player-list {
+  max-width: 600px;
+  padding: 16px;
+  max-height: 90vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
-.player-list-item {
+.player-select-modal h2 {
+  margin: 0 0 12px 0;
+  text-align: center;
+  font-size: 18px;
+}
+
+.player-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.player-select-card {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 6px;
+  padding: 12px 8px;
   background: #2c2e33;
-  border: 1px solid #3c3e43;
-  border-radius: 8px;
+  border: 2px solid #3c3e43;
+  border-radius: 10px;
   color: #fff;
-  text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 0;
 }
 
-.player-list-item:hover {
+.player-select-card:hover {
   background: #3c3e43;
   border-color: #667eea;
+  transform: translateY(-2px);
+}
+
+.player-select-card:active {
+  transform: translateY(0);
+}
+
+.player-select-card .player-avatar-small {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
+
+.player-select-name {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  width: 100%;
 }
 
 .player-avatar-small {
