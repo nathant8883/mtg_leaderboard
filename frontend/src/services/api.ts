@@ -13,6 +13,9 @@ export interface Player {
   name: string;
   avatar?: string;
   deck_ids?: string[];
+  email?: string;
+  google_id?: string;
+  picture?: string;
   created_at?: string;
 }
 

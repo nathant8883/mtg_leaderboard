@@ -27,10 +27,16 @@ class Deck(Document):
 
 
 class Player(Document):
-    """Player document"""
+    """Player document (also serves as User for authentication)"""
     name: str
     avatar: Optional[str] = None  # Single letter or emoji
     deck_ids: list[str] = Field(default_factory=list)  # References to Deck documents
+
+    # Google OAuth fields
+    email: Optional[str] = None  # From Google OAuth
+    google_id: Optional[str] = None  # Google OAuth unique ID
+    picture: Optional[str] = None  # Google profile picture URL
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:

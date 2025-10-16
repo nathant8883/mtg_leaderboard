@@ -9,6 +9,7 @@ import TopPlayers from './components/TopPlayers'
 import TopDecks from './components/TopDecks'
 import StatsCards from './components/StatsCards'
 import PlayerDetail from './components/PlayerDetail'
+import { ProfileDropdown } from './components/ProfileDropdown'
 import type { Player, Deck, CreateMatchRequest, Match } from './services/api'
 import { playerApi, deckApi, matchApi } from './services/api'
 
@@ -28,6 +29,19 @@ function App() {
   useEffect(() => {
     loadPlayersAndDecks()
     loadMatches()
+  }, [])
+
+  // Listen for profile view player detail event
+  useEffect(() => {
+    const handleViewPlayerDetailEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ playerId: string }>;
+      handleViewPlayerDetail(customEvent.detail.playerId);
+    };
+
+    window.addEventListener('viewPlayerDetail', handleViewPlayerDetailEvent);
+    return () => {
+      window.removeEventListener('viewPlayerDetail', handleViewPlayerDetailEvent);
+    };
   }, [])
 
   const loadPlayersAndDecks = async () => {
@@ -134,6 +148,7 @@ function App() {
                 </div>
               )}
             </div>
+            <ProfileDropdown />
           </div>
         </div>
       </div>

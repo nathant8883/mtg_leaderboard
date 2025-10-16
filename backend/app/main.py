@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.routers import players, decks, matches, leaderboard, scryfall
+from app.routers import players, decks, matches, leaderboard, scryfall, auth
 
 
 @asynccontextmanager
@@ -24,6 +25,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Configure Session Middleware (required for OAuth)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.jwt_secret_key,  # Use same secret as JWT for simplicity
+)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +41,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(decks.router, prefix="/api/decks", tags=["decks"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
