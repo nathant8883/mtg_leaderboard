@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.routers import players, decks, matches, leaderboard
+from app.routers import players, decks, matches, leaderboard, scryfall
 
 
 @asynccontextmanager
@@ -38,6 +38,7 @@ app.include_router(players.router, prefix="/api/players", tags=["players"])
 app.include_router(decks.router, prefix="/api/decks", tags=["decks"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
 app.include_router(leaderboard.router, prefix="/api/leaderboard", tags=["leaderboard"])
+app.include_router(scryfall.router, prefix="/api/scryfall", tags=["scryfall"])
 
 
 @app.get("/")

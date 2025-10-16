@@ -446,3 +446,80 @@ body {
   margin-bottom: 20px;
   font-size: 14px;
 }
+
+/* Commander Autocomplete */
+.loading-spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2C2E33;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.commander-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1A1B1E;
+  border: 1px solid #2C2E33;
+  border-radius: 6px;
+  margin-top: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.commander-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #2C2E33;
+}
+
+.commander-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.commander-suggestion-item:hover,
+.commander-suggestion-item.selected {
+  background: #25262B;
+}
+
+.commander-suggestion-image {
+  width: 50px;
+  height: 70px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.commander-suggestion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.commander-suggestion-name {
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.commander-suggestion-type {
+  color: #909296;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.commander-suggestion-colors {
+  font-size: 16px;
+  display: flex;
+  gap: 2px;
+}

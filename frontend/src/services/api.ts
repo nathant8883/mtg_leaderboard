@@ -47,9 +47,22 @@ export const playerApi = {
 export interface Deck {
   id?: string;
   name: string;
-  commander?: string;
-  colors?: string[];
+  player_id: string;
+  commander: string;
+  commander_image_url?: string;
+  colors: string[];
   created_at?: string;
+}
+
+// Scryfall Commander Types
+export interface CommanderCard {
+  name: string;
+  image_small?: string;
+  image_normal?: string;
+  image_art_crop?: string;
+  color_identity: string[];
+  type_line: string;
+  mana_cost: string;
 }
 
 // Deck API Functions
@@ -76,6 +89,29 @@ export const deckApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/decks/${id}`);
+  },
+};
+
+// Scryfall API Functions
+export const scryfallApi = {
+  searchCommanders: async (query: string): Promise<CommanderCard[]> => {
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    const response = await api.get('/scryfall/commanders/search', {
+      params: { q: query, limit: 20 }
+    });
+    return response.data.results || [];
+  },
+
+  getCommanderDetails: async (name: string): Promise<CommanderCard | null> => {
+    try {
+      const response = await api.get(`/scryfall/commanders/${encodeURIComponent(name)}`);
+      return response.data;
+    } catch (error) {
+      return null;
+    }
   },
 };
 

@@ -5,10 +5,12 @@ from pydantic import Field, ConfigDict, field_serializer
 
 
 class Deck(Document):
-    """Embedded deck document within Player"""
+    """Deck document with commander information"""
     name: str
-    commander: Optional[str] = None
-    colors: Optional[list[str]] = Field(default_factory=list)  # W, U, B, R, G
+    player_id: str  # Reference to owning player
+    commander: str  # Full commander card name (e.g., "Atraxa, Praetors' Voice")
+    commander_image_url: Optional[str] = None  # Cached Scryfall image URL
+    colors: list[str] = Field(default_factory=list)  # MTG color identity (W/U/B/R/G)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:
