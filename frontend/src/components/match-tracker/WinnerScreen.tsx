@@ -46,7 +46,7 @@ function WinnerScreen({ players, gameState, winnerPosition, onSave, onDiscard }:
 
       {/* Right Side - Match Stats */}
       <div className="match-stats-section">
-        <div className="stats-grid">
+        <div className="winner-stats-grid">
           <div className="stat-row">
             <div className="stat-label">
               <span className="stat-icon">⏱️</span>

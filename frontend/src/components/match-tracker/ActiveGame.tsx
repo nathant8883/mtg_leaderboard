@@ -17,6 +17,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const [showMenu, setShowMenu] = useState(false);
   const [lifeInputPlayer, setLifeInputPlayer] = useState<PlayerSlot | null>(null);
   const [commanderDamagePlayer, setCommanderDamagePlayer] = useState<PlayerSlot | null>(null);
+  const [showWinnerSelect, setShowWinnerSelect] = useState(false);
 
   // Track touch start position for swipe detection
   const touchStartX = useRef<number | null>(null);
@@ -146,11 +147,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             <button
               className="menu-option"
               onClick={() => {
-                const winner = Object.keys(gameState.playerStates).find(
-                  (pos) => !gameState.playerStates[parseInt(pos)].eliminated
-                );
                 setShowMenu(false);
-                onGameComplete(winner ? parseInt(winner) : players[0].position);
+                setShowWinnerSelect(true);
               }}
             >
               🏆 End Game
@@ -262,6 +260,47 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           }}
           onClose={() => setCommanderDamagePlayer(null)}
         />
+      )}
+
+      {/* Winner Selection Modal */}
+      {showWinnerSelect && (
+        <div className="modal-overlay" onClick={() => setShowWinnerSelect(false)}>
+          <div className="modal-content winner-select-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Select Winner</h2>
+            <div className="winner-select-grid">
+              {players.map((player) => {
+                const playerState = gameState.playerStates[player.position];
+                return (
+                  <button
+                    key={player.position}
+                    className="winner-select-card"
+                    onClick={() => {
+                      setShowWinnerSelect(false);
+                      onGameComplete(player.position);
+                    }}
+                    style={{
+                      opacity: playerState.eliminated ? 0.6 : 1,
+                    }}
+                  >
+                    <div className="player-avatar-small">
+                      {player.playerName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="winner-select-info">
+                      <div className="winner-select-name">{player.playerName}</div>
+                      <div className="winner-select-deck">{player.deckName}</div>
+                    </div>
+                    {playerState.eliminated && (
+                      <div className="winner-select-eliminated">✕</div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <button className="btn-secondary" onClick={() => setShowWinnerSelect(false)} style={{ width: '100%' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
