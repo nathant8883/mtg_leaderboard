@@ -58,20 +58,31 @@ function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
             <tr key={deck.id}>
               <td>
                 {deck.commander_image_url ? (
-                  <img
-                    src={deck.commander_image_url}
-                    alt={deck.commander}
+                  <div
                     style={{
-                      width: '50px',
-                      height: '70px',
-                      borderRadius: '4px',
-                      objectFit: 'cover',
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: '2px solid #2C2E33',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                     }}
-                  />
+                  >
+                    <img
+                      src={deck.commander_image_url}
+                      alt={deck.commander}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center 20%',
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div
                     className="player-avatar-badge"
-                    style={{ width: '50px', height: '50px' }}
+                    style={{ width: '60px', height: '60px' }}
                   >
                     🎴
                   </div>
