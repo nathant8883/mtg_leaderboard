@@ -1,4 +1,5 @@
-import { useRef, useCallback, TouchEvent, MouseEvent } from 'react';
+import { useRef, useCallback } from 'react';
+import type { TouchEvent, MouseEvent } from 'react';
 
 interface LongPressOptions {
   onLongPress: () => void;
@@ -7,8 +8,8 @@ interface LongPressOptions {
 }
 
 export function useLongPress({ onLongPress, delay = 500, repeatInterval = 100 }: LongPressOptions) {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isLongPressRef = useRef(false);
 
   const start = useCallback(() => {
@@ -39,35 +40,35 @@ export function useLongPress({ onLongPress, delay = 500, repeatInterval = 100 }:
   }, []);
 
   const onTouchStart = useCallback(
-    (e: TouchEvent) => {
+    (_e: TouchEvent) => {
       start();
     },
     [start]
   );
 
   const onTouchEnd = useCallback(
-    (e: TouchEvent) => {
+    (_e: TouchEvent) => {
       clear();
     },
     [clear]
   );
 
   const onMouseDown = useCallback(
-    (e: MouseEvent) => {
+    (_e: MouseEvent) => {
       start();
     },
     [start]
   );
 
   const onMouseUp = useCallback(
-    (e: MouseEvent) => {
+    (_e: MouseEvent) => {
       clear();
     },
     [clear]
   );
 
   const onMouseLeave = useCallback(
-    (e: MouseEvent) => {
+    (_e: MouseEvent) => {
       clear();
     },
     [clear]

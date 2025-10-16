@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
 import DeckForm from './DeckForm';
 import { useAuth } from '../contexts/AuthContext';
-import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck, type Player } from '../services/api';
+import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck } from '../services/api';
 
 interface PlayerDetailProps {
   playerId: string;

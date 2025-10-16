@@ -17,7 +17,7 @@ function GameSetup({ initialPlayerCount, initialLayout, initialStartingLife, onC
   const playerCountOptions = [3, 4, 5, 6];
 
   // Layout preview components
-  const getLayoutPreview = (layoutId: LayoutType, count: number): JSX.Element => {
+  const getLayoutPreview = (layoutId: LayoutType, count: number): React.ReactElement => {
     switch (layoutId) {
       case 'grid':
         if (count === 3) {

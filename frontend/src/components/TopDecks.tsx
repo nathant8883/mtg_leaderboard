@@ -7,7 +7,7 @@ interface TopDecksProps {
   onPlayerClick: (playerId: string) => void;
 }
 
-function TopDecks({ onViewLeaderboard, onPlayerClick }: TopDecksProps) {
+function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecksProps) {
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -1,13 +1,12 @@
 import { useState } from 'react';
 
 interface LifeInputModalProps {
-  playerName: string;
   currentLife: number;
   onConfirm: (newLife: number) => void;
   onCancel: () => void;
 }
 
-function LifeInputModal({ playerName, currentLife, onConfirm, onCancel }: LifeInputModalProps) {
+function LifeInputModal({ currentLife, onConfirm, onCancel }: LifeInputModalProps) {
   const [inputValue, setInputValue] = useState('');
   const [mode, setMode] = useState<'set' | 'add' | 'subtract'>('set');
 

@@ -145,7 +145,7 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
                   </div>
                   <div className="deck-item-name">{deck.name}</div>
                   <div className="deck-item-colors">
-                    <ColorPips colors={deck.colors} size="small" />
+                    <ColorPips colors={deck.colors} />
                   </div>
                 </button>
               );
