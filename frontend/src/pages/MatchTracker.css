@@ -1384,6 +1384,7 @@
   overflow: hidden;
   touch-action: pan-y;
   user-select: none;
+  border-radius: 16px;
 }
 
 /* ==================== PLAYER CARD ROTATION TRANSFORMS (ACTIVE GAME) ==================== */
@@ -1508,6 +1509,27 @@
   filter: grayscale(100%);
 }
 
+.eliminated-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 900;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  z-index: 10;
+  border: 4px solid #ef4444;
+  border-radius: 16px;
+}
+
 .player-info {
   position: absolute;
   top: 12px;
@@ -1555,7 +1577,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 60px; /* Space for side buttons */
+  padding: 0 80px; /* Space for side buttons */
 }
 
 .life-total {
@@ -1577,10 +1599,10 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 50px;
+  width: 35%;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 48px;
   font-weight: 700;
   cursor: pointer;
@@ -1849,81 +1871,51 @@
 .life-input-modal {
   background: #1a1b1e;
   border: 1px solid #2c2e33;
-  border-radius: 12px;
-  padding: 20px;
-  max-width: 320px;
+  border-radius: 8px;
+  padding: 8px;
+  max-width: 200px;
   width: 100%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
-.life-input-header {
-  text-align: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #2c2e33;
-}
-
-.life-input-header h3 {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-}
-
-.life-input-current {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.life-input-display {
+.life-input-display-compact {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 6px;
+  padding: 8px;
+  margin-bottom: 6px;
   background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  margin-bottom: 16px;
+  border-radius: 6px;
 }
 
-.life-input-mode {
-  font-size: 24px;
+.life-input-mode-compact {
+  font-size: 20px;
   font-weight: 700;
   color: #667eea;
-  width: 32px;
-  text-align: center;
 }
 
-.life-input-value {
-  font-size: 48px;
+.life-input-value-compact {
+  font-size: 28px;
   font-weight: 900;
   font-family: 'Courier New', monospace;
   color: #fff;
-  min-width: 80px;
-  text-align: center;
-}
-
-.life-input-preview {
-  font-size: 24px;
-  font-weight: 700;
-  color: #10b981;
-  min-width: 80px;
-  text-align: center;
 }
 
 .life-input-modes {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 6px;
 }
 
 .mode-btn {
   flex: 1;
-  padding: 10px;
+  padding: 4px;
   background: #2c2e33;
   border: 2px solid #3c3e43;
-  border-radius: 8px;
+  border-radius: 4px;
   color: #9ca3af;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1942,23 +1934,24 @@
 .number-pad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 6px;
 }
 
 .number-btn {
   aspect-ratio: 1;
   background: #2c2e33;
   border: 1px solid #3c3e43;
-  border-radius: 8px;
+  border-radius: 4px;
   color: #fff;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 32px;
 }
 
 .number-btn:hover {
@@ -1974,7 +1967,7 @@
 .number-btn.backspace-btn {
   background: #ef4444;
   border-color: #dc2626;
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .number-btn.clear-btn:hover,
@@ -1984,7 +1977,13 @@
 
 .life-input-actions {
   display: flex;
-  gap: 12px;
+  gap: 6px;
+}
+
+.life-input-actions .btn-primary,
+.life-input-actions .btn-secondary {
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
 /* ==================== COMMANDER DAMAGE OVERLAY ==================== */

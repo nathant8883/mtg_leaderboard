@@ -54,28 +54,16 @@ function LifeInputModal({ playerName, currentLife, onConfirm, onCancel }: LifeIn
     }
   };
 
-  const previewLife = inputValue ? calculateNewLife() : currentLife;
-
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="life-input-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="life-input-header">
-          <h3>{playerName}</h3>
-          <div className="life-input-current">Current: {currentLife}</div>
-        </div>
-
-        <div className="life-input-display">
-          <div className="life-input-mode">
+        <div className="life-input-display-compact">
+          <span className="life-input-mode-compact">
             {mode === 'add' && '+'}
             {mode === 'subtract' && '−'}
             {mode === 'set' && '='}
-          </div>
-          <div className="life-input-value">
-            {inputValue || '0'}
-          </div>
-          <div className="life-input-preview">
-            → {previewLife}
-          </div>
+          </span>
+          <span className="life-input-value-compact">{inputValue || '0'}</span>
         </div>
 
         <div className="life-input-modes">

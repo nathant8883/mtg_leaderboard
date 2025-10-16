@@ -22,18 +22,14 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
-  // Timer logic
+  // Timer logic - just for display, don't update gameState on every tick
   useEffect(() => {
     const interval = setInterval(() => {
       setTimer((prev) => prev + 1);
-      onUpdateGameState({
-        ...gameState,
-        elapsedSeconds: timer + 1,
-      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timer]);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
