@@ -4,6 +4,7 @@ import GameSetup from '../components/match-tracker/GameSetup';
 import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
 import ActiveGame from '../components/match-tracker/ActiveGame';
 import WinnerScreen from '../components/match-tracker/WinnerScreen';
+import { matchApi } from '../services/api';
 
 export type LayoutType = 'grid' | 'horizontal' | 'vertical' | 'table' | 'sides' | 'circle';
 export type StepType = 'setup' | 'assignment' | 'game' | 'winner';
@@ -147,11 +148,52 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
   };
 
   const handleMatchSave = async () => {
-    // This will be implemented with API call
-    console.log('Saving match...', matchState);
-    // Clear localStorage after successful save
-    localStorage.removeItem(STORAGE_KEY);
-    // Navigate back to dashboard (will implement with parent callback)
+    if (!matchState.gameState || !matchState.winnerPosition) {
+      console.error('Cannot save match: missing game state or winner');
+      return;
+    }
+
+    try {
+      const winner = matchState.players.find(p => p.position === matchState.winnerPosition);
+      if (!winner || !winner.playerId || !winner.deckId) {
+        alert('Winner must be a registered player with a deck (not a guest)');
+        return;
+      }
+
+      // Filter out guest players and prepare player-deck pairs
+      const playerDeckPairs = matchState.players
+        .filter(p => p.playerId && p.deckId) // Only registered players
+        .map(p => ({
+          player_id: p.playerId!,
+          deck_id: p.deckId!,
+        }));
+
+      if (playerDeckPairs.length < 3) {
+        alert('At least 3 registered players required to save match (guests cannot be saved)');
+        return;
+      }
+
+      // Use the game start time as match date (format as YYYY-MM-DD)
+      const matchDate = matchState.gameState.startTime.toISOString().split('T')[0];
+
+      const matchRequest = {
+        player_deck_pairs: playerDeckPairs,
+        winner_player_id: winner.playerId,
+        winner_deck_id: winner.deckId,
+        match_date: matchDate,
+      };
+
+      await matchApi.create(matchRequest);
+
+      // Clear localStorage after successful save
+      localStorage.removeItem(STORAGE_KEY);
+
+      // Navigate back to dashboard
+      onExitToHome();
+    } catch (error) {
+      console.error('Failed to save match:', error);
+      alert('Failed to save match. Please try again.');
+    }
   };
 
   const handleMatchDiscard = () => {
