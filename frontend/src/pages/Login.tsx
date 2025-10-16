@@ -74,17 +74,22 @@ export const Login: React.FC = () => {
           Sign in with Google
         </button>
 
-        <div style={{ margin: '16px 0', color: '#6b7280', fontSize: '14px', textAlign: 'center' }}>
-          or
-        </div>
+        {/* Only show dev login in development environment */}
+        {import.meta.env.VITE_ENVIRONMENT === 'development' && (
+          <>
+            <div style={{ margin: '16px 0', color: '#6b7280', fontSize: '14px', textAlign: 'center' }}>
+              or
+            </div>
 
-        <button
-          className="google-login-btn"
-          onClick={handleDevLogin}
-          style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-        >
-          Dev Login (Local Only)
-        </button>
+            <button
+              className="google-login-btn"
+              onClick={handleDevLogin}
+              style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+            >
+              Dev Login (Local Only)
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

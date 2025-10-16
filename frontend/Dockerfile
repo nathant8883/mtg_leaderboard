@@ -12,6 +12,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set environment to production for the build
+# Vite will embed VITE_* variables at build time
+ARG VITE_ENVIRONMENT=production
+ENV VITE_ENVIRONMENT=$VITE_ENVIRONMENT
+
 # Build the application
 RUN npm run build
 
