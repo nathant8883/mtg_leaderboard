@@ -1,6 +1,6 @@
 services:
   mongodb:
-    image: mongo:7
+    image: mongo:4.4
     container_name: mtg-mongodb
     ports:
       - "27018:27017"
@@ -11,7 +11,7 @@ services:
     networks:
       - mtg-network
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,11 +47,28 @@ services:
       - backend
     networks:
       - mtg-network
+      - homeserver
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=homeserver"
+
+      - "traefik.http.routers.mtg-secure.rule=Host(`mtg.turner-labs.net`)"
+      - "traefik.http.routers.mtg-secure.entrypoints=https"
+      - "traefik.http.routers.mtg-secure.tls=true"
+      - "traefik.http.routers.mtg-secure.service=mtg"
+      - "traefik.http.services.mtg.loadbalancer.server.port=80"
+
+      - "traefik.http.routers.mtg.rule=Host(`mtg.turner-labs.net`)"
+      - "traefik.http.routers.mtg.entrypoints=http"
+      - "traefik.http.middlewares.mtg-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.mtg.middlewares=mtg-https-redirect"
 
 networks:
   mtg-network:
     driver: bridge
+  homeserver:
+    external: true
 
 volumes:
   mongodb_data:
