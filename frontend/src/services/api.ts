@@ -7,6 +7,20 @@ const api = axios.create({
   },
 });
 
+// Add JWT token to all requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('mtg_auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Player Types
 export interface Player {
   id?: string;
