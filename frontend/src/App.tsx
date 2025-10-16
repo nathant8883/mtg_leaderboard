@@ -163,7 +163,7 @@ function App() {
           <div>
             <StatsCards />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+            <div className="dashboard-widgets-grid">
               <TopPlayers
                 onViewLeaderboard={() => setActiveView('leaderboard')}
                 onPlayerClick={handleViewPlayerDetail}
