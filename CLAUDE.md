@@ -35,11 +35,11 @@ MTG Commander Leaderboard - A full-stack web application for tracking Magic: The
 2. **Start Backend** (Terminal 1):
    ```bash
    cd backend
-   uv run uvicorn app.main:app --reload --port 8000
+   uv run uvicorn app.main:app --reload --port 7777
    ```
-   - Backend will run on http://localhost:8000
+   - Backend will run on http://localhost:7777
    - Hot reloading enabled - changes to Python files auto-reload
-   - API docs available at http://localhost:8000/docs
+   - API docs available at http://localhost:7777/docs
 
 3. **Start Frontend** (Terminal 2):
    ```bash
@@ -68,7 +68,7 @@ MTG Commander Leaderboard - A full-stack web application for tracking Magic: The
 Use this for testing the full production build or when you need isolated environments.
 
 ```bash
-# Start all services (MongoDB on :27018, Backend on :8000, Frontend on :3000)
+# Start all services (MongoDB on :27018, Backend on :7777, Frontend on :3000)
 docker compose up
 
 # Build and start from scratch
@@ -91,7 +91,7 @@ docker compose ps
 
 **Docker Port Mappings:**
 - MongoDB: Host `27018` → Container `27017` (non-standard port to avoid conflicts)
-- Backend: Host `8000` → Container `8000`
+- Backend: Host `7777` → Container `7777`
 - Frontend: Host `3000` → Container `80` (Nginx)
 
 **Note:** Docker setup uses production builds (Nginx for frontend), so changes require rebuilding containers. Use local development for faster iteration.
@@ -189,7 +189,7 @@ await player.delete()                     # Delete document
 
 **API Integration:**
 - `services/api.ts` - Axios-based API client with Bearer token authentication
-- Vite dev server proxies `/api` requests to `http://localhost:8000` (configured in `vite.config.ts`)
+- Vite dev server proxies `/api` requests to `http://localhost:7777` (configured in `vite.config.ts`)
 - Production: Nginx proxies `/api` to backend service
 
 **Styling Conventions:**
@@ -224,7 +224,7 @@ await player.delete()                     # Delete document
 
 **Docker Port Mappings:**
 - MongoDB: Host `27018` → Container `27017` (non-standard port to avoid conflicts)
-- Backend: Host `8000` → Container `8000`
+- Backend: Host `7777` → Container `7777`
 - Frontend: Host `3000` → Container `80` (Nginx)
 
 ## Key Implementation Details

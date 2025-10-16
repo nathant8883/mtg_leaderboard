@@ -11,7 +11,10 @@ router = APIRouter()
 @router.get("/")
 async def get_all_players():
     """Get all players (excluding guests)"""
-    players = await Player.find(Player.is_guest == False).to_list()
+    # Match players where is_guest is False OR doesn't exist (for backward compatibility)
+    players = await Player.find(
+        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+    ).to_list()
     # Convert _id to id for frontend compatibility
     return [
         {
