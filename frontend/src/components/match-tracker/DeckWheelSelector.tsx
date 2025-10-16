@@ -35,7 +35,16 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
 
       // Auto-select first deck if only one
       if (playerDecks.length === 1) {
-        setSelectedDeckId(playerDecks[0].id!);
+        const deck = playerDecks[0];
+        setTimeout(() => {
+          onSelect({
+            deckId: deck.id!,
+            deckName: deck.name,
+            commander: deck.commander,
+            commanderImageUrl: deck.commander_image_url || '',
+            colors: deck.colors,
+          });
+        }, 300);
       }
     } catch (err) {
       console.error('Error loading decks:', err);
@@ -44,19 +53,18 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
     }
   };
 
-  const handleConfirm = () => {
-    if (!selectedDeckId) return;
-
-    const selectedDeck = decks.find((d) => d.id === selectedDeckId);
-    if (selectedDeck) {
+  const handleDeckSelect = (deck: Deck) => {
+    setSelectedDeckId(deck.id!);
+    // Brief delay to show selection animation
+    setTimeout(() => {
       onSelect({
-        deckId: selectedDeck.id!,
-        deckName: selectedDeck.name,
-        commander: selectedDeck.commander,
-        commanderImageUrl: selectedDeck.commander_image_url || '',
-        colors: selectedDeck.colors,
+        deckId: deck.id!,
+        deckName: deck.name,
+        commander: deck.commander,
+        commanderImageUrl: deck.commander_image_url || '',
+        colors: deck.colors,
       });
-    }
+    }, 300);
   };
 
   if (loading) {
@@ -89,56 +97,60 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
     );
   }
 
+  // Calculate positions in a circle for wheel layout
+  const calculatePosition = (index: number, total: number) => {
+    const radius = 100; // Distance from center
+    const angleStep = (2 * Math.PI) / total;
+    const startAngle = 0; // Start at right (3 o'clock position)
+    const angle = startAngle + (angleStep * index);
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    return { x, y };
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-content deck-selector-modal">
-        <h2>Select Deck for {playerName}</h2>
+        <div className="deck-wheel-header">
+          <h2>Select Deck for {playerName}</h2>
+        </div>
 
         <div className="deck-wheel-container">
           <div className="deck-wheel">
-            {decks.map((deck) => (
-              <button
-                key={deck.id}
-                className={`deck-wheel-card ${selectedDeckId === deck.id ? 'selected' : ''}`}
-                onClick={() => setSelectedDeckId(deck.id!)}
-              >
-                <div className="deck-card-image">
-                  {deck.commander_image_url ? (
-                    <img
-                      src={deck.commander_image_url}
-                      alt={deck.commander}
-                      className="commander-image"
-                    />
-                  ) : (
-                    <div className="commander-placeholder">🎴</div>
-                  )}
-                </div>
-                <div className="deck-card-info">
-                  <div className="deck-card-name">{deck.name}</div>
-                  <div className="deck-card-commander">{deck.commander}</div>
-                  <div className="deck-card-colors">
-                    <ColorPips colors={deck.colors} />
-                  </div>
-                </div>
-                {selectedDeckId === deck.id && (
-                  <div className="deck-selected-indicator">✓</div>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+            {/* Center circle */}
+            <div className="deck-wheel-center"></div>
 
-        <div className="modal-actions">
-          <button className="btn-secondary" onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            className="btn-primary"
-            onClick={handleConfirm}
-            disabled={!selectedDeckId}
-          >
-            Confirm
-          </button>
+            {/* Deck items positioned in circle */}
+            {decks.map((deck, index) => {
+              const { x, y } = calculatePosition(index, decks.length);
+              return (
+                <button
+                  key={deck.id}
+                  className={`deck-wheel-item ${selectedDeckId === deck.id ? 'selected' : ''}`}
+                  style={{
+                    transform: `translate(${x}px, ${y}px)`,
+                  }}
+                  onClick={() => handleDeckSelect(deck)}
+                >
+                  <div className="deck-icon-circle">
+                    {deck.commander_image_url ? (
+                      <img
+                        src={deck.commander_image_url}
+                        alt={deck.commander}
+                        className="deck-commander-image"
+                      />
+                    ) : (
+                      <div className="deck-commander-placeholder">🎴</div>
+                    )}
+                  </div>
+                  <div className="deck-item-name">{deck.name}</div>
+                  <div className="deck-item-colors">
+                    <ColorPips colors={deck.colors} size="small" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

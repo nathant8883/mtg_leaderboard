@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
+import LifeInputModal from './LifeInputModal';
+import CommanderDamageOverlay from './CommanderDamageOverlay';
 
 interface ActiveGameProps {
   players: PlayerSlot[];
@@ -12,6 +14,13 @@ interface ActiveGameProps {
 
 function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState }: ActiveGameProps) {
   const [timer, setTimer] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
+  const [lifeInputPlayer, setLifeInputPlayer] = useState<PlayerSlot | null>(null);
+  const [commanderDamagePlayer, setCommanderDamagePlayer] = useState<PlayerSlot | null>(null);
+
+  // Track touch start position for swipe detection
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   // Timer logic
   useEffect(() => {
@@ -62,25 +71,103 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     }
   };
 
+  const handleCommanderDamageUpdate = (playerPosition: number, opponentPosition: number, damage: number) => {
+    const updatedState = {
+      ...gameState,
+      playerStates: {
+        ...gameState.playerStates,
+        [playerPosition]: {
+          ...gameState.playerStates[playerPosition],
+          commanderDamage: {
+            ...(gameState.playerStates[playerPosition].commanderDamage || {}),
+            [opponentPosition]: damage,
+          },
+          // Check if this player should be eliminated due to commander damage
+          eliminated:
+            gameState.playerStates[playerPosition].eliminated ||
+            damage >= 21,
+        },
+      },
+    };
+
+    onUpdateGameState(updatedState);
+
+    // Check if only one player remains
+    const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
+    if (remainingPlayers.length === 1) {
+      const winnerPosition = Object.keys(updatedState.playerStates).find(
+        (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
+      );
+      if (winnerPosition) {
+        onGameComplete(parseInt(winnerPosition));
+      }
+    }
+  };
+
+  // Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent, player: PlayerSlot) => {
+    if (gameState.playerStates[player.position].eliminated) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, player: PlayerSlot) => {
+    if (gameState.playerStates[player.position].eliminated) return;
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX.current;
+    const deltaY = touchEndY - touchStartY.current;
+
+    // Detect horizontal swipe (threshold: 50px, must be more horizontal than vertical)
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      setCommanderDamagePlayer(player);
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   const playerCount = players.length;
 
   return (
     <div className="active-game">
-      {/* Header */}
-      <div className="header">
-        <div className="header-title">⚡ Commander Game</div>
-        <div className="timer">
-          ⏱️ <span>{formatTime(timer)}</span>
-        </div>
-        <button className="end-game-btn" onClick={() => {
-          const winner = Object.keys(gameState.playerStates).find(
-            (pos) => !gameState.playerStates[parseInt(pos)].eliminated
-          );
-          onGameComplete(winner ? parseInt(winner) : players[0].position);
-        }}>
-          End Game
-        </button>
-      </div>
+      {/* Floating Hamburger Menu Button */}
+      <button className="floating-menu-btn" onClick={() => setShowMenu(!showMenu)}>
+        ☰
+      </button>
+
+      {/* Menu Overlay */}
+      {showMenu && (
+        <>
+          <div className="menu-overlay" onClick={() => setShowMenu(false)} />
+          <div className="floating-menu">
+            <div className="menu-option" style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #2c2e33' }}>
+              <div style={{ fontSize: '12px', color: '#909296' }}>Game Time</div>
+              <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '4px' }}>{formatTime(timer)}</div>
+            </div>
+            <button
+              className="menu-option"
+              onClick={() => {
+                const winner = Object.keys(gameState.playerStates).find(
+                  (pos) => !gameState.playerStates[parseInt(pos)].eliminated
+                );
+                setShowMenu(false);
+                onGameComplete(winner ? parseInt(winner) : players[0].position);
+              }}
+            >
+              🏆 End Game
+            </button>
+            <button className="menu-option" onClick={() => {
+              setShowMenu(false);
+              onExit();
+            }}>
+              ← Exit Game
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Player Cards in Game Layout */}
       <div className={`players-grid layout-${layout} players-${playerCount}`}>
@@ -90,74 +177,96 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             <div
               key={player.position}
               className={`player-card ${playerState.eliminated ? 'eliminated' : ''}`}
+              onTouchStart={(e) => handleTouchStart(e, player)}
+              onTouchEnd={(e) => handleTouchEnd(e, player)}
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
 
               <div className="player-info">
-                <div>
-                  <div className="player-name">{player.playerName}</div>
-                  <div className="player-deck">{player.deckName}</div>
-                </div>
-                {!playerState.eliminated && (
-                  <button
-                    className="eliminate-btn"
-                    onClick={() => {
-                      const updatedState = {
-                        ...gameState,
-                        playerStates: {
-                          ...gameState.playerStates,
-                          [player.position]: {
-                            ...gameState.playerStates[player.position],
-                            eliminated: true,
-                          },
-                        },
-                      };
-                      onUpdateGameState(updatedState);
-
-                      const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
-                      if (remainingPlayers.length === 1) {
-                        const winnerPosition = Object.keys(updatedState.playerStates).find(
-                          (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
-                        );
-                        if (winnerPosition) {
-                          onGameComplete(parseInt(winnerPosition));
-                        }
-                      }
-                    }}
-                  >
-                    Eliminate
-                  </button>
-                )}
+                <div className="player-name">{player.playerName}</div>
+                <div className="player-deck">{player.deckName}</div>
               </div>
+
+              {/* Life buttons on sides */}
+              <button
+                className="life-btn-side life-btn-left"
+                onClick={() => handleLifeChange(player.position, -1)}
+                disabled={playerState.eliminated}
+              >
+                −
+              </button>
+
+              <button
+                className="life-btn-side life-btn-right"
+                onClick={() => handleLifeChange(player.position, 1)}
+                disabled={playerState.eliminated}
+              >
+                +
+              </button>
 
               <div className="life-section">
                 <div className="life-total" onClick={() => {
-                  // TODO: Open life input modal
+                  if (!playerState.eliminated) {
+                    setLifeInputPlayer(player);
+                  }
                 }}>
                   {playerState.life}
                 </div>
-                <div className="life-controls">
-                  <button
-                    className="life-btn"
-                    onClick={() => handleLifeChange(player.position, -1)}
-                    disabled={playerState.eliminated}
-                  >
-                    −
-                  </button>
-                  <button
-                    className="life-btn"
-                    onClick={() => handleLifeChange(player.position, 1)}
-                    disabled={playerState.eliminated}
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="swipe-indicator">← Swipe for Commander Damage →</div>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Life Input Modal */}
+      {lifeInputPlayer && (
+        <LifeInputModal
+          playerName={lifeInputPlayer.playerName}
+          currentLife={gameState.playerStates[lifeInputPlayer.position].life}
+          onConfirm={(newLife) => {
+            const updatedState = {
+              ...gameState,
+              playerStates: {
+                ...gameState.playerStates,
+                [lifeInputPlayer.position]: {
+                  ...gameState.playerStates[lifeInputPlayer.position],
+                  life: newLife,
+                  eliminated: newLife <= 0,
+                },
+              },
+            };
+
+            onUpdateGameState(updatedState);
+
+            // Check if only one player remains
+            const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
+            if (remainingPlayers.length === 1) {
+              const winnerPosition = Object.keys(updatedState.playerStates).find(
+                (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
+              );
+              if (winnerPosition) {
+                onGameComplete(parseInt(winnerPosition));
+              }
+            }
+
+            setLifeInputPlayer(null);
+          }}
+          onCancel={() => setLifeInputPlayer(null)}
+        />
+      )}
+
+      {/* Commander Damage Overlay */}
+      {commanderDamagePlayer && (
+        <CommanderDamageOverlay
+          targetPlayer={commanderDamagePlayer}
+          allPlayers={players}
+          commanderDamage={gameState.playerStates[commanderDamagePlayer.position].commanderDamage || {}}
+          onUpdate={(opponentPosition, damage) => {
+            handleCommanderDamageUpdate(commanderDamagePlayer.position, opponentPosition, damage);
+          }}
+          onClose={() => setCommanderDamagePlayer(null)}
+        />
+      )}
     </div>
   );
 }
