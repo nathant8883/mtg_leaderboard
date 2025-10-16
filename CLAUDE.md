@@ -109,13 +109,17 @@ docker compose ps
 The application uses Beanie (async ODM for MongoDB) with three main document types:
 
 1. **Player** (`app/models/player.py`)
-   - Fields: `name`, `avatar`, `deck_ids` (list of deck IDs), `created_at`
+   - Core fields: `name`, `avatar`, `deck_ids` (list of deck IDs), `created_at`
+   - OAuth fields: `email`, `google_id`, `picture` (Google profile picture URL)
+   - Permissions: `is_superuser` (boolean, default False) - grants access to admin panel and bypasses ownership checks
    - Collection: `players`
+   - Note: Superuser status must be set manually via database
 
 2. **Deck** (`app/models/player.py`)
-   - Fields: `name`, `commander`, `colors` (W/U/B/R/G), `created_at`
+   - Fields: `name`, `player_id`, `commander`, `commander_image_url`, `colors` (W/U/B/R/G), `created_at`
    - Collection: `decks`
    - Relationship: Referenced by Player via `deck_ids`
+   - Scryfall Integration: Commander names validated via Scryfall API, images and color identities auto-populated
 
 3. **Match** (`app/models/match.py`)
    - Fields: `players` (list of MatchPlayer), `winner_player_id`, `winner_deck_id`, `match_date`, `notes`, `created_at`
@@ -126,13 +130,22 @@ The application uses Beanie (async ODM for MongoDB) with three main document typ
 **Important:** When a match is created, it stores denormalized player/deck names as snapshots. This allows matches to retain historical accuracy even if players or decks are renamed later.
 
 **API Routers** (`app/routers/`):
-- `players.py` - CRUD operations for players
-- `decks.py` - CRUD operations for decks
+- `auth.py` - Authentication and authorization:
+  - `/api/auth/google` - Initiate Google OAuth flow
+  - `/api/auth/callback` - Handle OAuth callback, create JWT
+  - `/api/auth/me` - Get current authenticated user (requires Bearer token)
+  - `/api/auth/dev/login` - Development-only login bypass (only in development mode)
+- `players.py` - CRUD operations for players (admin-level endpoints)
+- `decks.py` - CRUD operations for decks (authentication required):
+  - POST: Creates deck for authenticated user only
+  - PUT/DELETE: Requires ownership or superuser status
+  - Scryfall integration for commander validation and image fetching
 - `matches.py` - Match recording and retrieval
 - `leaderboard.py` - Aggregation endpoints:
-  - `/api/leaderboard/players` - Calculates win rates by player
+  - `/api/leaderboard/players` - Calculates win rates by player with detailed stats
   - `/api/leaderboard/decks` - Calculates win rates by deck
   - `/api/leaderboard/stats` - Dashboard statistics (total games, leader, etc.)
+  - `/api/leaderboard/players/{id}/detail` - Detailed player stats with deck performance
 
 **Beanie Usage Patterns:**
 ```python
@@ -147,11 +160,35 @@ await player.delete()                     # Delete document
 ### Frontend Architecture
 
 **Component Structure:**
-- `App.tsx` - Main component with view state management (dashboard vs leaderboard)
-- `App.css` - Dark theme styling matching the mockup design
-- Uses React hooks (`useState`) for simple state management
+- `App.tsx` - Main component with view state management (dashboard/leaderboard/admin/player-detail)
+  - Handles custom events for cross-component navigation
+  - Conditional admin menu rendering based on superuser status
+- `App.css` - Dark theme styling with extensive CSS classes
+- `contexts/AuthContext.tsx` - Global authentication state management
+  - Stores current player, JWT token (localStorage)
+  - Provides login/logout/refreshPlayer functions
+- `pages/Login.tsx` - Google OAuth login + dev login bypass
+- `components/`:
+  - `ProfileDropdown.tsx` - User profile menu with avatar fallback logic
+  - `PlayerDetail.tsx` - Player profile page with deck list and stats
+  - `DeckForm.tsx` - Deck creation/edit form with Scryfall autocomplete
+  - `AdminPanel.tsx` - Admin interface (players and decks tabs)
+  - `Leaderboard.tsx` - Player rankings table
+  - `TopPlayers.tsx`, `TopDecks.tsx` - Dashboard widgets
+  - `StatsCards.tsx` - Dashboard statistics cards
+  - `RecentMatches.tsx` - Recent match history
+  - `MatchForm.tsx` - Match recording interface
+  - `ColorPips.tsx` - MTG mana symbol renderer
+
+**Authentication Flow:**
+1. User clicks "Login with Google" → redirects to Google OAuth
+2. OAuth callback returns to `/login?token=JWT`
+3. Login page extracts token, calls AuthContext.login()
+4. Token stored in localStorage, user data fetched from `/api/auth/me`
+5. Protected routes check AuthContext.currentPlayer before rendering
 
 **API Integration:**
+- `services/api.ts` - Axios-based API client with Bearer token authentication
 - Vite dev server proxies `/api` requests to `http://localhost:8000` (configured in `vite.config.ts`)
 - Production: Nginx proxies `/api` to backend service
 
@@ -159,6 +196,7 @@ await player.delete()                     # Delete document
 - Dark theme: Background `#141517`, Cards `#1A1B1E`, Borders `#2C2E33`
 - Primary gradient: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
 - Component classes follow BEM-like naming (`.header`, `.nav-btn`, `.stat-card`)
+- Responsive design with grid layouts
 
 ### Database Relationships
 
@@ -173,11 +211,16 @@ await player.delete()                     # Delete document
 
 ## Environment Configuration
 
-**Backend Environment Variables** (`.env` or docker-compose):
+**Backend Environment Variables** (`backend/.env` or docker-compose):
 - `MONGODB_URL` - MongoDB connection string (default: `mongodb://mongodb:27017`)
 - `DATABASE_NAME` - Database name (default: `mtg_leaderboard`)
-- `CORS_ORIGINS` - JSON array of allowed origins
+- `CORS_ORIGINS` - JSON array of allowed origins (e.g., `["http://localhost:5173"]`)
 - `API_TITLE`, `API_VERSION`, `API_DESCRIPTION` - OpenAPI metadata
+- `SECRET_KEY` - JWT signing key (generate with `openssl rand -hex 32`)
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+- `FRONTEND_URL` - Frontend URL for OAuth redirects (default: `http://localhost:5173`)
+- `environment` - Environment mode: "development" or "production" (affects dev login endpoint)
 
 **Docker Port Mappings:**
 - MongoDB: Host `27018` → Container `27017` (non-standard port to avoid conflicts)
@@ -185,6 +228,25 @@ await player.delete()                     # Delete document
 - Frontend: Host `3000` → Container `80` (Nginx)
 
 ## Key Implementation Details
+
+### Authentication & Security
+
+**JWT Authentication:**
+- JWTs are created with player ID as subject in `app/middleware/jwt.py`
+- Tokens stored in localStorage on frontend
+- `get_current_player` dependency injection used to protect endpoints
+- Token included in API requests via Axios interceptor: `Authorization: Bearer {token}`
+
+**Role-Based Access Control:**
+- Users can only create/edit/delete their own decks
+- `is_superuser` field bypasses ownership checks
+- Admin panel only visible to superusers
+- Player selector in deck form only shown in admin context
+
+**Development Login Bypass:**
+- `/api/auth/dev/login` creates/returns test user "Dev User" (dev@test.local)
+- Only available when `environment=development` in config
+- Uses DiceBear avatar service for profile pictures
 
 ### Beanie Document Registration
 
@@ -203,6 +265,20 @@ New routers must be included in `app/main.py`:
 app.include_router(new_router.router, prefix="/api/endpoint", tags=["tag"])
 ```
 
+### Scryfall Integration
+
+**Commander Validation** (`app/services/scryfall.py`):
+- Validates commander names against Scryfall database
+- Ensures card is a legendary creature
+- Auto-fetches commander image (art_crop preferred, fallback to normal)
+- Auto-populates color identity from Scryfall data
+- Used in deck create/update endpoints
+
+**CommanderAutocomplete Component:**
+- Real-time search as user types (300ms debounce)
+- Displays card images in dropdown
+- Auto-fills colors when commander selected
+
 ### Match Validation Rules
 
 1. Matches require minimum 3 players (`@field_validator` on `Match.players`)
@@ -213,34 +289,61 @@ app.include_router(new_router.router, prefix="/api/endpoint", tags=["tag"])
 
 **Note:** FastAPI endpoints without trailing slashes will return 307 redirects. Always include trailing slashes in route definitions or client requests.
 
-## Current State & Future Work
+## Current State & Features
 
-**Completed:**
-- ✅ Full backend API with all CRUD operations
-- ✅ Beanie ODM integration with MongoDB
-- ✅ Docker containerization with docker-compose
-- ✅ Frontend shell with navigation and full-width layout
-- ✅ Admin Panel with full player CRUD functionality
-  - Create players with name and avatar (emoji/letter)
-  - Edit existing players
-  - Delete players with confirmation
-  - Empty state and loading states
+**Completed Features:**
+- ✅ **Authentication & Authorization**
+  - Google OAuth 2.0 integration with JWT tokens
+  - Development login bypass for local testing
+  - Protected routes and API endpoints
+  - Role-based access control (superuser permissions)
+  - Profile dropdown with avatar fallback logic
+
+- ✅ **Player Management**
+  - Player profiles with detailed statistics
+  - Win rates, total games, favorite colors
+  - Deck ownership and management
+  - Admin panel for player CRUD (superusers only)
+
+- ✅ **Deck Management**
+  - Deck creation with Scryfall commander validation
+  - Commander autocomplete with card images
+  - Auto-populated color identities from Scryfall
+  - User can only manage their own decks
+  - Admin panel deck management (superusers only)
+
+- ✅ **Leaderboard System**
+  - Player rankings with win rates and statistics
+  - Deck performance tracking
+  - Dashboard statistics cards (total games, current leader, etc.)
+  - Top players and top decks widgets
+  - Detailed player profile pages
+
+- ✅ **Match Recording**
+  - Match form with player/deck selection
+  - Winner selection
+  - Match history with recent games
+  - Denormalized match data for historical accuracy
+
+- ✅ **UI/UX**
+  - Dark theme with purple gradient accents
+  - Responsive grid layouts
+  - Loading states and empty states
   - Modal forms with validation
-- ✅ API service layer (TypeScript) with Axios
-- ✅ Fixed MongoDB `_id` → `id` serialization for frontend compatibility
-- ✅ Dark theme UI with purple gradient accents
+  - MTG mana symbol rendering (ColorPips)
+  - Navigation between views
 
-**Pending Implementation:**
-- ⏳ Dashboard UI with stat cards and recent matches
-- ⏳ Match recording form (player selection, deck selection, winner marking)
-- ⏳ Deck management UI (similar to player management)
-- ⏳ Leaderboard tables (by player, by deck)
-- ⏳ Leaderboard calculation logic implementation
-- ⏳ Data visualization and charts
+- ✅ **Technical Infrastructure**
+  - Full backend API with all CRUD operations
+  - Beanie ODM integration with MongoDB
+  - Docker containerization with docker-compose
+  - TypeScript API service layer with Axios
+  - MongoDB `_id` → `id` serialization
+  - Hot reloading development environment
 
-**Design Reference:**
-The HTML mockup at `/home/nturner/Downloads/commander-leaderboard.html` contains the full UI design including:
-- Dashboard stat cards (purple/pink/blue/orange gradients)
-- Match recording workflow with player chips and deck dropdowns
-- Leaderboard tables with rank badges (gold/silver/bronze)
-- MTG color pip visualization for deck colors
+**Future Enhancements:**
+- ⏳ Data visualization and charts (win rate trends, color distribution)
+- ⏳ Advanced filtering and sorting on leaderboards
+- ⏳ Match history pagination
+- ⏳ Player statistics export
+- ⏳ Deck archetypes and tags
