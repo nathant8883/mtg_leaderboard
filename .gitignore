@@ -29,7 +29,7 @@ ENV/
 env/
 
 # uv
-uv.lock
+# uv.lock - commented out, lockfile should be committed for Docker builds
 .uv/
 
 # Node / Frontend
