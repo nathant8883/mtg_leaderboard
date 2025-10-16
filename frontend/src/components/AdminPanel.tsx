@@ -1,22 +1,28 @@
 import { useState, useEffect } from 'react';
-import type { Player } from '../services/api';
-import { playerApi } from '../services/api';
+import type { Player, Deck } from '../services/api';
+import { playerApi, deckApi } from '../services/api';
 import PlayerList from './PlayerList';
 import PlayerForm from './PlayerForm';
+import DeckList from './DeckList';
+import DeckForm from './DeckForm';
 
 type Tab = 'players' | 'decks';
 
 function AdminPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('players');
   const [players, setPlayers] = useState<Player[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPlayerForm, setShowPlayerForm] = useState(false);
+  const [showDeckForm, setShowDeckForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
   const [error, setError] = useState('');
 
   // Load players on mount
   useEffect(() => {
     loadPlayers();
+    loadDecks();
   }, []);
 
   const loadPlayers = async () => {
@@ -28,6 +34,20 @@ function AdminPanel() {
     } catch (err) {
       setError('Failed to load players');
       console.error('Error loading players:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadDecks = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const data = await deckApi.getAll();
+      setDecks(data);
+    } catch (err) {
+      setError('Failed to load decks');
+      console.error('Error loading decks:', err);
     } finally {
       setIsLoading(false);
     }
@@ -78,6 +98,51 @@ function AdminPanel() {
     setEditingPlayer(null);
   };
 
+  const handleCreateDeck = async (deckData: Omit<Deck, 'id' | 'created_at'>) => {
+    try {
+      await deckApi.create(deckData);
+      setShowDeckForm(false);
+      await loadDecks();
+    } catch (err) {
+      console.error('Error creating deck:', err);
+      throw new Error('Failed to create deck');
+    }
+  };
+
+  const handleUpdateDeck = async (deckData: Omit<Deck, 'id' | 'created_at'>) => {
+    if (!editingDeck?.id) return;
+
+    try {
+      await deckApi.update(editingDeck.id, deckData);
+      setEditingDeck(null);
+      setShowDeckForm(false);
+      await loadDecks();
+    } catch (err) {
+      console.error('Error updating deck:', err);
+      throw new Error('Failed to update deck');
+    }
+  };
+
+  const handleDeleteDeck = async (deckId: string) => {
+    try {
+      await deckApi.delete(deckId);
+      await loadDecks();
+    } catch (err) {
+      console.error('Error deleting deck:', err);
+      alert('Failed to delete deck');
+    }
+  };
+
+  const handleEditDeck = (deck: Deck) => {
+    setEditingDeck(deck);
+    setShowDeckForm(true);
+  };
+
+  const handleCloseDeckForm = () => {
+    setShowDeckForm(false);
+    setEditingDeck(null);
+  };
+
   return (
     <div className="admin-panel">
       <div className="card">
@@ -85,8 +150,7 @@ function AdminPanel() {
           <h2 className="card-title">Admin Panel</h2>
           <button
             className="primary-btn"
-            onClick={() => setShowPlayerForm(true)}
-            disabled={activeTab !== 'players'}
+            onClick={() => activeTab === 'players' ? setShowPlayerForm(true) : setShowDeckForm(true)}
           >
             {activeTab === 'players' ? '➕ Add Player' : '➕ Add Deck'}
           </button>
@@ -123,11 +187,12 @@ function AdminPanel() {
         )}
 
         {activeTab === 'decks' && (
-          <div className="empty-state">
-            <div className="empty-icon">🃏</div>
-            <h3>Deck Management</h3>
-            <p>Deck management coming soon!</p>
-          </div>
+          <DeckList
+            decks={decks}
+            players={players}
+            onEdit={handleEditDeck}
+            onDelete={handleDeleteDeck}
+          />
         )}
       </div>
 
@@ -137,6 +202,16 @@ function AdminPanel() {
           onCancel={handleCloseForm}
           initialData={editingPlayer || undefined}
           isEdit={!!editingPlayer}
+        />
+      )}
+
+      {showDeckForm && (
+        <DeckForm
+          onSubmit={editingDeck ? handleUpdateDeck : handleCreateDeck}
+          onCancel={handleCloseDeckForm}
+          players={players}
+          initialData={editingDeck || undefined}
+          isEdit={!!editingDeck}
         />
       )}
     </div>
