@@ -23,6 +23,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [guestName, setGuestName] = useState('');
   const [creatingGuest, setCreatingGuest] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     loadPlayers();
@@ -109,20 +110,41 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
   return (
     <div className="player-assignment">
-      {/* Header */}
-      <div className="header">
-        <button className="back-btn" onClick={onBack}>
-          ← Back
-        </button>
-        <div className="header-title">Select Players</div>
-        <button
-          className="start-game-btn"
-          onClick={handleStartGame}
-          disabled={!allSlotsFilled}
-        >
-          Start
-        </button>
-      </div>
+      {/* Centered Hamburger Menu */}
+      <button
+        className="floating-menu-btn"
+        onClick={() => setShowMenu(!showMenu)}
+      >
+        ☰
+      </button>
+
+      {/* Menu Overlay */}
+      {showMenu && (
+        <>
+          <div className="menu-overlay" onClick={() => setShowMenu(false)} />
+          <div className="floating-menu">
+            <button
+              className="menu-option"
+              onClick={() => {
+                setShowMenu(false);
+                onBack();
+              }}
+            >
+              ← Back to Setup
+            </button>
+            <button
+              className="menu-option primary"
+              onClick={() => {
+                setShowMenu(false);
+                handleStartGame();
+              }}
+              disabled={!allSlotsFilled}
+            >
+              Start Game
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Player Slots in Game Layout */}
       <div className={`players-grid layout-${layout} players-${playerCount}`}>
