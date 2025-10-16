@@ -1,11 +1,11 @@
 /* eslint-disable no-restricted-globals */
 // Service Worker for MTG Commander Leaderboard PWA
 
-const CACHE_NAME = 'mtg-leaderboard-v1';
+const CACHE_NAME = 'mtg-leaderboard-v2';
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/manifest.json'
+  '/index.html'
+  // Note: manifest.json excluded - should always be fetched fresh for PWA updates
 ];
 
 // Install event - cache resources
