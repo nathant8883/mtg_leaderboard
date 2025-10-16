@@ -39,6 +39,7 @@ export interface MatchState {
   startingLife: number;
   currentStep: StepType;
   gameState?: ActiveGameState;
+  winnerPosition?: number;
 }
 
 const STORAGE_KEY = 'mtg_active_match';
@@ -141,6 +142,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     setMatchState({
       ...matchState,
       currentStep: 'winner',
+      winnerPosition: winnerPosition,
     });
   };
 
@@ -242,6 +244,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
         <WinnerScreen
           players={matchState.players}
           gameState={matchState.gameState}
+          winnerPosition={matchState.winnerPosition}
           onSave={handleMatchSave}
           onDiscard={handleMatchDiscard}
         />
