@@ -3,7 +3,7 @@
   "short_name": "MTG Leaderboard",
   "description": "Track your Magic: The Gathering Commander games and compete with friends",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#141517",
   "theme_color": "#667eea",
   "orientation": "any",
