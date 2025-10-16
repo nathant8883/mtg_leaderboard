@@ -97,10 +97,48 @@ function TopDecks({ onViewLeaderboard, onPlayerClick }: TopDecksProps) {
                     </div>
                   </td>
                   <td>
-                    <div>
-                      <div className="deck-name">{deck.deck_name}</div>
-                      <div className="commander-name" style={{ fontSize: '13px', marginTop: '2px' }}>
-                        {deck.commander}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {deck.commander_image_url ? (
+                        <div
+                          style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            border: '2px solid #2C2E33',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <img
+                            src={deck.commander_image_url}
+                            alt={deck.commander}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center 20%',
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="player-avatar-badge"
+                          style={{
+                            width: '50px',
+                            height: '50px',
+                            flexShrink: 0,
+                            fontSize: '20px',
+                          }}
+                        >
+                          🎴
+                        </div>
+                      )}
+                      <div>
+                        <div className="deck-name">{deck.deck_name}</div>
+                        <div className="commander-name" style={{ fontSize: '13px', marginTop: '2px' }}>
+                          {deck.commander}
+                        </div>
                       </div>
                     </div>
                   </td>
