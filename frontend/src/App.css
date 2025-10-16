@@ -1380,27 +1380,48 @@ body {
 @media (max-width: 768px) {
   /* ===== HEADER & NAVIGATION ===== */
   .header {
-    padding: 12px 16px;
+    padding: 10px 12px;
   }
 
   .header-title {
-    font-size: 16px;
+    display: none; /* Hide title text on mobile to save space */
+  }
+
+  .header-left {
+    gap: 12px; /* Reduce gap between logo and buttons */
   }
 
   .nav-buttons {
-    gap: 8px;
+    gap: 6px; /* Reduce gap between nav buttons */
   }
 
-  /* Hide "Launchpad" text on mobile, show only emoji */
+  /* Show only emoji/icons on nav buttons, hide text */
   .nav-btn {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 8px 10px;
+    font-size: 18px;
+    min-width: 40px;
+    justify-content: center;
   }
 
-  /* Shorten button text for mobile */
+  /* Hide button text, keep only emoji */
+  .nav-btn span:not(:first-child) {
+    display: none;
+  }
+
   .record-match-btn {
-    font-size: 13px;
-    padding: 8px 12px;
+    padding: 8px 10px;
+    font-size: 18px;
+    min-width: 40px;
+    justify-content: center;
+  }
+
+  .record-match-btn span:not(:first-child) {
+    display: none;
+  }
+
+  .hamburger-btn {
+    padding: 8px 10px;
+    min-width: 40px;
   }
 
   /* ===== CONTAINER & LAYOUT ===== */

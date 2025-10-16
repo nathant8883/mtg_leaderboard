@@ -114,19 +114,22 @@ function App() {
                 className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
                 onClick={() => setActiveView('dashboard')}
               >
-                🚀 Launchpad
+                <span>🚀</span>
+                <span> Launchpad</span>
               </button>
               <button
                 className="record-match-btn"
                 onClick={() => setActiveView('match-tracker')}
               >
-                🎮 Match Tracker
+                <span>🎮</span>
+                <span> Match Tracker</span>
               </button>
               <button
                 className="record-match-btn"
                 onClick={() => setShowMatchForm(true)}
               >
-                ➕ Record Match
+                <span>➕</span>
+                <span> Record Match</span>
               </button>
               <div className="hamburger-menu">
                 <button
