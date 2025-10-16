@@ -124,6 +124,57 @@ async def get_dashboard_stats() -> Dict[str, Any]:
     if matches:
         last_game_date = max(match.match_date for match in matches)
 
+    # Most games played (player)
+    most_games_player = None
+    if players and matches:
+        player_game_counts = []
+        for player in players:
+            player_id = str(player.id)
+            games_played = sum(1 for match in matches if any(p.player_id == player_id for p in match.players))
+            if games_played > 0:
+                player_game_counts.append({
+                    "player_name": player.name,
+                    "games_played": games_played
+                })
+        if player_game_counts:
+            most_games_player = max(player_game_counts, key=lambda x: x["games_played"])
+
+    # Most played deck (deck + player)
+    most_played_deck = None
+    if decks and matches:
+        player_lookup = {str(p.id): p.name for p in players}
+        deck_game_counts = []
+        for deck in decks:
+            deck_id = str(deck.id)
+            games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
+            if games_played > 0:
+                owner_name = player_lookup.get(deck.player_id, "Unknown")
+                deck_game_counts.append({
+                    "deck_name": deck.name,
+                    "commander_image_url": deck.commander_image_url,
+                    "player_name": owner_name,
+                    "games_played": games_played
+                })
+        if deck_game_counts:
+            most_played_deck = max(deck_game_counts, key=lambda x: x["games_played"])
+
+    # Most popular single color (any deck containing that color)
+    most_popular_color = None
+    if decks:
+        # Count individual colors across all decks
+        color_counts = {}
+        for deck in decks:
+            if deck.colors:
+                for color in deck.colors:
+                    color_counts[color] = color_counts.get(color, 0) + 1
+
+        if color_counts:
+            most_common_color = max(color_counts.items(), key=lambda x: x[1])
+            most_popular_color = {
+                "color": most_common_color[0],
+                "percentage": round((most_common_color[1] / len(decks)) * 100, 1)
+            }
+
     return {
         "total_games": total_games,
         "total_players": total_players,
@@ -131,4 +182,7 @@ async def get_dashboard_stats() -> Dict[str, Any]:
         "avg_pod_size": avg_pod_size,
         "current_leader": current_leader,
         "last_game_date": last_game_date,
+        "most_games_player": most_games_player,
+        "most_played_deck": most_played_deck,
+        "most_popular_color": most_popular_color,
     }

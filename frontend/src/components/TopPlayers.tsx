@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { leaderboardApi, type PlayerLeaderboardEntry } from '../services/api';
 
-function TopPlayers() {
+interface TopPlayersProps {
+  onViewLeaderboard: () => void;
+}
+
+function TopPlayers({ onViewLeaderboard }: TopPlayersProps) {
   const [players, setPlayers] = useState<PlayerLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -62,7 +66,12 @@ function TopPlayers() {
 
   return (
     <div className="card">
-      <h2 className="card-title">Top Players</h2>
+      <div className="card-header">
+        <h2 className="card-title">Top Players</h2>
+        <button className="view-all-link" onClick={onViewLeaderboard}>
+          View All
+        </button>
+      </div>
       <div className="leaderboard-table-container">
         <table className="leaderboard-table">
           <thead>

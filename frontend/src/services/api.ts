@@ -115,6 +115,29 @@ export interface DeckLeaderboardEntry {
   win_rate: number;
 }
 
+export interface DashboardStats {
+  total_games: number;
+  total_players: number;
+  total_decks: number;
+  avg_pod_size: number;
+  current_leader: PlayerLeaderboardEntry | null;
+  last_game_date: string | null;
+  most_games_player: {
+    player_name: string;
+    games_played: number;
+  } | null;
+  most_played_deck: {
+    deck_name: string;
+    commander_image_url?: string;
+    player_name: string;
+    games_played: number;
+  } | null;
+  most_popular_color: {
+    color: string;
+    percentage: number;
+  } | null;
+}
+
 // Deck API Functions
 export const deckApi = {
   getAll: async (): Promise<Deck[]> => {
@@ -201,6 +224,11 @@ export const leaderboardApi = {
 
   getDeckLeaderboard: async (): Promise<DeckLeaderboardEntry[]> => {
     const response = await api.get('/leaderboard/decks');
+    return response.data;
+  },
+
+  getStats: async (): Promise<DashboardStats> => {
+    const response = await api.get('/leaderboard/stats');
     return response.data;
   },
 };

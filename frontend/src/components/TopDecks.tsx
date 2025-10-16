@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
 import { leaderboardApi, type DeckLeaderboardEntry } from '../services/api';
 
-function TopDecks() {
+interface TopDecksProps {
+  onViewLeaderboard: () => void;
+}
+
+function TopDecks({ onViewLeaderboard }: TopDecksProps) {
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,7 +67,12 @@ function TopDecks() {
 
   return (
     <div className="card">
-      <h2 className="card-title">Top Decks</h2>
+      <div className="card-header">
+        <h2 className="card-title">Top Decks</h2>
+        <button className="view-all-link" onClick={onViewLeaderboard}>
+          View All
+        </button>
+      </div>
       <div className="leaderboard-table-container">
         <table className="leaderboard-table">
           <thead>

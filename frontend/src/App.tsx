@@ -7,14 +7,16 @@ import RecentMatches from './components/RecentMatches'
 import Leaderboard from './components/Leaderboard'
 import TopPlayers from './components/TopPlayers'
 import TopDecks from './components/TopDecks'
+import StatsCards from './components/StatsCards'
 import type { Player, Deck, CreateMatchRequest, Match } from './services/api'
 import { playerApi, deckApi, matchApi } from './services/api'
 
 type ViewType = 'dashboard' | 'leaderboard' | 'admin';
 
 function App() {
-  const [activeView, setActiveView] = useState<ViewType>('leaderboard')
+  const [activeView, setActiveView] = useState<ViewType>('dashboard')
   const [showMatchForm, setShowMatchForm] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
   const [players, setPlayers] = useState<Player[]>([])
   const [decks, setDecks] = useState<Deck[]>([])
   const [matches, setMatches] = useState<Match[]>([])
@@ -82,20 +84,44 @@ function App() {
               className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveView('dashboard')}
             >
-              📊 Dashboard
+              🚀 Launchpad
             </button>
             <button
-              className={`nav-btn ${activeView === 'leaderboard' ? 'active' : ''}`}
-              onClick={() => setActiveView('leaderboard')}
+              className="record-match-btn"
+              onClick={() => setShowMatchForm(true)}
             >
-              🏆 Leaderboard
+              ➕ Record Match
             </button>
-            <button
-              className={`nav-btn ${activeView === 'admin' ? 'active' : ''}`}
-              onClick={() => setActiveView('admin')}
-            >
-              ⚙️ Admin
-            </button>
+            <div className="hamburger-menu">
+              <button
+                className="hamburger-btn"
+                onClick={() => setShowMenu(!showMenu)}
+              >
+                ☰
+              </button>
+              {showMenu && (
+                <div className="menu-dropdown">
+                  <button
+                    className="menu-item"
+                    onClick={() => {
+                      setActiveView('leaderboard')
+                      setShowMenu(false)
+                    }}
+                  >
+                    🏆 Leaderboard
+                  </button>
+                  <button
+                    className="menu-item"
+                    onClick={() => {
+                      setActiveView('admin')
+                      setShowMenu(false)
+                    }}
+                  >
+                    ⚙️ Admin
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -104,17 +130,11 @@ function App() {
       <div className="container">
         {activeView === 'dashboard' && (
           <div>
-            <button
-              className="primary-btn"
-              onClick={() => setShowMatchForm(true)}
-              style={{ marginBottom: '32px' }}
-            >
-              ➕ Record New Match
-            </button>
+            <StatsCards />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
-              <TopPlayers />
-              <TopDecks />
+              <TopPlayers onViewLeaderboard={() => setActiveView('leaderboard')} />
+              <TopDecks onViewLeaderboard={() => setActiveView('leaderboard')} />
             </div>
 
             <RecentMatches matches={matches} loading={loadingMatches} />
