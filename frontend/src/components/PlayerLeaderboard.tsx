@@ -3,9 +3,10 @@ import type { PlayerLeaderboardEntry } from '../services/api';
 interface PlayerLeaderboardProps {
   players: PlayerLeaderboardEntry[];
   loading?: boolean;
+  onPlayerClick: (playerId: string) => void;
 }
 
-function PlayerLeaderboard({ players, loading = false }: PlayerLeaderboardProps) {
+function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLeaderboardProps) {
   const getRankBadgeClass = (rank: number): string => {
     if (rank === 1) return 'rank-badge gold';
     if (rank === 2) return 'rank-badge silver';
@@ -71,7 +72,12 @@ function PlayerLeaderboard({ players, loading = false }: PlayerLeaderboardProps)
                     <div className="player-avatar-badge">
                       {player.player_name.charAt(0).toUpperCase()}
                     </div>
-                    <span className="player-name">{player.player_name}</span>
+                    <span
+                      className="player-name clickable"
+                      onClick={() => onPlayerClick(player.player_id)}
+                    >
+                      {player.player_name}
+                    </span>
                   </div>
                 </td>
                 <td className="center">

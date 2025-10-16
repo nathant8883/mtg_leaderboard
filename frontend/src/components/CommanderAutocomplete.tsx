@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { scryfallApi, type CommanderCard } from '../services/api';
+import ColorPips from './ColorPips';
 
 interface CommanderAutocompleteProps {
   value: string;
@@ -103,17 +104,6 @@ function CommanderAutocomplete({ value, onChange, disabled = false }: CommanderA
     }
   };
 
-  const getColorSymbols = (colors: string[]) => {
-    const colorMap: Record<string, string> = {
-      W: '⚪',
-      U: '🔵',
-      B: '⚫',
-      R: '🔴',
-      G: '🟢',
-    };
-    return colors.map((c) => colorMap[c] || c).join('');
-  };
-
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <input
@@ -157,7 +147,7 @@ function CommanderAutocomplete({ value, onChange, disabled = false }: CommanderA
               </div>
               {commander.color_identity.length > 0 && (
                 <div className="commander-suggestion-colors">
-                  {getColorSymbols(commander.color_identity)}
+                  <ColorPips colors={commander.color_identity} />
                 </div>
               )}
             </div>

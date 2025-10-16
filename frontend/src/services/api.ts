@@ -28,6 +28,11 @@ export const playerApi = {
     return response.data;
   },
 
+  getDetail: async (id: string): Promise<PlayerDetail> => {
+    const response = await api.get(`/players/${id}/detail`);
+    return response.data;
+  },
+
   create: async (player: Omit<Player, 'id' | 'created_at'>): Promise<Player> => {
     const response = await api.post('/players/', player);
     return response.data;
@@ -108,6 +113,7 @@ export interface DeckLeaderboardEntry {
   commander: string;
   commander_image_url?: string;
   colors: string[];
+  player_id: string;
   player_name: string;
   games_played: number;
   wins: number;
@@ -136,6 +142,34 @@ export interface DashboardStats {
     color: string;
     percentage: number;
   } | null;
+}
+
+export interface PlayerDeckStats {
+  deck_id: string;
+  deck_name: string;
+  commander: string;
+  commander_image_url?: string;
+  colors: string[];
+  games_played: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+}
+
+export interface PlayerDetail {
+  player_id: string;
+  player_name: string;
+  avatar?: string;
+  rank: number | null;
+  total_games: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+  active_decks: number;
+  member_since: string;
+  favorite_single_color: string | null;
+  favorite_color_combo: string[] | null;
+  decks: PlayerDeckStats[];
 }
 
 // Deck API Functions

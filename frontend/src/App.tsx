@@ -8,15 +8,17 @@ import Leaderboard from './components/Leaderboard'
 import TopPlayers from './components/TopPlayers'
 import TopDecks from './components/TopDecks'
 import StatsCards from './components/StatsCards'
+import PlayerDetail from './components/PlayerDetail'
 import type { Player, Deck, CreateMatchRequest, Match } from './services/api'
 import { playerApi, deckApi, matchApi } from './services/api'
 
-type ViewType = 'dashboard' | 'leaderboard' | 'admin';
+type ViewType = 'dashboard' | 'leaderboard' | 'admin' | 'player-detail';
 
 function App() {
   const [activeView, setActiveView] = useState<ViewType>('dashboard')
   const [showMatchForm, setShowMatchForm] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [players, setPlayers] = useState<Player[]>([])
   const [decks, setDecks] = useState<Deck[]>([])
   const [matches, setMatches] = useState<Match[]>([])
@@ -69,6 +71,16 @@ function App() {
     }
   }
 
+  const handleViewPlayerDetail = (playerId: string) => {
+    setSelectedPlayerId(playerId)
+    setActiveView('player-detail')
+  }
+
+  const handleBackFromPlayerDetail = () => {
+    setSelectedPlayerId(null)
+    setActiveView('dashboard')
+  }
+
   return (
     <div className="app">
       <Toaster />
@@ -76,7 +88,7 @@ function App() {
       <div className="header">
         <div className="header-content">
           <div className="header-left">
-            <div className="logo">🏆</div>
+            <div className="logo" onClick={() => setActiveView('dashboard')} style={{ cursor: 'pointer' }}>🏆</div>
             <h1 className="header-title">Commander League</h1>
           </div>
           <div className="nav-buttons">
@@ -133,17 +145,29 @@ function App() {
             <StatsCards />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
-              <TopPlayers onViewLeaderboard={() => setActiveView('leaderboard')} />
-              <TopDecks onViewLeaderboard={() => setActiveView('leaderboard')} />
+              <TopPlayers
+                onViewLeaderboard={() => setActiveView('leaderboard')}
+                onPlayerClick={handleViewPlayerDetail}
+              />
+              <TopDecks
+                onViewLeaderboard={() => setActiveView('leaderboard')}
+                onPlayerClick={handleViewPlayerDetail}
+              />
             </div>
 
             <RecentMatches matches={matches} loading={loadingMatches} />
           </div>
         )}
         {activeView === 'leaderboard' && (
-          <Leaderboard />
+          <Leaderboard onPlayerClick={handleViewPlayerDetail} />
         )}
         {activeView === 'admin' && <AdminPanel />}
+        {activeView === 'player-detail' && selectedPlayerId && (
+          <PlayerDetail
+            playerId={selectedPlayerId}
+            onBack={handleBackFromPlayerDetail}
+          />
+        )}
       </div>
 
       {/* Match Form Modal */}

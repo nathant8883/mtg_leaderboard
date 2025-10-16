@@ -1,4 +1,5 @@
 import type { Deck, Player } from '../services/api';
+import ColorPips from './ColorPips';
 
 interface DeckListProps {
   decks: Deck[];
@@ -11,17 +12,6 @@ function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
   const getPlayerName = (playerId: string): string => {
     const player = players.find((p) => p.id === playerId);
     return player ? player.name : 'Unknown Player';
-  };
-
-  const getColorSymbols = (colorList: string[]) => {
-    const colorMap: Record<string, string> = {
-      W: '⚪',
-      U: '🔵',
-      B: '⚫',
-      R: '🔴',
-      G: '🟢',
-    };
-    return colorList.map((c) => colorMap[c] || c).join(' ');
   };
 
   const handleDelete = (deck: Deck) => {
@@ -98,9 +88,7 @@ function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
                 <span className="deck-count">{getPlayerName(deck.player_id)}</span>
               </td>
               <td className="center">
-                <span style={{ fontSize: '20px' }}>
-                  {deck.colors.length > 0 ? getColorSymbols(deck.colors) : '-'}
-                </span>
+                {deck.colors.length > 0 ? <ColorPips colors={deck.colors} /> : '-'}
               </td>
               <td className="center">
                 <div className="action-buttons">

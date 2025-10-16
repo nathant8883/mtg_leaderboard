@@ -4,9 +4,10 @@ import type { DeckLeaderboardEntry } from '../services/api';
 interface DeckLeaderboardProps {
   decks: DeckLeaderboardEntry[];
   loading?: boolean;
+  onPlayerClick: (playerId: string) => void;
 }
 
-function DeckLeaderboard({ decks, loading = false }: DeckLeaderboardProps) {
+function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderboardProps) {
   const getRankBadgeClass = (rank: number): string => {
     if (rank === 1) return 'rank-badge gold';
     if (rank === 2) return 'rank-badge silver';
@@ -75,7 +76,12 @@ function DeckLeaderboard({ decks, loading = false }: DeckLeaderboardProps) {
                     <div className="player-avatar-badge">
                       {deck.player_name.charAt(0).toUpperCase()}
                     </div>
-                    <span className="player-name">{deck.player_name}</span>
+                    <span
+                      className="player-name clickable"
+                      onClick={() => onPlayerClick(deck.player_id)}
+                    >
+                      {deck.player_name}
+                    </span>
                   </div>
                 </td>
                 <td>

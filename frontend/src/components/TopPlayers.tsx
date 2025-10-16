@@ -3,9 +3,10 @@ import { leaderboardApi, type PlayerLeaderboardEntry } from '../services/api';
 
 interface TopPlayersProps {
   onViewLeaderboard: () => void;
+  onPlayerClick: (playerId: string) => void;
 }
 
-function TopPlayers({ onViewLeaderboard }: TopPlayersProps) {
+function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
   const [players, setPlayers] = useState<PlayerLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,7 +99,12 @@ function TopPlayers({ onViewLeaderboard }: TopPlayersProps) {
                       <div className="player-avatar-badge">
                         {player.player_name.charAt(0).toUpperCase()}
                       </div>
-                      <span className="player-name">{player.player_name}</span>
+                      <span
+                        className="player-name clickable"
+                        onClick={() => onPlayerClick(player.player_id)}
+                      >
+                        {player.player_name}
+                      </span>
                     </div>
                   </td>
                   <td className="center">

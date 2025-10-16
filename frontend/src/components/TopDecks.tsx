@@ -4,9 +4,10 @@ import { leaderboardApi, type DeckLeaderboardEntry } from '../services/api';
 
 interface TopDecksProps {
   onViewLeaderboard: () => void;
+  onPlayerClick: (playerId: string) => void;
 }
 
-function TopDecks({ onViewLeaderboard }: TopDecksProps) {
+function TopDecks({ onViewLeaderboard, onPlayerClick }: TopDecksProps) {
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 

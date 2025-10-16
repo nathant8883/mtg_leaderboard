@@ -1069,3 +1069,281 @@ body {
 .tab-content {
   margin-top: 0;
 }
+
+/* Clickable Player Names */
+.player-name.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.player-name.clickable:hover {
+  color: #667eea;
+}
+
+/* Player Detail Page */
+.player-detail-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.player-nav-bar {
+  background: #1A1B1E;
+  border-bottom: 1px solid #2C2E33;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+}
+
+.player-nav-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid #2C2E33;
+  color: #909296;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.back-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.nav-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #909296;
+}
+
+.sidebar-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+}
+
+.player-sidebar {
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+}
+
+.sidebar-card {
+  background: #1A1B1E;
+  border: 1px solid #2C2E33;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.sidebar-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 auto 20px;
+  border: 4px solid #2C2E33;
+  color: #fff;
+}
+
+.sidebar-name {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.sidebar-rank {
+  text-align: center;
+  color: #909296;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.sidebar-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #25262B;
+  border-radius: 8px;
+}
+
+.sidebar-stat-label {
+  color: #909296;
+  font-size: 13px;
+}
+
+.sidebar-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.player-main-content {
+  min-height: 100vh;
+}
+
+.content-section {
+  background: #1A1B1E;
+  border: 1px solid #2C2E33;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.deck-count {
+  color: #909296;
+  font-size: 14px;
+  display: block;
+  margin-top: 4px;
+}
+
+.section-action {
+  padding: 8px 16px;
+  background: #667eea;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.section-action:hover {
+  background: #5568d3;
+}
+
+.decks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.deck-card {
+  background: #25262B;
+  border: 1px solid #2C2E33;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.deck-card:hover {
+  border-color: #667eea;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.deck-card-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.deck-commander-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.deck-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 20px;
+}
+
+.deck-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.deck-commander {
+  font-size: 13px;
+  color: #909296;
+  margin-bottom: 12px;
+}
+
+.deck-colors {
+  display: flex;
+  gap: 4px;
+}
+
+.deck-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid #2C2E33;
+}
+
+.deck-stat {
+  text-align: center;
+}
+
+.deck-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.deck-stat-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Responsive layout for player detail */
+@media (max-width: 1024px) {
+  .sidebar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .player-sidebar {
+    position: static;
+  }
+}

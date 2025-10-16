@@ -85,6 +85,7 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
                 "commander": deck.commander,
                 "commander_image_url": deck.commander_image_url,
                 "colors": deck.colors,
+                "player_id": deck.player_id,
                 "player_name": owner_name,
                 "games_played": games_played,
                 "wins": wins,

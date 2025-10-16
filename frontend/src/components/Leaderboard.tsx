@@ -5,7 +5,11 @@ import { leaderboardApi, type PlayerLeaderboardEntry, type DeckLeaderboardEntry 
 
 type LeaderboardTab = 'players' | 'decks';
 
-function Leaderboard() {
+interface LeaderboardProps {
+  onPlayerClick: (playerId: string) => void;
+}
+
+function Leaderboard({ onPlayerClick }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>('players');
   const [players, setPlayers] = useState<PlayerLeaderboardEntry[]>([]);
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
@@ -64,10 +68,10 @@ function Leaderboard() {
       {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'players' && (
-          <PlayerLeaderboard players={players} loading={loadingPlayers} />
+          <PlayerLeaderboard players={players} loading={loadingPlayers} onPlayerClick={onPlayerClick} />
         )}
         {activeTab === 'decks' && (
-          <DeckLeaderboard decks={decks} loading={loadingDecks} />
+          <DeckLeaderboard decks={decks} loading={loadingDecks} onPlayerClick={onPlayerClick} />
         )}
       </div>
     </div>

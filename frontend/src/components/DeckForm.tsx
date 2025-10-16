@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { Deck, Player } from '../services/api';
 import CommanderAutocomplete from './CommanderAutocomplete';
+import ColorPips from './ColorPips';
 
 interface DeckFormProps {
   onSubmit: (deck: Omit<Deck, 'id' | 'created_at'>) => Promise<void>;
@@ -62,17 +63,6 @@ function DeckForm({ onSubmit, onCancel, players, initialData, isEdit = false }: 
       setError(err instanceof Error ? err.message : 'Failed to save deck');
       setIsSubmitting(false);
     }
-  };
-
-  const getColorSymbols = (colorList: string[]) => {
-    const colorMap: Record<string, string> = {
-      W: '⚪',
-      U: '🔵',
-      B: '⚫',
-      R: '🔴',
-      G: '🟢',
-    };
-    return colorList.map((c) => colorMap[c] || c).join(' ');
   };
 
   return (
@@ -152,9 +142,7 @@ function DeckForm({ onSubmit, onCancel, players, initialData, isEdit = false }: 
                     {commander}
                   </div>
                   {colors.length > 0 && (
-                    <div style={{ fontSize: '20px' }}>
-                      {getColorSymbols(colors)}
-                    </div>
+                    <ColorPips colors={colors} />
                   )}
                 </div>
               </div>
