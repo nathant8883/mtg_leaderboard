@@ -49,6 +49,13 @@ export const playerApi = {
   delete: async (id: string): Promise<void> => {
     await api.delete(`/players/${id}`);
   },
+
+  createGuest: async (name: string): Promise<Player> => {
+    const response = await api.post('/players/guest', null, {
+      params: { name }
+    });
+    return response.data;
+  },
 };
 
 // Deck Types

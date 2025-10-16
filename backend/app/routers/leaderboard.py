@@ -11,8 +11,8 @@ router = APIRouter()
 
 @router.get("/players")
 async def get_player_leaderboard() -> list[Dict[str, Any]]:
-    """Get leaderboard by player"""
-    players = await Player.find_all().to_list()
+    """Get leaderboard by player (excluding guests)"""
+    players = await Player.find(Player.is_guest == False).to_list()
     matches = await Match.find_all().to_list()
 
     leaderboard = []
@@ -53,12 +53,12 @@ async def get_player_leaderboard() -> list[Dict[str, Any]]:
 
 @router.get("/decks")
 async def get_deck_leaderboard() -> list[Dict[str, Any]]:
-    """Get leaderboard by deck"""
+    """Get leaderboard by deck (excluding guest-owned decks)"""
     decks = await Deck.find_all().to_list()
     matches = await Match.find_all().to_list()
-    players = await Player.find_all().to_list()
+    players = await Player.find(Player.is_guest == False).to_list()
 
-    # Create player lookup
+    # Create player lookup (excludes guests)
     player_lookup = {str(p.id): p.name for p in players}
 
     leaderboard = []
@@ -103,13 +103,13 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
 
 @router.get("/stats")
 async def get_dashboard_stats() -> Dict[str, Any]:
-    """Get overall statistics for the dashboard"""
-    players = await Player.find_all().to_list()
+    """Get overall statistics for the dashboard (excluding guests)"""
+    players = await Player.find(Player.is_guest == False).to_list()
     matches = await Match.find_all().to_list()
     decks = await Deck.find_all().to_list()
 
     total_games = len(matches)
-    total_players = len(players)
+    total_players = len(players)  # Excludes guests
     total_decks = len(decks)
 
     # Calculate average pod size

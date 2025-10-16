@@ -10,8 +10,8 @@ router = APIRouter()
 
 @router.get("/")
 async def get_all_players():
-    """Get all players"""
-    players = await Player.find_all().to_list()
+    """Get all players (excluding guests)"""
+    players = await Player.find(Player.is_guest == False).to_list()
     # Convert _id to id for frontend compatibility
     return [
         {
@@ -47,6 +47,13 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
     player = await Player.get(player_id)
     if not player:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Player not found")
+
+    # Guest players don't have detail pages
+    if player.is_guest:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Guest players do not have detail pages"
+        )
 
     player_id_str = str(player.id)
 
@@ -151,6 +158,25 @@ async def create_player(player: Player):
         "avatar": player.avatar,
         "deck_ids": player.deck_ids,
         "created_at": player.created_at
+    }
+
+
+@router.post("/guest", status_code=status.HTTP_201_CREATED)
+async def create_guest_player(name: str):
+    """Create a guest player for one-time match tracking"""
+    guest = Player(
+        name=name,
+        avatar="",
+        deck_ids=[],
+        is_guest=True
+    )
+    await guest.insert()
+    return {
+        "id": str(guest.id),
+        "name": guest.name,
+        "avatar": guest.avatar,
+        "is_guest": guest.is_guest,
+        "created_at": guest.created_at
     }
 
 

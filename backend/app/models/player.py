@@ -39,6 +39,7 @@ class Player(Document):
 
     # Admin/permissions
     is_superuser: bool = False  # Can access admin panel and manage all data
+    is_guest: bool = False  # Guest players for one-time match tracking
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
