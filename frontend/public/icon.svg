@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#grad)" rx="100"/>
+
+  <!-- Trophy icon with MTG theme -->
+  <!-- Trophy cup -->
+  <path d="M256 350 L200 300 L150 280 L150 230 L362 230 L362 280 L312 300 Z" fill="#FFD700" stroke="#FFA500" stroke-width="4"/>
+
+  <!-- Trophy base -->
+  <rect x="226" y="350" width="60" height="40" fill="#FFA500"/>
+  <rect x="196" y="390" width="120" height="30" rx="5" fill="#FFA500"/>
+
+  <!-- Trophy handles -->
+  <path d="M150 240 Q110 240 110 280 Q110 300 130 300" fill="none" stroke="#FFD700" stroke-width="12"/>
+  <path d="M362 240 Q402 240 402 280 Q402 300 382 300" fill="none" stroke="#FFD700" stroke-width="12"/>
+
+  <!-- Crown on top -->
+  <path d="M180 210 L200 240 L220 200 L256 230 L292 200 L312 240 L332 210 L332 230 L180 230 Z" fill="#FFD700" stroke="#FFA500" stroke-width="2"/>
+
+  <!-- Star -->
+  <path d="M256 130 L266 160 L298 165 L277 186 L282 218 L256 203 L230 218 L235 186 L214 165 L246 160 Z" fill="#FFFFFF" opacity="0.9"/>
+</svg>

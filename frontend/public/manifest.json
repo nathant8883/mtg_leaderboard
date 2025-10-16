@@ -1,0 +1,18 @@
+{
+  "name": "MTG Commander Leaderboard",
+  "short_name": "MTG Leaderboard",
+  "description": "Track your Magic: The Gathering Commander games and compete with friends",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141517",
+  "theme_color": "#667eea",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
