@@ -10,12 +10,14 @@ import TopDecks from './components/TopDecks'
 import StatsCards from './components/StatsCards'
 import PlayerDetail from './components/PlayerDetail'
 import { ProfileDropdown } from './components/ProfileDropdown'
+import { useAuth } from './contexts/AuthContext'
 import type { Player, Deck, CreateMatchRequest, Match } from './services/api'
 import { playerApi, deckApi, matchApi } from './services/api'
 
 type ViewType = 'dashboard' | 'leaderboard' | 'admin' | 'player-detail';
 
 function App() {
+  const { currentPlayer } = useAuth()
   const [activeView, setActiveView] = useState<ViewType>('dashboard')
   const [showMatchForm, setShowMatchForm] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
@@ -136,15 +138,17 @@ function App() {
                   >
                     🏆 Leaderboard
                   </button>
-                  <button
-                    className="menu-item"
-                    onClick={() => {
-                      setActiveView('admin')
-                      setShowMenu(false)
-                    }}
-                  >
-                    ⚙️ Admin
-                  </button>
+                  {currentPlayer?.is_superuser && (
+                    <button
+                      className="menu-item"
+                      onClick={() => {
+                        setActiveView('admin')
+                        setShowMenu(false)
+                      }}
+                    >
+                      ⚙️ Admin
+                    </button>
+                  )}
                 </div>
               )}
             </div>

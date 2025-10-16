@@ -212,6 +212,7 @@ function AdminPanel() {
           players={players}
           initialData={editingDeck || undefined}
           isEdit={!!editingDeck}
+          showPlayerSelector={true}
         />
       )}
     </div>

@@ -110,6 +110,7 @@ async def get_me(current_player: Player = Depends(get_current_player)):
         "avatar": current_player.avatar,
         "picture": current_player.picture,
         "deck_ids": current_player.deck_ids,
+        "is_superuser": current_player.is_superuser,
         "created_at": current_player.created_at
     }
 

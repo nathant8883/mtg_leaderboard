@@ -37,6 +37,9 @@ class Player(Document):
     google_id: Optional[str] = None  # Google OAuth unique ID
     picture: Optional[str] = None  # Google profile picture URL
 
+    # Admin/permissions
+    is_superuser: bool = False  # Can access admin panel and manage all data
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:

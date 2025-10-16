@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
 import DeckForm from './DeckForm';
+import { useAuth } from '../contexts/AuthContext';
 import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck, type Player } from '../services/api';
 
 interface PlayerDetailProps {
@@ -9,14 +10,16 @@ interface PlayerDetailProps {
 }
 
 function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
+  const { currentPlayer } = useAuth();
   const [playerDetail, setPlayerDetail] = useState<PlayerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeckForm, setShowDeckForm] = useState(false);
-  const [players, setPlayers] = useState<Player[]>([]);
+
+  // Check if the current user is viewing their own profile
+  const isOwnProfile = currentPlayer?.id === playerId;
 
   useEffect(() => {
     loadPlayerDetail();
-    loadPlayers();
   }, [playerId]);
 
   const loadPlayerDetail = async () => {
@@ -31,23 +34,17 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
     }
   };
 
-  const loadPlayers = async () => {
-    try {
-      const data = await playerApi.getAll();
-      setPlayers(data);
-    } catch (err) {
-      console.error('Error loading players:', err);
-    }
-  };
 
   const formatMemberSince = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
-  const handleCreateDeck = async (deck: Omit<Deck, 'id' | 'created_at'>) => {
+  const handleCreateDeck = async (deck: Omit<Deck, 'id' | 'created_at' | 'player_id'>) => {
     try {
-      await deckApi.create(deck);
+      // Don't pass player_id - backend will use authenticated user
+      const { player_id, ...deckData } = deck as any;
+      await deckApi.create(deckData);
       setShowDeckForm(false);
       // Reload player detail to show the new deck
       loadPlayerDetail();
@@ -158,9 +155,11 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
                 <h2 className="section-title">Decks</h2>
                 <span className="deck-count">{playerDetail.decks.length} total decks</span>
               </div>
-              <button className="section-action" onClick={() => setShowDeckForm(true)}>
-                + Add Deck
-              </button>
+              {isOwnProfile && (
+                <button className="section-action" onClick={() => setShowDeckForm(true)}>
+                  + Add Deck
+                </button>
+              )}
             </div>
 
             {playerDetail.decks.length === 0 ? (
@@ -218,7 +217,6 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
         <DeckForm
           onSubmit={handleCreateDeck}
           onCancel={() => setShowDeckForm(false)}
-          players={players}
           initialData={{
             name: '',
             player_id: playerId,

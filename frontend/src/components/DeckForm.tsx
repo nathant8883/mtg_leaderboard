@@ -6,12 +6,13 @@ import ColorPips from './ColorPips';
 interface DeckFormProps {
   onSubmit: (deck: Omit<Deck, 'id' | 'created_at'>) => Promise<void>;
   onCancel: () => void;
-  players: Player[];
+  players?: Player[];  // Optional - only needed for admin panel
   initialData?: Deck;
   isEdit?: boolean;
+  showPlayerSelector?: boolean;  // Whether to show player selection (for admin panel)
 }
 
-function DeckForm({ onSubmit, onCancel, players, initialData, isEdit = false }: DeckFormProps) {
+function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = false, showPlayerSelector = false }: DeckFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [playerId, setPlayerId] = useState(initialData?.player_id || '');
   const [commander, setCommander] = useState(initialData?.commander || '');
@@ -38,7 +39,7 @@ function DeckForm({ onSubmit, onCancel, players, initialData, isEdit = false }: 
       return;
     }
 
-    if (!playerId) {
+    if (showPlayerSelector && !playerId) {
       setError('Please select a player');
       return;
     }
@@ -52,13 +53,19 @@ function DeckForm({ onSubmit, onCancel, players, initialData, isEdit = false }: 
     setIsSubmitting(true);
 
     try {
-      await onSubmit({
+      const deckData: any = {
         name: name.trim(),
-        player_id: playerId,
         commander: commander.trim(),
         commander_image_url: commanderImageUrl,
         colors: colors,
-      });
+      };
+
+      // Only include player_id if player selector is shown (admin panel)
+      if (showPlayerSelector && playerId) {
+        deckData.player_id = playerId;
+      }
+
+      await onSubmit(deckData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save deck');
       setIsSubmitting(false);
@@ -89,25 +96,27 @@ function DeckForm({ onSubmit, onCancel, players, initialData, isEdit = false }: 
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="player">
-              Player *
-            </label>
-            <select
-              id="player"
-              value={playerId}
-              onChange={(e) => setPlayerId(e.target.value)}
-              className="form-input"
-              disabled={isSubmitting}
-            >
-              <option value="">Select a player...</option>
-              {players.map((player) => (
-                <option key={player.id} value={player.id}>
-                  {player.avatar || ''} {player.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {showPlayerSelector && (
+            <div className="form-group">
+              <label className="form-label" htmlFor="player">
+                Player *
+              </label>
+              <select
+                id="player"
+                value={playerId}
+                onChange={(e) => setPlayerId(e.target.value)}
+                className="form-input"
+                disabled={isSubmitting}
+              >
+                <option value="">Select a player...</option>
+                {players.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.avatar || ''} {player.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="commander">
