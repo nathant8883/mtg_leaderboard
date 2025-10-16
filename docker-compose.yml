@@ -23,11 +23,14 @@ services:
     container_name: mtg-backend
     ports:
       - "7777:7777"
+    env_file:
+      - ./backend/.env
     environment:
       - MONGODB_URL=mongodb://mongodb:27017
       - DATABASE_NAME=mtg_leaderboard
       - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost"]
       - environment=production
+      - FRONTEND_URL=https://mtg.turner-labs.net
     depends_on:
       mongodb:
         condition: service_healthy
