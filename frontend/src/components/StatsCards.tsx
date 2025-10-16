@@ -61,6 +61,9 @@ function StatsCards() {
         <div className="stat-card orange">
           <div className="loading-spinner"></div>
         </div>
+        <div className="stat-card purple">
+          <div className="loading-spinner"></div>
+        </div>
       </div>
     );
   }
@@ -164,6 +167,35 @@ function StatsCards() {
           <div className="stat-card-details">
             {stats.most_popular_color
               ? `${stats.most_popular_color.percentage}% of decks run ${getColorName(stats.most_popular_color.color)}`
+              : 'No data yet'}
+          </div>
+        </div>
+      </div>
+
+      {/* Most Popular Identity Card */}
+      <div className="stat-card purple">
+        <div className="stat-card-header">
+          <div className="stat-icon-circle">
+            ✨
+          </div>
+          <div className="stat-header-text">
+            <div className="stat-header-label">Popular Identity</div>
+            <div className="stat-header-value-colors">
+              {stats.most_popular_identity ? (
+                <>
+                  <span>{stats.most_popular_identity.name}</span>
+                  <ColorPips colors={stats.most_popular_identity.colors} />
+                </>
+              ) : (
+                '-'
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="stat-card-body">
+          <div className="stat-card-details">
+            {stats.most_popular_identity
+              ? `${stats.most_popular_identity.count} deck${stats.most_popular_identity.count !== 1 ? 's' : ''} • ${stats.most_popular_identity.percentage}% of pool`
               : 'No data yet'}
           </div>
         </div>

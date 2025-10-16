@@ -142,6 +142,12 @@ export interface DashboardStats {
     color: string;
     percentage: number;
   } | null;
+  most_popular_identity: {
+    colors: string[];
+    name: string;
+    count: number;
+    percentage: number;
+  } | null;
 }
 
 export interface PlayerDeckStats {

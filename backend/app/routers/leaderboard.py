@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 from typing import Dict, Any
+from collections import Counter
 
 from app.models.match import Match
 from app.models.player import Player, Deck
+from app.utils.color_identity import get_color_identity_name
 
 router = APIRouter()
 
@@ -176,6 +178,30 @@ async def get_dashboard_stats() -> Dict[str, Any]:
                 "percentage": round((most_common_color[1] / len(decks)) * 100, 1)
             }
 
+    # Most popular color identity (exact color combination)
+    most_popular_identity = None
+    if decks:
+        # Count color identity combinations
+        identity_combos = []
+        for deck in decks:
+            if deck.colors:
+                # Sort colors to create consistent combo representation
+                sorted_colors = tuple(sorted(deck.colors))
+                identity_combos.append(sorted_colors)
+
+        if identity_combos:
+            identity_counts = Counter(identity_combos)
+            most_common_identity = identity_counts.most_common(1)[0]
+            identity_colors = list(most_common_identity[0])
+            identity_name = get_color_identity_name(identity_colors)
+
+            most_popular_identity = {
+                "colors": identity_colors,
+                "name": identity_name,
+                "count": most_common_identity[1],
+                "percentage": round((most_common_identity[1] / len(decks)) * 100, 1)
+            }
+
     return {
         "total_games": total_games,
         "total_players": total_players,
@@ -186,4 +212,5 @@ async def get_dashboard_stats() -> Dict[str, Any]:
         "most_games_player": most_games_player,
         "most_played_deck": most_played_deck,
         "most_popular_color": most_popular_color,
+        "most_popular_identity": most_popular_identity,
     }
