@@ -65,6 +65,56 @@ export interface CommanderCard {
   mana_cost: string;
 }
 
+// Match Types
+export interface MatchPlayer {
+  player_id: string;
+  player_name: string;
+  deck_id: string;
+  deck_name: string;
+  is_winner: boolean;
+}
+
+export interface Match {
+  id?: string;
+  players: MatchPlayer[];
+  winner_player_id: string;
+  winner_deck_id: string;
+  match_date: string;  // ISO date string
+  notes?: string;
+  created_at?: string;
+}
+
+export interface CreateMatchRequest {
+  player_deck_pairs: Array<{ player_id: string; deck_id: string }>;
+  winner_player_id: string;
+  winner_deck_id: string;
+  match_date: string;  // ISO date string (YYYY-MM-DD)
+}
+
+// Leaderboard Types
+export interface PlayerLeaderboardEntry {
+  player_id: string;
+  player_name: string;
+  games_played: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+  deck_count: number;
+}
+
+export interface DeckLeaderboardEntry {
+  deck_id: string;
+  deck_name: string;
+  commander: string;
+  commander_image_url?: string;
+  colors: string[];
+  player_name: string;
+  games_played: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+}
+
 // Deck API Functions
 export const deckApi = {
   getAll: async (): Promise<Deck[]> => {
@@ -112,6 +162,46 @@ export const scryfallApi = {
     } catch (error) {
       return null;
     }
+  },
+};
+
+// Match API Functions
+export const matchApi = {
+  getRecent: async (limit: number = 10): Promise<Match[]> => {
+    const response = await api.get(`/matches/recent?limit=${limit}`);
+    return response.data;
+  },
+
+  getAll: async (limit: number = 50, skip: number = 0): Promise<Match[]> => {
+    const response = await api.get(`/matches/?limit=${limit}&skip=${skip}`);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Match> => {
+    const response = await api.get(`/matches/${id}`);
+    return response.data;
+  },
+
+  create: async (match: CreateMatchRequest): Promise<Match> => {
+    const response = await api.post('/matches/', match);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/matches/${id}`);
+  },
+};
+
+// Leaderboard API Functions
+export const leaderboardApi = {
+  getPlayerLeaderboard: async (): Promise<PlayerLeaderboardEntry[]> => {
+    const response = await api.get('/leaderboard/players');
+    return response.data;
+  },
+
+  getDeckLeaderboard: async (): Promise<DeckLeaderboardEntry[]> => {
+    const response = await api.get('/leaderboard/decks');
+    return response.data;
   },
 };
 

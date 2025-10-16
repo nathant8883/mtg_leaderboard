@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, Any
 from beanie import Document
-from pydantic import Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
-class MatchPlayer(Document):
-    """Represents a player in a match with their deck"""
+class MatchPlayer(BaseModel):
+    """Represents a player in a match with their deck (embedded subdocument)"""
     player_id: str
     player_name: str
     deck_id: str
@@ -14,19 +14,21 @@ class MatchPlayer(Document):
 
 
 class Match(Document):
-    """Match document - records a game between 3+ players"""
-    players: list[MatchPlayer] = Field(min_length=3)
+    """Match document - records a game between 3-6 players"""
+    players: list[MatchPlayer] = Field(min_length=3, max_length=6)
     winner_player_id: str
     winner_deck_id: str
-    match_date: datetime = Field(default_factory=datetime.utcnow)
+    match_date: date = Field(default_factory=date.today)
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator('players')
     @classmethod
-    def validate_min_players(cls, v):
+    def validate_player_count(cls, v):
         if len(v) < 3:
             raise ValueError('Match must have at least 3 players')
+        if len(v) > 6:
+            raise ValueError('Match cannot have more than 6 players')
         return v
 
     @field_validator('winner_player_id')

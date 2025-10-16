@@ -30,12 +30,15 @@ async def get_player_leaderboard() -> list[Dict[str, Any]]:
         # Count unique decks used
         deck_count = len(player.deck_ids)
 
+        losses = games_played - wins
+
         leaderboard.append({
             "player_id": player_id,
             "player_name": player.name,
             "avatar": player.avatar,
             "games_played": games_played,
             "wins": wins,
+            "losses": losses,
             "win_rate": round(win_rate, 1),
             "deck_count": deck_count,
         })
@@ -61,12 +64,8 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
     for deck in decks:
         deck_id = str(deck.id)
 
-        # Find player who owns this deck
-        owner_name = "Unknown"
-        for player in players:
-            if deck_id in player.deck_ids:
-                owner_name = player.name
-                break
+        # Find player who owns this deck - check using player_id field on deck
+        owner_name = player_lookup.get(deck.player_id, "Unknown")
 
         # Count games where this deck was played
         games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
@@ -78,14 +77,18 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
         win_rate = (wins / games_played * 100) if games_played > 0 else 0
 
         if games_played > 0:  # Only include decks that have been played
+            losses = games_played - wins
+
             leaderboard.append({
                 "deck_id": deck_id,
                 "deck_name": deck.name,
                 "commander": deck.commander,
+                "commander_image_url": deck.commander_image_url,
                 "colors": deck.colors,
                 "player_name": owner_name,
                 "games_played": games_played,
                 "wins": wins,
+                "losses": losses,
                 "win_rate": round(win_rate, 1),
             })
 

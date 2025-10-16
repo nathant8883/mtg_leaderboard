@@ -224,6 +224,7 @@ body {
 .player-name {
   color: #fff;
   font-weight: 500;
+  font-size: 15px;
 }
 
 .deck-count {
@@ -522,4 +523,308 @@ body {
   font-size: 16px;
   display: flex;
   gap: 2px;
+}
+
+/* Match Form - Player Chips */
+.player-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #25262B;
+  border: 2px solid #2C2E33;
+  color: #909296;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-chip.selected {
+  background: #667eea;
+  border-color: #667eea;
+  color: #fff;
+}
+
+.player-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #667eea;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.player-chip.selected .player-avatar {
+  background: #fff;
+  color: #667eea;
+}
+
+.player-avatar-large {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #667eea;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.player-deck-row {
+  background: #25262B;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #2C2E33;
+}
+
+.winner-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  background: transparent;
+  border: 2px solid #2C2E33;
+  color: #909296;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.winner-btn.winner {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.winner-btn:hover:not(.winner) {
+  background: #25262B;
+}
+
+/* Recent Matches */
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.match-item {
+  background: #25262B;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #2C2E33;
+  transition: all 0.2s;
+}
+
+.match-item:hover {
+  border-color: #667eea;
+  background: #2C2E33;
+}
+
+.match-players {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.match-deck {
+  color: #909296;
+  font-size: 14px;
+}
+
+.match-winner {
+  color: #667eea;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.match-date {
+  color: #909296;
+  font-size: 14px;
+}
+
+/* Leaderboard Styles */
+.leaderboard-table-container {
+  overflow-x: auto;
+  margin-top: 24px;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table thead th {
+  color: #909296;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 12px;
+  text-align: left;
+  text-transform: uppercase;
+  border-bottom: 1px solid #2C2E33;
+}
+
+.leaderboard-table thead th.center {
+  text-align: center;
+}
+
+.leaderboard-table tbody td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #2C2E33;
+}
+
+.leaderboard-table tbody td.center {
+  text-align: center;
+}
+
+.leaderboard-table tbody tr {
+  transition: all 0.2s;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: #25262B;
+}
+
+/* Rank Badges */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #2C2E33;
+  color: #909296;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.rank-badge.gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #1A1B1E;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.rank-badge.silver {
+  background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+  color: #1A1B1E;
+  box-shadow: 0 4px 12px rgba(192, 192, 192, 0.4);
+}
+
+.rank-badge.bronze {
+  background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(205, 127, 50, 0.4);
+}
+
+/* Win Rate Compact Display (Style 3) */
+.winrate-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1e1f23 0%, #2a2b30 100%);
+  border: 1px solid #2C2E33;
+  transition: all 0.3s ease;
+}
+
+.winrate-compact:hover {
+  border-color: var(--tier-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.tier-icon-compact {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--tier-color), var(--tier-color-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.winrate-info-compact {
+  text-align: left;
+}
+
+.tier-name-compact {
+  font-size: 10px;
+  color: #909296;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.winrate-value-compact {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Tier Color Variables */
+.s-tier {
+  --tier-color: #FFD700;
+  --tier-color-light: #FFA500;
+}
+
+.a-tier {
+  --tier-color: #33D9B2;
+  --tier-color-light: #00C9A7;
+}
+
+.b-tier {
+  --tier-color: #4FACFE;
+  --tier-color-light: #00F2FE;
+}
+
+.d-tier {
+  --tier-color: #FF6B6B;
+  --tier-color-light: #FF5252;
+}
+
+/* Color Pips - Mana Symbols */
+.color-pips {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.color-pips .ms {
+  font-size: 20px;
+}
+
+/* Stat Values */
+.stat-value {
+  color: #C1C2C5;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.deck-name {
+  color: #fff;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.commander-name {
+  color: #C1C2C5;
+  font-size: 15px;
+}
+
+/* Tab Content */
+.tab-content {
+  margin-top: 0;
 }
