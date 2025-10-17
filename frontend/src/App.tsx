@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
+import { Home, Play, User } from 'lucide-react'
 import './App.css'
 import AdminPanel from './components/AdminPanel'
 import MatchForm from './components/MatchForm'
@@ -143,6 +144,15 @@ function App() {
                     <button
                       className="menu-item"
                       onClick={() => {
+                        setShowMatchForm(true)
+                        setShowMenu(false)
+                      }}
+                    >
+                      ➕ Add Match
+                    </button>
+                    <button
+                      className="menu-item"
+                      onClick={() => {
                         setActiveView('leaderboard')
                         setShowMenu(false)
                       }}
@@ -225,22 +235,26 @@ function App() {
             className={`mobile-action-btn ${activeView === 'dashboard' ? 'active' : ''}`}
             onClick={() => setActiveView('dashboard')}
           >
-            <span className="action-icon">🏠</span>
+            <Home className="action-icon" size={24} />
             <span className="action-label">Home</span>
           </button>
           <button
             className="mobile-action-btn mobile-action-btn-primary"
             onClick={() => setActiveView('match-tracker')}
           >
-            <span className="action-icon">🎮</span>
+            <Play className="action-icon" size={24} />
             <span className="action-label">Start Game</span>
           </button>
           <button
-            className="mobile-action-btn"
-            onClick={() => setShowMatchForm(true)}
+            className={`mobile-action-btn ${activeView === 'player-detail' ? 'active' : ''}`}
+            onClick={() => {
+              if (currentPlayer) {
+                handleViewPlayerDetail(currentPlayer.id);
+              }
+            }}
           >
-            <span className="action-icon">➕</span>
-            <span className="action-label">Add Match</span>
+            <User className="action-icon" size={24} />
+            <span className="action-label">Profile</span>
           </button>
         </div>
       )}

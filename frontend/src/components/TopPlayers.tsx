@@ -70,9 +70,11 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
       <div className="card-header">
         <h2 className="card-title">Top Players</h2>
         <button className="view-all-link" onClick={onViewLeaderboard}>
-          View All
+          View All →
         </button>
       </div>
+
+      {/* Desktop Table View */}
       <div className="leaderboard-table-container">
         <table className="leaderboard-table">
           <thead>
@@ -124,6 +126,38 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="player-cards-mobile">
+        {players.map((player, index) => {
+          const rank = index + 1;
+          const tier = getWinRateTier(player.win_rate / 100);
+          return (
+            <div
+              key={player.player_id}
+              className="player-card-mobile"
+              onClick={() => onPlayerClick(player.player_id)}
+            >
+              <div className={`player-card-rank ${getRankBadgeClass(rank)}`}>
+                {rank}
+              </div>
+              <div className="player-card-avatar">
+                {player.player_name.charAt(0).toUpperCase()}
+              </div>
+              <div className="player-card-info">
+                <div className="player-card-name">{player.player_name}</div>
+                <div className="player-card-record">{player.wins}-{player.losses}</div>
+                <div className={`player-card-tier ${tier.class}`}>
+                  {tier.icon} {tier.letter} TIER
+                </div>
+              </div>
+              <div className={`player-card-winrate ${tier.class}`}>
+                {player.win_rate.toFixed(0)}%
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

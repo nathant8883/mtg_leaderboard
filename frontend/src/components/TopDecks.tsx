@@ -71,9 +71,11 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
       <div className="card-header">
         <h2 className="card-title">Top Decks</h2>
         <button className="view-all-link" onClick={onViewLeaderboard}>
-          View All
+          View All →
         </button>
       </div>
+
+      {/* Desktop Table View */}
       <div className="leaderboard-table-container">
         <table className="leaderboard-table">
           <thead>
@@ -162,6 +164,48 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="deck-cards-mobile">
+        {decks.map((deck, index) => {
+          const rank = index + 1;
+          const tier = getWinRateTier(deck.win_rate / 100);
+          return (
+            <div
+              key={deck.deck_id}
+              className="deck-card-mobile"
+            >
+              <div className={`deck-card-rank ${getRankBadgeClass(rank)}`}>
+                {rank}
+              </div>
+              <div className="deck-card-image">
+                {deck.commander_image_url ? (
+                  <img
+                    src={deck.commander_image_url}
+                    alt={deck.commander}
+                  />
+                ) : (
+                  <div className="deck-card-placeholder">🎴</div>
+                )}
+              </div>
+              <div className="deck-card-info">
+                <div className="deck-card-name">{deck.deck_name}</div>
+                <div className="deck-card-commander">{deck.commander}</div>
+                <div className="deck-card-colors">
+                  <ColorPips colors={deck.colors} />
+                </div>
+                <div className="deck-card-record">{deck.wins}-{deck.losses}</div>
+                <div className={`deck-card-tier ${tier.class}`}>
+                  {tier.icon} {tier.letter} TIER
+                </div>
+              </div>
+              <div className={`deck-card-winrate ${tier.class}`}>
+                {deck.win_rate.toFixed(0)}%
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
