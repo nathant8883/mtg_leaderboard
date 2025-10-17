@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { Home, Play, User } from 'lucide-react'
-import './App.css?v=1.0.1'
+import './App.css'
 import AdminPanel from './components/AdminPanel'
 import MatchForm from './components/MatchForm'
 import RecentMatches from './components/RecentMatches'
