@@ -865,51 +865,128 @@ body {
   background: #25262B;
 }
 
-/* Recent Matches */
-.match-list {
+/* Recent Matches - Refactored */
+.recent-matches-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.match-item {
-  background: #25262B;
-  border-radius: 8px;
+.recent-match-card {
+  background: rgba(37, 38, 43, 0.5);
+  border-radius: 12px;
   padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   border: 1px solid #2C2E33;
   transition: all 0.2s;
 }
 
-.match-item:hover {
+.recent-match-card:hover {
+  background: #25262B;
   border-color: #667eea;
-  background: #2C2E33;
 }
 
-.match-players {
-  color: #fff;
-  font-weight: 600;
-  margin-bottom: 4px;
+/* Header Row: Winner + Time */
+.recent-match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
 }
 
-.match-deck {
-  color: #909296;
-  font-size: 13px;
-  opacity: 0.7;
+.recent-match-winner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.match-winner {
+.recent-match-trophy-icon {
+  width: 16px;
+  height: 16px;
+  color: #FFA500;
+  flex-shrink: 0;
+}
+
+.recent-match-winner-name {
   color: #667eea;
   font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 15px;
 }
 
-.match-date {
-  color: #909296;
+.recent-match-time {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 12px;
-  opacity: 0.7;
+  color: #909296;
+  flex-shrink: 0;
+}
+
+.recent-match-duration {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recent-match-clock-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.recent-match-date {
+  font-size: 12px;
+}
+
+/* Winner's Deck Name */
+.recent-match-deck-name {
+  color: #909296;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* Player Chips Row */
+.recent-match-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recent-match-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgba(44, 46, 51, 0.5);
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.recent-match-player-chip.winner {
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.recent-match-player-name {
+  color: #C1C2C5;
+  font-weight: 500;
+}
+
+.recent-match-player-chip.winner .recent-match-player-name {
+  color: #667eea;
+}
+
+.recent-match-separator {
+  color: #666;
+  font-size: 12px;
+}
+
+.recent-match-player-chip .color-pips {
+  gap: 1px;
+}
+
+.recent-match-player-chip .color-pips .ms {
+  font-size: 14px;
 }
 
 /* Leaderboard Styles */
@@ -1881,6 +1958,33 @@ input:disabled + .toggle-slider {
 
   .player-deck-row {
     padding: 12px;
+  }
+
+  /* ===== RECENT MATCHES - MOBILE ===== */
+  .recent-match-card {
+    padding: 12px;
+  }
+
+  .recent-match-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .recent-match-winner-name {
+    font-size: 14px;
+  }
+
+  .recent-match-deck-name {
+    font-size: 13px;
+  }
+
+  .recent-match-player-chip {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .recent-match-player-chip .color-pips .ms {
+    font-size: 12px;
   }
 
   /* ===== PLAYER DETAIL ===== */

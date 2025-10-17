@@ -101,6 +101,7 @@ export interface MatchPlayer {
   player_name: string;
   deck_id: string;
   deck_name: string;
+  deck_colors: string[];  // Deck color identity (W/U/B/R/G)
   is_winner: boolean;
 }
 

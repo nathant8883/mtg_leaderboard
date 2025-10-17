@@ -10,6 +10,7 @@ class MatchPlayer(BaseModel):
     player_name: str
     deck_id: str
     deck_name: str
+    deck_colors: list[str] = []  # Deck color identity (W/U/B/R/G), snapshotted at match creation
     is_winner: bool = False
 
 

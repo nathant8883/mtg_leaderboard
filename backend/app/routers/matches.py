@@ -92,6 +92,7 @@ async def create_match(request: CreateMatchRequest):
             player_name=player.name,
             deck_id=deck_id,
             deck_name=deck.name,
+            deck_colors=deck.colors,  # Snapshot deck colors for historical accuracy
             is_winner=is_winner
         ))
 
@@ -122,6 +123,7 @@ async def create_match(request: CreateMatchRequest):
                 "player_name": p.player_name,
                 "deck_id": p.deck_id,
                 "deck_name": p.deck_name,
+                "deck_colors": p.deck_colors,
                 "is_winner": p.is_winner
             }
             for p in match.players

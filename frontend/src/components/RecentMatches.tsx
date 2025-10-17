@@ -1,4 +1,6 @@
+import { Trophy, Clock } from 'lucide-react';
 import type { Match } from '../services/api';
+import ColorPips from './ColorPips';
 
 interface RecentMatchesProps {
   matches: Match[];
@@ -68,27 +70,45 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
   return (
     <div className="card">
       <h2 className="card-title">Recent Matches</h2>
-      <div className="match-list">
+      <div className="recent-matches-container">
         {matches.map((match) => {
           const winner = getWinner(match);
-          const playerNames = match.players.map(p => p.player_name).join(' • ');
+          const durationText = formatDuration(match.duration_seconds);
 
           return (
-            <div key={match.id} className="match-item">
-              <div>
-                <div className="match-players">{playerNames}</div>
-                <div className="match-deck">{winner?.deck_name || 'Unknown Deck'}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div className="match-winner">🏆 {winner?.player_name || 'Unknown'}</div>
-                <div className="match-date">
-                  {formatDate(match.match_date)}
-                  {match.duration_seconds && (
-                    <span style={{ marginLeft: '8px', opacity: 0.7 }}>
-                      • {formatDuration(match.duration_seconds)}
+            <div key={match.id} className="recent-match-card">
+              {/* Header Row: Winner + Time Info */}
+              <div className="recent-match-header">
+                <div className="recent-match-winner">
+                  <Trophy className="recent-match-trophy-icon" />
+                  <span className="recent-match-winner-name">{winner?.player_name || 'Unknown'}</span>
+                </div>
+                <div className="recent-match-time">
+                  {durationText && (
+                    <span className="recent-match-duration">
+                      <Clock className="recent-match-clock-icon" />
+                      {durationText}
                     </span>
                   )}
+                  <span className="recent-match-date">{formatDate(match.match_date)}</span>
                 </div>
+              </div>
+
+              {/* Winner's Deck Name */}
+              <div className="recent-match-deck-name">{winner?.deck_name || 'Unknown Deck'}</div>
+
+              {/* Player Chips Row */}
+              <div className="recent-match-players">
+                {match.players.map((player) => (
+                  <div
+                    key={`${player.player_id}-${player.deck_id}`}
+                    className={`recent-match-player-chip ${player.is_winner ? 'winner' : ''}`}
+                  >
+                    <span className="recent-match-player-name">{player.player_name}</span>
+                    <span className="recent-match-separator">•</span>
+                    <ColorPips colors={player.deck_colors || []} />
+                  </div>
+                ))}
               </div>
             </div>
           );
