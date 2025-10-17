@@ -77,6 +77,14 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{isEdit ? 'Edit Deck' : 'Add New Deck'}</h2>
+          <button
+            type="button"
+            className="modal-close-btn"
+            onClick={onCancel}
+            aria-label="Close"
+          >
+            ✕
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
