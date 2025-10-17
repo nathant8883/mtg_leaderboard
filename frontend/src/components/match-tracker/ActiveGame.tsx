@@ -6,13 +6,13 @@ interface ActiveGameProps {
   players: PlayerSlot[];
   layout: LayoutType;
   gameState: ActiveGameState;
-  onGameComplete: (winnerPosition: number) => void;
+  onGameComplete: (winnerPosition: number, finalGameState?: ActiveGameState) => void;
   onExit: () => void;
   onUpdateGameState: (gameState: ActiveGameState) => void;
 }
 
 function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState }: ActiveGameProps) {
-  const [timer, setTimer] = useState(0);
+  const [timer, setTimer] = useState(gameState.elapsedSeconds || 0);
   const [showMenu, setShowMenu] = useState(false);
   const [lifeInputPlayer, setLifeInputPlayer] = useState<PlayerSlot | null>(null);
   const [commanderDamageMode, setCommanderDamageMode] = useState(false);
@@ -80,8 +80,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       if (winnerPosition) {
         // Save timer value to gameState before completing
         const finalState = { ...updatedState, elapsedSeconds: timer };
-        onUpdateGameState(finalState);
-        onGameComplete(parseInt(winnerPosition));
+        onGameComplete(parseInt(winnerPosition), finalState);
       }
     }
   };
@@ -179,8 +178,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       if (winnerPosition) {
         // Save timer value to gameState before completing
         const finalState = { ...updatedState, elapsedSeconds: timer };
-        onUpdateGameState(finalState);
-        onGameComplete(parseInt(winnerPosition));
+        onGameComplete(parseInt(winnerPosition), finalState);
       }
     }
   };
@@ -530,8 +528,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                       setShowWinnerSelect(false);
                       // Save timer value to gameState before completing
                       const finalState = { ...gameState, elapsedSeconds: timer };
-                      onUpdateGameState(finalState);
-                      onGameComplete(player.position);
+                      onGameComplete(player.position, finalState);
                     }}
                     style={{
                       opacity: playerState.eliminated ? 0.6 : 1,

@@ -19,6 +19,7 @@ class Match(Document):
     winner_player_id: str
     winner_deck_id: str
     match_date: date = Field(default_factory=date.today)
+    duration_seconds: Optional[int] = None  # Game duration in seconds
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

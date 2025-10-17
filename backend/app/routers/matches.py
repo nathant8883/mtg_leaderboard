@@ -15,6 +15,7 @@ class CreateMatchRequest(BaseModel):
     winner_player_id: str
     winner_deck_id: str
     match_date: date
+    duration_seconds: int | None = None  # Game duration in seconds
 
 
 @router.get("/", response_model=list[Match])
@@ -106,7 +107,8 @@ async def create_match(request: CreateMatchRequest):
         players=match_players,
         winner_player_id=request.winner_player_id,
         winner_deck_id=request.winner_deck_id,
-        match_date=request.match_date
+        match_date=request.match_date,
+        duration_seconds=request.duration_seconds
     )
 
     await match.insert()
@@ -127,6 +129,7 @@ async def create_match(request: CreateMatchRequest):
         "winner_player_id": match.winner_player_id,
         "winner_deck_id": match.winner_deck_id,
         "match_date": match.match_date.isoformat(),
+        "duration_seconds": match.duration_seconds,
         "notes": match.notes,
         "created_at": match.created_at.isoformat()
     }

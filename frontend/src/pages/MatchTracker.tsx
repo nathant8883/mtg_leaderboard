@@ -139,9 +139,10 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     });
   };
 
-  const handleGameComplete = (winnerPosition: number) => {
+  const handleGameComplete = (winnerPosition: number, finalGameState?: ActiveGameState) => {
     setMatchState({
       ...matchState,
+      gameState: finalGameState || matchState.gameState,
       currentStep: 'winner',
       winnerPosition: winnerPosition,
     });
@@ -181,6 +182,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
         winner_player_id: winner.playerId,
         winner_deck_id: winner.deckId,
         match_date: matchDate,
+        duration_seconds: matchState.gameState.elapsedSeconds,
       };
 
       await matchApi.create(matchRequest);
