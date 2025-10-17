@@ -30,6 +30,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const holdPosition = useRef<number | null>(null);
   const holdDelta = useRef<number | null>(null);
 
+  // Keep a ref to the latest gameState to avoid closure issues
+  const gameStateRef = useRef(gameState);
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
   // Timer logic - just for display, don't update gameState on every tick
   useEffect(() => {
     const interval = setInterval(() => {
@@ -46,15 +52,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   };
 
   const handleLifeChange = (position: number, delta: number) => {
-    const currentLife = gameState.playerStates[position].life;
+    // Read from ref to get the latest state
+    const currentState = gameStateRef.current;
+    const currentLife = currentState.playerStates[position].life;
     const newLife = Math.max(0, currentLife + delta);
 
     const updatedState = {
-      ...gameState,
+      ...currentState,
       playerStates: {
-        ...gameState.playerStates,
+        ...currentState.playerStates,
         [position]: {
-          ...gameState.playerStates[position],
+          ...currentState.playerStates[position],
           life: newLife,
           eliminated: newLife <= 0,
         },
@@ -252,11 +260,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 onMouseUp={handleLifeButtonUp}
                 onMouseLeave={handleLifeButtonUp}
                 onTouchStart={(e) => {
-                  e.preventDefault();
+                  e.stopPropagation();
                   handleLifeButtonDown(player.position, -1);
                 }}
                 onTouchEnd={(e) => {
-                  e.preventDefault();
+                  e.stopPropagation();
                   handleLifeButtonUp();
                 }}
                 disabled={playerState.eliminated}
@@ -270,11 +278,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 onMouseUp={handleLifeButtonUp}
                 onMouseLeave={handleLifeButtonUp}
                 onTouchStart={(e) => {
-                  e.preventDefault();
+                  e.stopPropagation();
                   handleLifeButtonDown(player.position, 1);
                 }}
                 onTouchEnd={(e) => {
-                  e.preventDefault();
+                  e.stopPropagation();
                   handleLifeButtonUp();
                 }}
                 disabled={playerState.eliminated}

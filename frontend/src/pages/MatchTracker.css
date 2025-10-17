@@ -1842,6 +1842,10 @@
   color: rgba(255, 255, 255, 1);
 }
 
+.life-btn-side:focus {
+  outline: none;
+}
+
 .life-btn-side:disabled {
   opacity: 0.15;
   cursor: not-allowed;
