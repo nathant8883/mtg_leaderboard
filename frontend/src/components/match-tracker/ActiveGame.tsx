@@ -87,18 +87,32 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     // Clear any existing timers
     clearHoldTimers();
 
-    // Immediate single increment
-    handleLifeChange(position, delta);
-
     // After 1 second, start incrementing by 10
+    const startTime = Date.now();
     holdTimerRef.current = setTimeout(() => {
       holdIntervalRef.current = setInterval(() => {
         handleLifeChange(position, delta * 10);
       }, 100);
     }, 1000);
+
+    // Store the start time and delta for release handler
+    (holdTimerRef.current as any).startTime = startTime;
+    (holdTimerRef.current as any).position = position;
+    (holdTimerRef.current as any).delta = delta;
   };
 
   const handleLifeButtonUp = () => {
+    // If released before 1 second, do a single increment
+    const wasHolding = holdIntervalRef.current !== null;
+    const timer = holdTimerRef.current as any;
+
+    if (!wasHolding && timer?.startTime) {
+      const elapsed = Date.now() - timer.startTime;
+      if (elapsed < 1000) {
+        handleLifeChange(timer.position, timer.delta);
+      }
+    }
+
     clearHoldTimers();
   };
 
