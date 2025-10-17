@@ -110,13 +110,15 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
   return (
     <div className="player-assignment">
-      {/* Centered Hamburger Menu */}
-      <button
-        className="floating-menu-btn"
-        onClick={() => setShowMenu(!showMenu)}
-      >
-        ☰
-      </button>
+      {/* Centered Menu/GO Button */}
+      <div className="floating-menu-btn-wrapper">
+        <button
+          className={`floating-menu-btn ${allSlotsFilled ? 'ready-to-start' : ''}`}
+          onClick={() => allSlotsFilled ? handleStartGame() : setShowMenu(!showMenu)}
+        >
+          {allSlotsFilled ? <span className="go-text">GO</span> : '☰'}
+        </button>
+      </div>
 
       {/* Menu Overlay */}
       {showMenu && (
