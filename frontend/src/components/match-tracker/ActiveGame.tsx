@@ -26,6 +26,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Hold button state
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
   const holdIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const holdStartTime = useRef<number | null>(null);
+  const holdPosition = useRef<number | null>(null);
+  const holdDelta = useRef<number | null>(null);
 
   // Timer logic - just for display, don't update gameState on every tick
   useEffect(() => {
@@ -87,33 +90,34 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     // Clear any existing timers
     clearHoldTimers();
 
+    // Store button state
+    holdStartTime.current = Date.now();
+    holdPosition.current = position;
+    holdDelta.current = delta;
+
     // After 1 second, start incrementing by 10
-    const startTime = Date.now();
     holdTimerRef.current = setTimeout(() => {
       holdIntervalRef.current = setInterval(() => {
         handleLifeChange(position, delta * 10);
       }, 100);
     }, 1000);
-
-    // Store the start time and delta for release handler
-    (holdTimerRef.current as any).startTime = startTime;
-    (holdTimerRef.current as any).position = position;
-    (holdTimerRef.current as any).delta = delta;
   };
 
   const handleLifeButtonUp = () => {
     // If released before 1 second, do a single increment
     const wasHolding = holdIntervalRef.current !== null;
-    const timer = holdTimerRef.current as any;
 
-    if (!wasHolding && timer?.startTime) {
-      const elapsed = Date.now() - timer.startTime;
+    if (!wasHolding && holdStartTime.current !== null && holdPosition.current !== null && holdDelta.current !== null) {
+      const elapsed = Date.now() - holdStartTime.current;
       if (elapsed < 1000) {
-        handleLifeChange(timer.position, timer.delta);
+        handleLifeChange(holdPosition.current, holdDelta.current);
       }
     }
 
     clearHoldTimers();
+    holdStartTime.current = null;
+    holdPosition.current = null;
+    holdDelta.current = null;
   };
 
   // Clean up timers on unmount
