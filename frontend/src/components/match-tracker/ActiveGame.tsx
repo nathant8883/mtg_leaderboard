@@ -476,7 +476,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       {/* Life Input Modal */}
       {lifeInputPlayer && (
         <LifeInputModal
-          currentLife={gameState.playerStates[lifeInputPlayer.position].life}
           onConfirm={(newLife) => {
             const updatedState = {
               ...gameState,

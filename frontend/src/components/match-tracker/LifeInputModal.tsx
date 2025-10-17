@@ -1,12 +1,11 @@
 import { useState } from 'react';
 
 interface LifeInputModalProps {
-  currentLife: number;
   onConfirm: (newLife: number) => void;
   onCancel: () => void;
 }
 
-function LifeInputModal({ currentLife, onConfirm, onCancel }: LifeInputModalProps) {
+function LifeInputModal({ onConfirm, onCancel }: LifeInputModalProps) {
   const [inputValue, setInputValue] = useState('');
 
   const handleNumberClick = (num: string) => {
