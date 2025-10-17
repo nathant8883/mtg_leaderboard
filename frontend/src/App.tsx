@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { Home, Play, User } from 'lucide-react'
-import './App.css'
+import './App.css?v=1.0.1'
 import AdminPanel from './components/AdminPanel'
 import MatchForm from './components/MatchForm'
 import RecentMatches from './components/RecentMatches'
@@ -64,7 +64,7 @@ function App() {
   const loadMatches = async () => {
     try {
       setLoadingMatches(true)
-      const matchesData = await matchApi.getRecent(10)
+      const matchesData = await matchApi.getRecent(3)
       setMatches(matchesData)
     } catch (err) {
       console.error('Error loading matches:', err)

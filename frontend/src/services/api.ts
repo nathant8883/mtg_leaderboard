@@ -109,6 +109,7 @@ export interface Match {
   winner_player_id: string;
   winner_deck_id: string;
   match_date: string;  // ISO date string
+  duration_seconds?: number;  // Game duration in seconds
   notes?: string;
   created_at?: string;
 }

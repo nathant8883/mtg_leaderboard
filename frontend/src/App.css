@@ -1702,6 +1702,7 @@ body {
   /* ===== CONTAINER ===== */
   .container {
     padding: 12px;
+    padding-bottom: 100px; /* Space for bottom action bar */
   }
 
   /* ===== MODALS ===== */

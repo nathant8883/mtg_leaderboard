@@ -24,6 +24,18 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
     });
   };
 
+  const formatDuration = (seconds?: number): string => {
+    if (!seconds) return '';
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
   const getWinner = (match: Match) => {
     return match.players.find(p => p.is_winner);
   };
@@ -69,7 +81,14 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div className="match-winner">🏆 {winner?.player_name || 'Unknown'}</div>
-                <div className="match-date">{formatDate(match.match_date)}</div>
+                <div className="match-date">
+                  {formatDate(match.match_date)}
+                  {match.duration_seconds && (
+                    <span style={{ marginLeft: '8px', opacity: 0.7 }}>
+                      • {formatDuration(match.duration_seconds)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           );

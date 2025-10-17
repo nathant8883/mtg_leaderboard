@@ -12,7 +12,9 @@ router = APIRouter()
 @router.get("/players")
 async def get_player_leaderboard() -> list[Dict[str, Any]]:
     """Get leaderboard by player (excluding guests)"""
-    players = await Player.find(Player.is_guest == False).to_list()
+    players = await Player.find(
+        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+    ).to_list()
     matches = await Match.find_all().to_list()
 
     leaderboard = []
@@ -56,7 +58,9 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
     """Get leaderboard by deck (excluding guest-owned decks)"""
     decks = await Deck.find_all().to_list()
     matches = await Match.find_all().to_list()
-    players = await Player.find(Player.is_guest == False).to_list()
+    players = await Player.find(
+        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+    ).to_list()
 
     # Create player lookup (excludes guests)
     player_lookup = {str(p.id): p.name for p in players}
@@ -104,7 +108,9 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
 @router.get("/stats")
 async def get_dashboard_stats() -> Dict[str, Any]:
     """Get overall statistics for the dashboard (excluding guests)"""
-    players = await Player.find(Player.is_guest == False).to_list()
+    players = await Player.find(
+        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+    ).to_list()
     matches = await Match.find_all().to_list()
     decks = await Deck.find_all().to_list()
 
