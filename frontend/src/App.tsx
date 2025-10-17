@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { Home, Play, User } from 'lucide-react'
 import './App.css'
@@ -10,20 +10,23 @@ import TopPlayers from './components/TopPlayers'
 import TopDecks from './components/TopDecks'
 import StatsCards from './components/StatsCards'
 import PlayerDetail from './components/PlayerDetail'
+import MatchDetail from './components/MatchDetail'
 import MatchTracker from './pages/MatchTracker'
 import { ProfileDropdown } from './components/ProfileDropdown'
 import { useAuth } from './contexts/AuthContext'
 import type { Player, Deck, CreateMatchRequest, Match } from './services/api'
 import { playerApi, deckApi, matchApi } from './services/api'
 
-type ViewType = 'dashboard' | 'leaderboard' | 'admin' | 'player-detail' | 'match-tracker';
+type ViewType = 'dashboard' | 'leaderboard' | 'admin' | 'player-detail' | 'match-tracker' | 'match-detail';
 
+// Main application component
 function App() {
   const { currentPlayer } = useAuth()
   const [activeView, setActiveView] = useState<ViewType>('dashboard')
   const [showMatchForm, setShowMatchForm] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
   const [players, setPlayers] = useState<Player[]>([])
   const [decks, setDecks] = useState<Deck[]>([])
   const [matches, setMatches] = useState<Match[]>([])
@@ -47,6 +50,29 @@ function App() {
       window.removeEventListener('viewPlayerDetail', handleViewPlayerDetailEvent);
     };
   }, [])
+
+  const handleViewMatchDetail = useCallback((matchId: string) => {
+    setSelectedMatchId(matchId)
+    setActiveView('match-detail')
+  }, [])
+
+  const handleBackFromMatchDetail = useCallback(() => {
+    setSelectedMatchId(null)
+    setActiveView('dashboard')
+  }, [])
+
+  // Listen for view match detail event
+  useEffect(() => {
+    const handleViewMatchDetailEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ matchId: string }>;
+      handleViewMatchDetail(customEvent.detail.matchId);
+    };
+
+    window.addEventListener('viewMatchDetail', handleViewMatchDetailEvent);
+    return () => {
+      window.removeEventListener('viewMatchDetail', handleViewMatchDetailEvent);
+    };
+  }, [handleViewMatchDetail])
 
   const loadPlayersAndDecks = async () => {
     try {
@@ -212,6 +238,12 @@ function App() {
             <PlayerDetail
               playerId={selectedPlayerId}
               onBack={handleBackFromPlayerDetail}
+            />
+          )}
+          {activeView === 'match-detail' && selectedMatchId && (
+            <MatchDetail
+              matchId={selectedMatchId}
+              onBack={handleBackFromMatchDetail}
             />
           )}
         </>

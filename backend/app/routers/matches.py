@@ -16,29 +16,69 @@ class CreateMatchRequest(BaseModel):
     winner_deck_id: str
     match_date: date
     duration_seconds: int | None = None  # Game duration in seconds
+    elimination_orders: dict[str, int] | None = None  # Maps player_id to placement (1=winner, 2=2nd, 3=3rd, 4=4th)
 
 
-@router.get("/", response_model=list[Match])
+def serialize_match(match: Match) -> dict:
+    """Helper function to serialize a match with id instead of _id"""
+    return {
+        "id": str(match.id),
+        "players": [
+            {
+                "player_id": p.player_id,
+                "player_name": p.player_name,
+                "deck_id": p.deck_id,
+                "deck_name": p.deck_name,
+                "deck_colors": p.deck_colors,
+                "elimination_order": p.elimination_order,
+                "is_winner": p.is_winner
+            }
+            for p in match.players
+        ],
+        "winner_player_id": match.winner_player_id,
+        "winner_deck_id": match.winner_deck_id,
+        "match_date": match.match_date.isoformat(),
+        "duration_seconds": match.duration_seconds,
+        "notes": match.notes,
+        "created_at": match.created_at.isoformat()
+    }
+
+
+@router.get("/")
 async def get_all_matches(limit: int = 50, skip: int = 0):
     """Get all matches with pagination"""
     matches = await Match.find_all().skip(skip).limit(limit).sort(-Match.match_date).to_list()
-    return matches
+    return [serialize_match(match) for match in matches]
 
 
-@router.get("/recent", response_model=list[Match])
+@router.get("/recent")
 async def get_recent_matches(limit: int = 10):
     """Get recent matches"""
     matches = await Match.find_all().limit(limit).sort(-Match.match_date).to_list()
-    return matches
+    return [serialize_match(match) for match in matches]
 
 
-@router.get("/{match_id}", response_model=Match)
-async def get_match(match_id: PydanticObjectId):
+@router.get("/{match_id}")
+async def get_match(match_id: str):
     """Get a specific match by ID"""
-    match = await Match.get(match_id)
-    if not match:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
-    return match
+    try:
+        # Convert string to PydanticObjectId
+        obj_id = PydanticObjectId(match_id)
+
+        # Workaround: Beanie's find_one with _id filter seems to have issues
+        # Use find_all and filter in Python instead
+        all_matches = await Match.find_all().to_list()
+        match = next((m for m in all_matches if m.id == obj_id), None)
+
+        if not match:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
+        return serialize_match(match)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid match ID: {str(e)}")
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -87,12 +127,14 @@ async def create_match(request: CreateMatchRequest):
 
         # Create MatchPlayer with snapshot data
         is_winner = (player_id == request.winner_player_id and deck_id == request.winner_deck_id)
+        elimination_order = request.elimination_orders.get(player_id) if request.elimination_orders else None
         match_players.append(MatchPlayer(
             player_id=player_id,
             player_name=player.name,
             deck_id=deck_id,
             deck_name=deck.name,
             deck_colors=deck.colors,  # Snapshot deck colors for historical accuracy
+            elimination_order=elimination_order,  # Player placement (1=winner, 2=2nd, etc.)
             is_winner=is_winner
         ))
 
@@ -124,6 +166,7 @@ async def create_match(request: CreateMatchRequest):
                 "deck_id": p.deck_id,
                 "deck_name": p.deck_name,
                 "deck_colors": p.deck_colors,
+                "elimination_order": p.elimination_order,
                 "is_winner": p.is_winner
             }
             for p in match.players

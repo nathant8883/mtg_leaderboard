@@ -102,6 +102,7 @@ export interface MatchPlayer {
   deck_id: string;
   deck_name: string;
   deck_colors: string[];  // Deck color identity (W/U/B/R/G)
+  elimination_order?: number;  // Player placement (1=winner, 2=2nd, 3=3rd, 4=4th). Undefined if only winner is known
   is_winner: boolean;
 }
 

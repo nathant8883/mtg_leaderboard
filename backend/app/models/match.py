@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from typing import Optional, Any
-from beanie import Document
-from pydantic import BaseModel, Field, field_validator
+from beanie import Document, PydanticObjectId
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class MatchPlayer(BaseModel):
@@ -11,6 +11,7 @@ class MatchPlayer(BaseModel):
     deck_id: str
     deck_name: str
     deck_colors: list[str] = []  # Deck color identity (W/U/B/R/G), snapshotted at match creation
+    elimination_order: Optional[int] = None  # Player placement (1=winner, 2=2nd, 3=3rd, 4=4th). None if only winner is known
     is_winner: bool = False
 
 
@@ -46,6 +47,26 @@ class Match(Document):
         name = "matches"
         use_state_management = True
         use_revision = False
+        # Configure Beanie to serialize _id as id in JSON responses
+        bson_encoders = {
+            PydanticObjectId: str
+        }
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        # Allow _id to be accessed as id
+        json_schema_extra={
+            "example": {
+                "id": "507f1f77bcf86cd799439011",
+                "players": [],
+                "winner_player_id": "507f1f77bcf86cd799439011",
+                "winner_deck_id": "507f1f77bcf86cd799439011",
+                "match_date": "2025-10-17",
+                "duration_seconds": 3600,
+                "created_at": "2025-10-17T12:00:00"
+            }
+        }
+    )
 
     def model_dump(self, **kwargs) -> dict[str, Any]:
         """Override to ensure id is used instead of _id"""

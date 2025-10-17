@@ -42,6 +42,12 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
     return match.players.find(p => p.is_winner);
   };
 
+  const handleMatchClick = (matchId: string) => {
+    window.dispatchEvent(new CustomEvent('viewMatchDetail', {
+      detail: { matchId }
+    }));
+  };
+
   if (loading) {
     return (
       <div className="card">
@@ -76,7 +82,12 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
           const durationText = formatDuration(match.duration_seconds);
 
           return (
-            <div key={match.id} className="recent-match-card">
+            <div
+              key={match.id}
+              className="recent-match-card"
+              onClick={() => handleMatchClick(match.id!)}
+              style={{ cursor: 'pointer' }}
+            >
               {/* Header Row: Winner + Time Info */}
               <div className="recent-match-header">
                 <div className="recent-match-winner">
