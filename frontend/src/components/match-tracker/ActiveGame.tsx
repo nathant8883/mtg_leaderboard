@@ -23,6 +23,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
+  // Hold button state
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const holdIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Timer logic - just for display, don't update gameState on every tick
   useEffect(() => {
     const interval = setInterval(() => {
@@ -67,6 +71,43 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       }
     }
   };
+
+  const clearHoldTimers = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (holdIntervalRef.current) {
+      clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+  };
+
+  const handleLifeButtonDown = (position: number, delta: number) => {
+    // Clear any existing timers
+    clearHoldTimers();
+
+    // Immediate single increment
+    handleLifeChange(position, delta);
+
+    // After 1 second, start incrementing by 10
+    holdTimerRef.current = setTimeout(() => {
+      holdIntervalRef.current = setInterval(() => {
+        handleLifeChange(position, delta * 10);
+      }, 100);
+    }, 1000);
+  };
+
+  const handleLifeButtonUp = () => {
+    clearHoldTimers();
+  };
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      clearHoldTimers();
+    };
+  }, []);
 
   const handleCommanderDamageUpdate = (playerPosition: number, opponentPosition: number, damage: number) => {
     const updatedState = {
@@ -186,7 +227,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
               {/* Life buttons on sides */}
               <button
                 className="life-btn-side life-btn-left"
-                onClick={() => handleLifeChange(player.position, -1)}
+                onMouseDown={() => handleLifeButtonDown(player.position, -1)}
+                onMouseUp={handleLifeButtonUp}
+                onMouseLeave={handleLifeButtonUp}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleLifeButtonDown(player.position, -1);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleLifeButtonUp();
+                }}
                 disabled={playerState.eliminated}
               >
                 −
@@ -194,7 +245,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
               <button
                 className="life-btn-side life-btn-right"
-                onClick={() => handleLifeChange(player.position, 1)}
+                onMouseDown={() => handleLifeButtonDown(player.position, 1)}
+                onMouseUp={handleLifeButtonUp}
+                onMouseLeave={handleLifeButtonUp}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  handleLifeButtonDown(player.position, 1);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleLifeButtonUp();
+                }}
                 disabled={playerState.eliminated}
               >
                 +
