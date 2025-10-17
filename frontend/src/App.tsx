@@ -217,6 +217,33 @@ function App() {
           decks={decks}
         />
       )}
+
+      {/* Mobile Bottom Action Bar */}
+      {activeView !== 'match-tracker' && (
+        <div className="mobile-action-bar">
+          <button
+            className={`mobile-action-btn ${activeView === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveView('dashboard')}
+          >
+            <span className="action-icon">🏠</span>
+            <span className="action-label">Home</span>
+          </button>
+          <button
+            className="mobile-action-btn mobile-action-btn-primary"
+            onClick={() => setActiveView('match-tracker')}
+          >
+            <span className="action-icon">🎮</span>
+            <span className="action-label">Start Game</span>
+          </button>
+          <button
+            className="mobile-action-btn"
+            onClick={() => setShowMatchForm(true)}
+          >
+            <span className="action-icon">➕</span>
+            <span className="action-label">Add Match</span>
+          </button>
+        </div>
+      )}
     </div>
   )
 }
