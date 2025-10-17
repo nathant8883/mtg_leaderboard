@@ -241,8 +241,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const deltaX = touchEndX - touchStartX.current;
     const deltaY = touchEndY - touchStartY.current;
 
-    // Detect horizontal swipe (threshold: 50px, must be more horizontal than vertical)
-    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    // Detect horizontal swipe (threshold: 30px, must be more horizontal than vertical)
+    if (Math.abs(deltaX) > 30 && Math.abs(deltaX) > Math.abs(deltaY)) {
       // Enter commander damage mode from this player's perspective
       setCommanderDamageMode(true);
       setTrackingPlayerPosition(player.position);
