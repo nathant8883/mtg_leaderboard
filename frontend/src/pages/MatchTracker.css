@@ -2431,6 +2431,9 @@
   z-index: 2;
   text-align: center;
   padding: 20px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
 }
 
 .commander-indicator-title {
@@ -2462,6 +2465,15 @@
   letter-spacing: 1px;
   margin-top: 24px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.commander-indicator-return:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
 }
 
 /* Commander damage section for opponent cards */

@@ -320,7 +320,18 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
 
               <div className="player-info">
-                <div className="player-name">{player.playerName}</div>
+                <div
+                  className="player-name"
+                  onClick={() => {
+                    if (!commanderDamageMode && !playerState.eliminated) {
+                      setCommanderDamageMode(true);
+                      setTrackingPlayerPosition(player.position);
+                    }
+                  }}
+                  style={{ cursor: !commanderDamageMode && !playerState.eliminated ? 'pointer' : 'default' }}
+                >
+                  {player.playerName}
+                </div>
                 <div className="player-deck">{player.deckName}</div>
               </div>
 
@@ -389,7 +400,13 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                       <div className="commander-indicator-title">COMMANDER</div>
                       <div className="commander-indicator-title">DAMAGE</div>
                       <div className="commander-indicator-subtitle">YOU'VE RECEIVED</div>
-                      <div className="commander-indicator-return">RETURN TO GAME</div>
+                      <div
+                        className="commander-indicator-return"
+                        onClick={exitCommanderDamageMode}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        RETURN TO GAME
+                      </div>
                     </div>
                   ) : (
                     // This is an opponent's card - show damage tracking with same layout as life
