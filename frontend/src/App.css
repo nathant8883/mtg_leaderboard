@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+:root {
+  --accent-cyan: #33D9B2;
+  --accent-purple: #667eea;
+}
+
 html, body, #root {
   width: 100%;
   min-width: 100%;
@@ -16,7 +21,7 @@ html, body, #root {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #141517;
+  background: linear-gradient(180deg, #0F1012 0%, #141517 100%);
   color: #fff;
   position: relative;
   min-height: 100vh;
@@ -32,13 +37,13 @@ body {
 }
 
 .header {
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border-bottom: 1px solid #2C2E33;
   padding: 16px 24px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .header-content {
@@ -144,11 +149,11 @@ body {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border: 1px solid #2C2E33;
   border-radius: 8px;
   min-width: 160px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   z-index: 1000;
   overflow: hidden;
 }
@@ -194,10 +199,10 @@ body {
 
 /* Option 2: Split Design (Header + Body) */
 .stat-card {
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border-radius: 16px;
   border: 1px solid #2C2E33;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease-out;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -206,7 +211,7 @@ body {
 .stat-card:hover {
   border-color: var(--stat-color);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .stat-card-header {
@@ -317,10 +322,10 @@ body {
 
 /* Card Styles */
 .card {
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .card-header {
@@ -518,12 +523,12 @@ body {
 }
 
 .modal-content {
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border-radius: 12px;
   padding: 32px;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
 .modal-header {
@@ -712,14 +717,14 @@ body {
   top: 100%;
   left: 0;
   right: 0;
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border: 1px solid #2C2E33;
   border-radius: 6px;
   margin-top: 4px;
   max-height: 400px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .commander-suggestion-item {
@@ -886,7 +891,8 @@ body {
 
 .match-deck {
   color: #909296;
-  font-size: 14px;
+  font-size: 13px;
+  opacity: 0.7;
 }
 
 .match-winner {
@@ -897,7 +903,8 @@ body {
 
 .match-date {
   color: #909296;
-  font-size: 14px;
+  font-size: 12px;
+  opacity: 0.7;
 }
 
 /* Leaderboard Styles */
@@ -949,29 +956,33 @@ body {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 20px;
   background: #2C2E33;
   color: #909296;
   font-weight: 700;
   font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .rank-badge.gold {
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
   color: #1A1B1E;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .rank-badge.silver {
   background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
   color: #1A1B1E;
-  box-shadow: 0 4px 12px rgba(192, 192, 192, 0.4);
+  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+  border: 1px solid rgba(192, 192, 192, 0.3);
 }
 
 .rank-badge.bronze {
   background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(205, 127, 50, 0.4);
+  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
+  border: 1px solid rgba(205, 127, 50, 0.3);
 }
 
 /* Win Rate Compact Display (Style 3) */
@@ -1070,7 +1081,8 @@ body {
 
 .commander-name {
   color: #C1C2C5;
-  font-size: 15px;
+  font-size: 13px;
+  opacity: 0.7;
 }
 
 /* Tab Content */
@@ -1148,7 +1160,7 @@ body {
 }
 
 .sidebar-card {
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border: 1px solid #2C2E33;
   border-radius: 16px;
   padding: 32px;
@@ -1216,7 +1228,7 @@ body {
 }
 
 .content-section {
-  background: #1A1B1E;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
   border: 1px solid #2C2E33;
   border-radius: 16px;
   padding: 32px;
@@ -1417,7 +1429,8 @@ body {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    gap: 16px;
+    scroll-behavior: smooth;
+    gap: 12px;
     margin-bottom: 24px;
     padding: 0 16px 16px 16px;
     margin-left: -16px;
@@ -1820,9 +1833,10 @@ body {
     background: transparent;
     color: #909296;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s ease-out;
     font-size: 12px;
     font-weight: 600;
+    opacity: 0.6;
   }
 
   .mobile-action-btn .action-icon {
@@ -1840,14 +1854,17 @@ body {
   }
 
   .mobile-action-btn.active {
-    background: rgba(102, 126, 234, 0.15);
-    color: #667eea;
+    background: rgba(51, 217, 178, 0.15);
+    color: var(--accent-cyan);
+    opacity: 1;
+    box-shadow: 0 -2px 12px rgba(51, 217, 178, 0.4);
   }
 
   .mobile-action-btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff !important;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    opacity: 1 !important;
   }
 
   .mobile-action-btn-primary:active {
@@ -1886,17 +1903,17 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #25262B;
+    background: linear-gradient(135deg, #25262B 0%, #27282D 100%);
     border: 1px solid #2C2E33;
     border-radius: 12px;
     padding: 16px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s ease-out;
   }
 
   .player-card-mobile:active {
     transform: scale(0.98);
-    background: #2C2E33;
+    background: linear-gradient(135deg, #2C2E33 0%, #2E2F34 100%);
   }
 
   .player-card-rank {
@@ -1930,9 +1947,10 @@ body {
   }
 
   .player-card-record {
-    font-size: 13px;
+    font-size: 12px;
     color: #909296;
     margin-bottom: 4px;
+    opacity: 0.7;
   }
 
   .player-card-tier {
@@ -1940,9 +1958,10 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
     display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .player-card-tier.s-tier {
@@ -1993,16 +2012,16 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #25262B;
+    background: linear-gradient(135deg, #25262B 0%, #27282D 100%);
     border: 1px solid #2C2E33;
     border-radius: 12px;
     padding: 16px;
-    transition: all 0.2s;
+    transition: all 0.15s ease-out;
   }
 
   .deck-card-mobile:active {
     transform: scale(0.98);
-    border-color: #667eea;
+    border-color: var(--accent-purple);
   }
 
   .deck-card-rank {
@@ -2051,11 +2070,12 @@ body {
   }
 
   .deck-card-commander {
-    font-size: 13px;
+    font-size: 12px;
     color: #909296;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    opacity: 0.7;
   }
 
   .deck-card-colors {
@@ -2067,9 +2087,10 @@ body {
   }
 
   .deck-card-record {
-    font-size: 13px;
+    font-size: 12px;
     color: #909296;
     margin-top: 4px;
+    opacity: 0.7;
   }
 
   .deck-card-tier {
@@ -2077,10 +2098,11 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
     display: inline-block;
     margin-top: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   .deck-card-tier.s-tier {
