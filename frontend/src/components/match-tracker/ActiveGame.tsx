@@ -97,6 +97,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
     // After 1 second, start incrementing by 10
     holdTimerRef.current = setTimeout(() => {
+      // First increment immediately
+      handleLifeChange(position, delta * 10);
+      // Then continue every 100ms
       holdIntervalRef.current = setInterval(() => {
         handleLifeChange(position, delta * 10);
       }, 100);
