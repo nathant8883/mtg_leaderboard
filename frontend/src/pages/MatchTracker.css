@@ -1809,6 +1809,25 @@
   transform: scale(0.95);
 }
 
+/* Lethal damage styling (for 21+ commander damage) */
+.life-total.lethal-damage {
+  color: #ef4444;
+  animation: lethalPulseNumber 1.5s ease-in-out infinite;
+}
+
+@keyframes lethalPulseNumber {
+  0%, 100% {
+    text-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    text-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(239, 68, 68, 0.8);
+  }
+}
+
 /* Side life buttons (Lotus style) */
 .life-btn-side {
   position: absolute;
@@ -2595,4 +2614,212 @@
 
 .done-btn:active {
   transform: translateY(0);
+}
+
+/* ==================== COMMANDER DAMAGE MODE (LOTUS STYLE) ==================== */
+
+/* Center button in commander damage mode - Red/Warning style */
+.floating-menu-btn.commander-mode-exit::before {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  animation: glowBreatheExit 2.5s ease-in-out infinite;
+}
+
+@keyframes glowBreatheExit {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 12px rgba(239, 68, 68, 0.6))
+      drop-shadow(0 0 24px rgba(239, 68, 68, 0.45))
+      drop-shadow(0 0 36px rgba(239, 68, 68, 0.3))
+      drop-shadow(0 6px 16px rgba(0, 0, 0, 0.9))
+      drop-shadow(0 2px 4px rgba(0, 0, 0, 1));
+    opacity: 0.95;
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 16px rgba(239, 68, 68, 0.75))
+      drop-shadow(0 0 32px rgba(239, 68, 68, 0.6))
+      drop-shadow(0 0 48px rgba(239, 68, 68, 0.4))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+      drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+    opacity: 1;
+  }
+}
+
+.floating-menu-btn.commander-mode-exit::after {
+  background: linear-gradient(145deg, rgba(40, 10, 10, 0.95), rgba(30, 5, 5, 0.95));
+  box-shadow:
+    0 0 6px rgba(239, 68, 68, 0.2) inset,
+    0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.floating-menu-btn.commander-mode-exit:hover::before {
+  filter:
+    brightness(1.25)
+    drop-shadow(0 0 16px rgba(239, 68, 68, 0.8))
+    drop-shadow(0 0 32px rgba(239, 68, 68, 0.6))
+    drop-shadow(0 0 48px rgba(239, 68, 68, 0.4))
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+}
+
+/* Player card in commander damage mode */
+.player-card.commander-damage-mode {
+  cursor: default;
+}
+
+/* Tracking player's card - dark overlay with indicator text */
+.player-card.tracking-player::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1;
+  border-radius: 16px;
+}
+
+/* Commander damage indicator for tracking player */
+.commander-damage-indicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  text-align: center;
+  padding: 20px;
+}
+
+.commander-indicator-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+  margin: 2px 0;
+}
+
+.commander-indicator-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.commander-indicator-return {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 24px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Commander damage section for opponent cards */
+.commander-damage-section {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  z-index: 2;
+}
+
+/* Commander damage display - large horizontal oval */
+.commander-damage-display {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50px;
+  padding: 12px 40px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2) inset;
+  margin: 16px 0;
+  transition: all 0.2s ease;
+}
+
+.commander-damage-display.lethal {
+  background: rgba(239, 68, 68, 0.95);
+  box-shadow:
+    0 4px 20px rgba(239, 68, 68, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.3) inset;
+  animation: lethalPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes lethalPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow:
+      0 4px 20px rgba(239, 68, 68, 0.6),
+      0 2px 8px rgba(0, 0, 0, 0.3) inset;
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow:
+      0 6px 28px rgba(239, 68, 68, 0.8),
+      0 2px 8px rgba(0, 0, 0, 0.3) inset;
+  }
+}
+
+.commander-damage-number {
+  font-size: 64px;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  color: #1a1b1e;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  line-height: 1;
+}
+
+.commander-damage-display.lethal .commander-damage-number {
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Commander damage buttons */
+.commander-damage-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 36px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.commander-damage-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+}
+
+.commander-damage-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.commander-damage-btn-plus {
+  margin-bottom: 8px;
+}
+
+.commander-damage-btn-minus {
+  margin-top: 8px;
 }

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
 import LifeInputModal from './LifeInputModal';
-import CommanderDamageOverlay from './CommanderDamageOverlay';
 
 interface ActiveGameProps {
   players: PlayerSlot[];
@@ -16,7 +15,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const [timer, setTimer] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [lifeInputPlayer, setLifeInputPlayer] = useState<PlayerSlot | null>(null);
-  const [commanderDamagePlayer, setCommanderDamagePlayer] = useState<PlayerSlot | null>(null);
+  const [commanderDamageMode, setCommanderDamageMode] = useState(false);
+  const [trackingPlayerPosition, setTrackingPlayerPosition] = useState<number | null>(null);
   const [showWinnerSelect, setShowWinnerSelect] = useState(false);
 
   // Track touch start position for swipe detection
@@ -138,21 +138,29 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     };
   }, []);
 
-  const handleCommanderDamageUpdate = (playerPosition: number, opponentPosition: number, damage: number) => {
+  // Handle commander damage increment/decrement
+  const handleCommanderDamageChange = (fromOpponentPosition: number, delta: number) => {
+    if (trackingPlayerPosition === null) return;
+
+    // Read from ref to get the latest state
+    const currentState = gameStateRef.current;
+    const currentDamage = currentState.playerStates[trackingPlayerPosition].commanderDamage?.[fromOpponentPosition] || 0;
+    const newDamage = Math.max(0, currentDamage + delta);
+
     const updatedState = {
-      ...gameState,
+      ...currentState,
       playerStates: {
-        ...gameState.playerStates,
-        [playerPosition]: {
-          ...gameState.playerStates[playerPosition],
+        ...currentState.playerStates,
+        [trackingPlayerPosition]: {
+          ...currentState.playerStates[trackingPlayerPosition],
           commanderDamage: {
-            ...(gameState.playerStates[playerPosition].commanderDamage || {}),
-            [opponentPosition]: damage,
+            ...(currentState.playerStates[trackingPlayerPosition].commanderDamage || {}),
+            [fromOpponentPosition]: newDamage,
           },
-          // Check if this player should be eliminated due to commander damage
+          // Check if this player should be eliminated due to commander damage (21+ from single opponent)
           eliminated:
-            gameState.playerStates[playerPosition].eliminated ||
-            damage >= 21,
+            currentState.playerStates[trackingPlayerPosition].eliminated ||
+            newDamage >= 21,
         },
       },
     };
@@ -171,7 +179,53 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     }
   };
 
-  // Swipe gesture handlers
+  // Commander damage button handlers (reuse hold-to-increment pattern)
+  const handleCommanderDamageButtonDown = (opponentPosition: number, delta: number) => {
+    if (trackingPlayerPosition === null) return;
+
+    // Clear any existing timers
+    clearHoldTimers();
+
+    // Store button state
+    holdStartTime.current = Date.now();
+    holdPosition.current = opponentPosition; // Store opponent position instead of player position
+    holdDelta.current = delta;
+
+    // After 1 second, start incrementing by 5
+    holdTimerRef.current = setTimeout(() => {
+      // First increment immediately
+      handleCommanderDamageChange(opponentPosition, delta * 5);
+      // Then continue every 1 second
+      holdIntervalRef.current = setInterval(() => {
+        handleCommanderDamageChange(opponentPosition, delta * 5);
+      }, 1000);
+    }, 1000);
+  };
+
+  const handleCommanderDamageButtonUp = (opponentPosition: number) => {
+    // If released before 1 second, do a single increment
+    const wasHolding = holdIntervalRef.current !== null;
+
+    if (!wasHolding && holdStartTime.current !== null && holdPosition.current !== null && holdDelta.current !== null) {
+      const elapsed = Date.now() - holdStartTime.current;
+      if (elapsed < 1000) {
+        handleCommanderDamageChange(opponentPosition, holdDelta.current);
+      }
+    }
+
+    clearHoldTimers();
+    holdStartTime.current = null;
+    holdPosition.current = null;
+    holdDelta.current = null;
+  };
+
+  // Exit commander damage mode
+  const exitCommanderDamageMode = () => {
+    setCommanderDamageMode(false);
+    setTrackingPlayerPosition(null);
+  };
+
+  // Swipe gesture handlers - Enter commander damage mode
   const handleTouchStart = (e: React.TouchEvent, player: PlayerSlot) => {
     if (gameState.playerStates[player.position].eliminated) return;
     touchStartX.current = e.touches[0].clientX;
@@ -189,7 +243,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
     // Detect horizontal swipe (threshold: 50px, must be more horizontal than vertical)
     if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      setCommanderDamagePlayer(player);
+      // Enter commander damage mode from this player's perspective
+      setCommanderDamageMode(true);
+      setTrackingPlayerPosition(player.position);
     }
 
     touchStartX.current = null;
@@ -200,10 +256,19 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
   return (
     <div className="active-game">
-      {/* Floating Hamburger Menu Button */}
+      {/* Floating Center Button - Hamburger Menu or Exit Commander Damage Mode */}
       <div className="floating-menu-btn-wrapper">
-        <button className="floating-menu-btn" onClick={() => setShowMenu(!showMenu)}>
-          ☰
+        <button
+          className={`floating-menu-btn ${commanderDamageMode ? 'commander-mode-exit' : ''}`}
+          onClick={() => {
+            if (commanderDamageMode) {
+              exitCommanderDamageMode();
+            } else {
+              setShowMenu(!showMenu);
+            }
+          }}
+        >
+          {commanderDamageMode ? '⚔️' : '☰'}
         </button>
       </div>
 
@@ -239,12 +304,18 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       <div className={`players-grid layout-${layout} players-${playerCount}`}>
         {players.map((player) => {
           const playerState = gameState.playerStates[player.position];
+          const isTrackingPlayer = commanderDamageMode && player.position === trackingPlayerPosition;
+          const commanderDamage = commanderDamageMode && trackingPlayerPosition !== null
+            ? gameState.playerStates[trackingPlayerPosition].commanderDamage?.[player.position] || 0
+            : 0;
+          const isLethalDamage = commanderDamage >= 21;
+
           return (
             <div
               key={player.position}
-              className={`player-card ${playerState.eliminated ? 'eliminated' : ''}`}
-              onTouchStart={(e) => handleTouchStart(e, player)}
-              onTouchEnd={(e) => handleTouchEnd(e, player)}
+              className={`player-card ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''}`}
+              onTouchStart={(e) => !commanderDamageMode && handleTouchStart(e, player)}
+              onTouchEnd={(e) => !commanderDamageMode && handleTouchEnd(e, player)}
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
 
@@ -253,52 +324,121 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <div className="player-deck">{player.deckName}</div>
               </div>
 
-              {/* Life buttons on sides */}
-              <button
-                className="life-btn-side life-btn-left"
-                onMouseDown={() => handleLifeButtonDown(player.position, -1)}
-                onMouseUp={handleLifeButtonUp}
-                onMouseLeave={handleLifeButtonUp}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                  handleLifeButtonDown(player.position, -1);
-                }}
-                onTouchEnd={(e) => {
-                  e.stopPropagation();
-                  handleLifeButtonUp();
-                }}
-                disabled={playerState.eliminated}
-              >
-                −
-              </button>
+              {/* Normal Life Tracking Mode */}
+              {!commanderDamageMode && (
+                <>
+                  {/* Life buttons on sides */}
+                  <button
+                    className="life-btn-side life-btn-left"
+                    onMouseDown={() => handleLifeButtonDown(player.position, -1)}
+                    onMouseUp={handleLifeButtonUp}
+                    onMouseLeave={handleLifeButtonUp}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      handleLifeButtonDown(player.position, -1);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      handleLifeButtonUp();
+                    }}
+                    disabled={playerState.eliminated}
+                  >
+                    −
+                  </button>
 
-              <button
-                className="life-btn-side life-btn-right"
-                onMouseDown={() => handleLifeButtonDown(player.position, 1)}
-                onMouseUp={handleLifeButtonUp}
-                onMouseLeave={handleLifeButtonUp}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                  handleLifeButtonDown(player.position, 1);
-                }}
-                onTouchEnd={(e) => {
-                  e.stopPropagation();
-                  handleLifeButtonUp();
-                }}
-                disabled={playerState.eliminated}
-              >
-                +
-              </button>
+                  <button
+                    className="life-btn-side life-btn-right"
+                    onMouseDown={() => handleLifeButtonDown(player.position, 1)}
+                    onMouseUp={handleLifeButtonUp}
+                    onMouseLeave={handleLifeButtonUp}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      handleLifeButtonDown(player.position, 1);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      handleLifeButtonUp();
+                    }}
+                    disabled={playerState.eliminated}
+                  >
+                    +
+                  </button>
 
-              <div className="life-section">
-                <div className="life-total" onClick={() => {
-                  if (!playerState.eliminated) {
-                    setLifeInputPlayer(player);
-                  }
-                }}>
-                  {playerState.life}
-                </div>
-              </div>
+                  <div className="life-section">
+                    <div className="life-total" onClick={() => {
+                      if (!playerState.eliminated) {
+                        setLifeInputPlayer(player);
+                      }
+                    }}>
+                      {playerState.life}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Commander Damage Tracking Mode */}
+              {commanderDamageMode && (
+                <>
+                  {isTrackingPlayer ? (
+                    // This is the tracking player's card - show indicator
+                    <div className="commander-damage-indicator">
+                      <div className="commander-indicator-title">COMMANDER</div>
+                      <div className="commander-indicator-title">DAMAGE</div>
+                      <div className="commander-indicator-subtitle">YOU'VE RECEIVED</div>
+                      <div className="commander-indicator-return">RETURN TO GAME</div>
+                    </div>
+                  ) : (
+                    // This is an opponent's card - show damage tracking with same layout as life
+                    <>
+                      {/* Commander damage buttons on sides */}
+                      <button
+                        className="life-btn-side life-btn-left"
+                        onMouseDown={() => handleCommanderDamageButtonDown(player.position, -1)}
+                        onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
+                        onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          handleCommanderDamageButtonDown(player.position, -1);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          handleCommanderDamageButtonUp(player.position);
+                        }}
+                      >
+                        −
+                      </button>
+
+                      <button
+                        className="life-btn-side life-btn-right"
+                        onMouseDown={() => handleCommanderDamageButtonDown(player.position, 1)}
+                        onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
+                        onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          handleCommanderDamageButtonDown(player.position, 1);
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          handleCommanderDamageButtonUp(player.position);
+                        }}
+                      >
+                        +
+                      </button>
+
+                      <div className="life-section">
+                        <div
+                          className={`life-total ${isLethalDamage ? 'lethal-damage' : ''}`}
+                          onClick={() => {
+                            // TODO: Add modal for direct commander damage input
+                          }}
+                        >
+                          {commanderDamage}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           );
         })}
@@ -337,19 +477,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             setLifeInputPlayer(null);
           }}
           onCancel={() => setLifeInputPlayer(null)}
-        />
-      )}
-
-      {/* Commander Damage Overlay */}
-      {commanderDamagePlayer && (
-        <CommanderDamageOverlay
-          targetPlayer={commanderDamagePlayer}
-          allPlayers={players}
-          commanderDamage={gameState.playerStates[commanderDamagePlayer.position].commanderDamage || {}}
-          onUpdate={(opponentPosition, damage) => {
-            handleCommanderDamageUpdate(commanderDamagePlayer.position, opponentPosition, damage);
-          }}
-          onClose={() => setCommanderDamagePlayer(null)}
         />
       )}
 
