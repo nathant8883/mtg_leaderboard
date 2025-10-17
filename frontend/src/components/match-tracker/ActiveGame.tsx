@@ -334,10 +334,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     onMouseUp={handleLifeButtonUp}
                     onMouseLeave={handleLifeButtonUp}
                     onTouchStart={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleLifeButtonDown(player.position, -1);
                     }}
                     onTouchEnd={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleLifeButtonUp();
                     }}
@@ -352,10 +354,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     onMouseUp={handleLifeButtonUp}
                     onMouseLeave={handleLifeButtonUp}
                     onTouchStart={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleLifeButtonDown(player.position, 1);
                     }}
                     onTouchEnd={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleLifeButtonUp();
                     }}
@@ -397,10 +401,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                         onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
                         onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
                         onTouchStart={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           handleCommanderDamageButtonDown(player.position, -1);
                         }}
                         onTouchEnd={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           handleCommanderDamageButtonUp(player.position);
                         }}
@@ -414,10 +420,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                         onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
                         onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
                         onTouchStart={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           handleCommanderDamageButtonDown(player.position, 1);
                         }}
                         onTouchEnd={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           handleCommanderDamageButtonUp(player.position);
                         }}
