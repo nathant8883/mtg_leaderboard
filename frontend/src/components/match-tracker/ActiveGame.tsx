@@ -131,9 +131,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   return (
     <div className="active-game">
       {/* Floating Hamburger Menu Button */}
-      <button className="floating-menu-btn" onClick={() => setShowMenu(!showMenu)}>
-        ☰
-      </button>
+      <div className="floating-menu-btn-wrapper">
+        <button className="floating-menu-btn" onClick={() => setShowMenu(!showMenu)}>
+          ☰
+        </button>
+      </div>
 
       {/* Menu Overlay */}
       {showMenu && (
