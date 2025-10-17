@@ -8,7 +8,6 @@ interface LifeInputModalProps {
 
 function LifeInputModal({ currentLife, onConfirm, onCancel }: LifeInputModalProps) {
   const [inputValue, setInputValue] = useState('');
-  const [mode, setMode] = useState<'set' | 'add' | 'subtract'>('set');
 
   const handleNumberClick = (num: string) => {
     if (inputValue.length < 3) {
@@ -20,97 +19,55 @@ function LifeInputModal({ currentLife, onConfirm, onCancel }: LifeInputModalProp
     setInputValue(inputValue.slice(0, -1));
   };
 
-  const handleClear = () => {
-    setInputValue('');
-    setMode('set');
-  };
-
-  const handleModeToggle = (newMode: 'add' | 'subtract') => {
-    if (mode === newMode) {
-      setMode('set');
-    } else {
-      setMode(newMode);
-    }
-  };
-
-  const calculateNewLife = () => {
-    const value = parseInt(inputValue) || 0;
-    switch (mode) {
-      case 'add':
-        return currentLife + value;
-      case 'subtract':
-        return Math.max(0, currentLife - value);
-      case 'set':
-      default:
-        return value;
-    }
-  };
-
   const handleConfirm = () => {
     if (inputValue) {
-      const newLife = calculateNewLife();
+      const newLife = parseInt(inputValue) || 0;
       onConfirm(newLife);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="life-input-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="life-input-display-compact">
-          <span className="life-input-mode-compact">
-            {mode === 'add' && '+'}
-            {mode === 'subtract' && '−'}
-            {mode === 'set' && '='}
-          </span>
-          <span className="life-input-value-compact">{inputValue || '0'}</span>
-        </div>
-
-        <div className="life-input-modes">
-          <button
-            className={`mode-btn ${mode === 'add' ? 'active' : ''}`}
-            onClick={() => handleModeToggle('add')}
-          >
-            + Add
-          </button>
-          <button
-            className={`mode-btn ${mode === 'subtract' ? 'active' : ''}`}
-            onClick={() => handleModeToggle('subtract')}
-          >
-            − Subtract
-          </button>
-          <button
-            className={`mode-btn ${mode === 'set' ? 'active' : ''}`}
-            onClick={() => setMode('set')}
-          >
-            = Set
+    <div className="life-input-fullscreen-overlay" onClick={onCancel}>
+      <div className="life-input-fullscreen" onClick={(e) => e.stopPropagation()}>
+        {/* Top section: Display and backspace */}
+        <div className="life-input-top">
+          <div className="life-input-display-large">
+            {inputValue || '0'}
+          </div>
+          <button className="life-input-backspace" onClick={handleBackspace}>
+            ✕
           </button>
         </div>
 
-        <div className="number-pad">
-          <button className="number-btn" onClick={() => handleNumberClick('7')}>7</button>
-          <button className="number-btn" onClick={() => handleNumberClick('8')}>8</button>
-          <button className="number-btn" onClick={() => handleNumberClick('9')}>9</button>
-          <button className="number-btn" onClick={() => handleNumberClick('4')}>4</button>
-          <button className="number-btn" onClick={() => handleNumberClick('5')}>5</button>
-          <button className="number-btn" onClick={() => handleNumberClick('6')}>6</button>
-          <button className="number-btn" onClick={() => handleNumberClick('1')}>1</button>
-          <button className="number-btn" onClick={() => handleNumberClick('2')}>2</button>
-          <button className="number-btn" onClick={() => handleNumberClick('3')}>3</button>
-          <button className="number-btn clear-btn" onClick={handleClear}>C</button>
-          <button className="number-btn" onClick={() => handleNumberClick('0')}>0</button>
-          <button className="number-btn backspace-btn" onClick={handleBackspace}>⌫</button>
+        {/* Center section: Number pad */}
+        <div className="life-input-center">
+          <div className="life-input-numpad">
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('1')}>1</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('2')}>2</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('3')}>3</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('4')}>4</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('5')}>5</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('6')}>6</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('7')}>7</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('8')}>8</button>
+            <button className="life-numpad-btn" onClick={() => handleNumberClick('9')}>9</button>
+          </div>
+          <button className="life-numpad-btn life-numpad-zero" onClick={() => handleNumberClick('0')}>
+            0
+          </button>
         </div>
 
-        <div className="life-input-actions">
-          <button className="btn-secondary" onClick={onCancel}>
-            Cancel
+        {/* Bottom section: Action buttons */}
+        <div className="life-input-actions-fullscreen">
+          <button className="life-action-btn life-action-cancel" onClick={onCancel}>
+            CANCEL
           </button>
           <button
-            className="btn-primary"
+            className="life-action-btn life-action-confirm"
             onClick={handleConfirm}
             disabled={!inputValue}
           >
-            Confirm
+            SET LIFE
           </button>
         </div>
       </div>

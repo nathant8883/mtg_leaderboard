@@ -2018,123 +2018,211 @@
   }
 }
 
-/* ==================== LIFE INPUT MODAL ==================== */
-.life-input-modal {
-  background: #1a1b1e;
-  border: 1px solid #2c2e33;
-  border-radius: 8px;
-  padding: 8px;
-  max-width: 200px;
-  width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-}
+/* ==================== LIFE INPUT FULLSCREEN ==================== */
 
-.life-input-display-compact {
+/* Fullscreen overlay - dark background */
+.life-input-fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(20, 21, 23, 0.98) 0%, rgba(0, 0, 0, 0.98) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px;
-  margin-bottom: 6px;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 6px;
+  z-index: 2000;
+  padding: 0;
+  animation: fadeIn 0.2s ease;
+  overflow: hidden;
 }
 
-.life-input-mode-compact {
-  font-size: 20px;
-  font-weight: 700;
-  color: #667eea;
+/* Main container - full screen landscape layout */
+.life-input-fullscreen {
+  /* After 90deg rotation: width becomes visual height, height becomes visual width */
+  /* Viewport is 844w x 390h in landscape, so width 350px = 350px visual height after rotation */
+  width: 350px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2px 10px;
+  box-sizing: border-box;
+  gap: 2px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
-.life-input-value-compact {
-  font-size: 28px;
+/* Top section: Display and backspace */
+.life-input-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+/* Large number display */
+.life-input-display-large {
+  font-size: 36px;
   font-weight: 900;
   font-family: 'Courier New', monospace;
   color: #fff;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  min-width: 80px;
+  text-align: center;
 }
 
-.life-input-modes {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-
-.mode-btn {
-  flex: 1;
-  padding: 4px;
-  background: #2c2e33;
-  border: 2px solid #3c3e43;
-  border-radius: 4px;
-  color: #9ca3af;
-  font-size: 10px;
-  font-weight: 600;
+/* Backspace button (X) */
+.life-input-backspace {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
-.mode-btn:hover {
-  background: #3c3e43;
+.life-input-backspace:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
 }
 
-.mode-btn.active {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
-  color: #667eea;
+.life-input-backspace:active {
+  transform: scale(0.95);
 }
 
-.number-pad {
+/* Center section: Number pad */
+.life-input-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 280px;
+  width: 100%;
+}
+
+/* 3x3 number grid */
+.life-input-numpad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  margin-bottom: 6px;
+  gap: 6px;
+  width: 100%;
 }
 
-.number-btn {
+/* Number buttons */
+.life-numpad-btn {
   aspect-ratio: 1;
-  background: #2c2e33;
-  border: 1px solid #3c3e43;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   color: #fff;
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
+  min-height: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.number-btn:hover {
-  background: #3c3e43;
-  border-color: #667eea;
+.life-numpad-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.number-btn:active {
-  transform: scale(0.95);
+.life-numpad-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
-.number-btn.clear-btn,
-.number-btn.backspace-btn {
-  background: #ef4444;
-  border-color: #dc2626;
-  font-size: 14px;
+/* Zero button - centered standalone */
+.life-numpad-zero {
+  grid-column: auto;
+  width: calc(33.33% - 4px);
+  margin: 0 auto;
 }
 
-.number-btn.clear-btn:hover,
-.number-btn.backspace-btn:hover {
-  background: #dc2626;
-}
-
-.life-input-actions {
+/* Bottom section: Action buttons */
+.life-input-actions-fullscreen {
   display: flex;
   gap: 6px;
+  margin-top: 3px;
+  width: 100%;
+  max-width: 280px;
 }
 
-.life-input-actions .btn-primary,
-.life-input-actions .btn-secondary {
-  padding: 6px 12px;
-  font-size: 12px;
+/* Action button base */
+.life-action-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Cancel button */
+.life-action-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.life-action-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* Set Life button */
+.life-action-confirm {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: 2px solid transparent;
+}
+
+.life-action-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 18px rgba(102, 126, 234, 0.5);
+}
+
+.life-action-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.life-action-confirm:disabled:hover {
+  transform: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.life-action-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* ==================== COMMANDER DAMAGE OVERLAY ==================== */
