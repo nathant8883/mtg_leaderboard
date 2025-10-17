@@ -55,8 +55,8 @@ async def get_player_leaderboard() -> list[Dict[str, Any]]:
 
 @router.get("/decks")
 async def get_deck_leaderboard() -> list[Dict[str, Any]]:
-    """Get leaderboard by deck (excluding guest-owned decks)"""
-    decks = await Deck.find_all().to_list()
+    """Get leaderboard by deck (excluding guest-owned decks and disabled decks)"""
+    decks = await Deck.find(Deck.disabled != True).to_list()
     matches = await Match.find_all().to_list()
     players = await Player.find(
         {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
@@ -151,12 +151,12 @@ async def get_dashboard_stats() -> Dict[str, Any]:
         if player_game_counts:
             most_games_player = max(player_game_counts, key=lambda x: x["games_played"])
 
-    # Most played deck (deck + player)
+    # Most played deck (deck + player) - only consider enabled decks
     most_played_deck = None
-    if decks and matches:
+    if enabled_decks and matches:
         player_lookup = {str(p.id): p.name for p in players}
         deck_game_counts = []
-        for deck in decks:
+        for deck in enabled_decks:
             deck_id = str(deck.id)
             games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
             if games_played > 0:

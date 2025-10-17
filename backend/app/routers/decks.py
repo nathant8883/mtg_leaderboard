@@ -20,8 +20,8 @@ class CreateDeckRequest(BaseModel):
 
 @router.get("/")
 async def get_all_decks():
-    """Get all decks"""
-    decks = await Deck.find_all().to_list()
+    """Get all enabled decks (excludes disabled decks)"""
+    decks = await Deck.find(Deck.disabled != True).to_list()
     # Convert _id to id for frontend compatibility
     return [
         {

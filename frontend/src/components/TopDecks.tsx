@@ -141,6 +141,9 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
                         <div className="commander-name" style={{ fontSize: '13px', marginTop: '2px' }}>
                           {deck.commander}
                         </div>
+                        <div style={{ fontSize: '12px', marginTop: '2px', color: '#9ca3af' }}>
+                          by {deck.player_name}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -192,6 +195,9 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
               <div className="deck-card-info">
                 <div className="deck-card-name">{deck.deck_name}</div>
                 <div className="deck-card-commander">{deck.commander}</div>
+                <div style={{ fontSize: '11px', marginTop: '2px', color: '#9ca3af' }}>
+                  by {deck.player_name}
+                </div>
                 <div className="deck-card-colors">
                   <ColorPips colors={deck.colors} />
                 </div>
