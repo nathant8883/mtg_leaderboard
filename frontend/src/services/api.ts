@@ -80,6 +80,7 @@ export interface Deck {
   commander: string;
   commander_image_url?: string;
   colors: string[];
+  disabled?: boolean;
   created_at?: string;
 }
 
@@ -181,6 +182,7 @@ export interface PlayerDeckStats {
   commander: string;
   commander_image_url?: string;
   colors: string[];
+  disabled?: boolean;
   games_played: number;
   wins: number;
   losses: number;

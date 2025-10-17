@@ -104,6 +104,7 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
             "commander": deck.commander,
             "commander_image_url": deck.commander_image_url,
             "colors": deck.colors,
+            "disabled": deck.disabled,
             "games_played": deck_games,
             "wins": deck_wins,
             "losses": deck_losses,
@@ -113,20 +114,23 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
     # Sort decks by win rate
     deck_stats.sort(key=lambda x: (x["win_rate"], x["wins"]), reverse=True)
 
-    # Calculate favorite colors
+    # Calculate favorite colors (only from enabled decks)
     from collections import Counter
 
-    # Count individual colors across all decks
+    # Filter out disabled decks for stats calculations
+    enabled_decks = [deck for deck in player_decks if not deck.disabled]
+
+    # Count individual colors across enabled decks only
     all_colors = []
-    for deck in player_decks:
+    for deck in enabled_decks:
         all_colors.extend(deck.colors)
 
     color_counts = Counter(all_colors)
     favorite_single_color = color_counts.most_common(1)[0][0] if color_counts else None
 
-    # Count color combinations (sorted tuple of colors)
+    # Count color combinations (sorted tuple of colors) from enabled decks only
     color_combinations = []
-    for deck in player_decks:
+    for deck in enabled_decks:
         if deck.colors:
             combo = tuple(sorted(deck.colors))
             color_combinations.append(combo)
@@ -143,11 +147,11 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
         "wins": wins,
         "losses": losses,
         "win_rate": round(win_rate, 1),
-        "active_decks": len(player_decks),
+        "active_decks": len(enabled_decks),  # Only count enabled decks
         "member_since": player.created_at,
         "favorite_single_color": favorite_single_color,
         "favorite_color_combo": favorite_color_combo,
-        "decks": deck_stats
+        "decks": deck_stats  # Include all decks (enabled and disabled) with disabled flag
     }
 
 

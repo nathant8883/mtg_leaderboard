@@ -18,6 +18,7 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
   const [commander, setCommander] = useState(initialData?.commander || '');
   const [commanderImageUrl, setCommanderImageUrl] = useState(initialData?.commander_image_url || '');
   const [colors, setColors] = useState<string[]>(initialData?.colors || []);
+  const [disabled, setDisabled] = useState(initialData?.disabled || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,6 +59,7 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
         commander: commander.trim(),
         commander_image_url: commanderImageUrl,
         colors: colors,
+        disabled: disabled,
       };
 
       // Only include player_id if player selector is shown (admin panel)
@@ -165,6 +167,32 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
               </div>
             </div>
           )}
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="disabled">
+              Deck Status
+            </label>
+            <div className="toggle-container">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  id="disabled"
+                  checked={disabled}
+                  onChange={(e) => setDisabled(e.target.checked)}
+                  disabled={isSubmitting}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+              <span className="toggle-label">
+                {disabled ? 'Disabled (hidden from matches & stats)' : 'Active'}
+              </span>
+            </div>
+            {disabled && (
+              <div className="form-help" style={{ color: '#e74c3c', marginTop: '8px' }}>
+                ⚠️ This deck will not appear in match selection or count towards statistics
+              </div>
+            )}
+          </div>
 
           {error && (
             <div className="form-error">

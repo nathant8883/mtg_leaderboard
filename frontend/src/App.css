@@ -1362,6 +1362,200 @@ body {
   margin-top: 4px;
 }
 
+/* Deck Disabled Styling */
+.deck-card.deck-disabled {
+  opacity: 0.5;
+  filter: grayscale(70%);
+  cursor: default;
+  position: relative;
+}
+
+.deck-card.deck-disabled:hover {
+  transform: none;
+  border-color: #2C2E33;
+}
+
+.deck-disabled-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(144, 146, 150, 0.9);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Deck Menu (3-dot) */
+.deck-menu-container {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+}
+
+.deck-menu-btn {
+  background: rgba(26, 27, 30, 0.9);
+  border: 1px solid #2C2E33;
+  border-radius: 6px;
+  color: #C1C2C5;
+  padding: 4px 8px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.deck-menu-btn:hover {
+  background: #667eea;
+  color: #fff;
+  border-color: #667eea;
+}
+
+.deck-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
+  border: 1px solid #2C2E33;
+  border-radius: 8px;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.deck-menu-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #C1C2C5;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: left;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-menu-item:hover {
+  background: #25262B;
+  color: #fff;
+}
+
+.deck-menu-item:not(:last-child) {
+  border-bottom: 1px solid #2C2E33;
+}
+
+/* Toggle Switch for Disabled Field */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2C2E33;
+  transition: 0.3s;
+  border-radius: 28px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #909296;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+  background-color: #fff;
+}
+
+input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-label {
+  color: #C1C2C5;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Status Badges for Admin Panel */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.status-active {
+  background: rgba(51, 217, 178, 0.15);
+  color: #33D9B2;
+  border: 1px solid rgba(51, 217, 178, 0.3);
+}
+
+.status-badge.status-disabled {
+  background: rgba(144, 146, 150, 0.15);
+  color: #909296;
+  border: 1px solid rgba(144, 146, 150, 0.3);
+}
+
+/* Disabled Deck Row in Admin Panel */
+.admin-table tbody tr.deck-row-disabled {
+  opacity: 0.6;
+}
+
+.admin-table tbody tr.deck-row-disabled:hover {
+  background: rgba(37, 38, 43, 0.5);
+}
+
 /* ========================================
    MOBILE RESPONSIVE STYLES
    ======================================== */

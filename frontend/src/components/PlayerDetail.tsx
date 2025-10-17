@@ -14,6 +14,8 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
   const [playerDetail, setPlayerDetail] = useState<PlayerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeckForm, setShowDeckForm] = useState(false);
+  const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
+  const [openMenuDeckId, setOpenMenuDeckId] = useState<string | null>(null);
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
@@ -51,6 +53,56 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
     } catch (err) {
       console.error('Error creating deck:', err);
       throw err;
+    }
+  };
+
+  const handleEditDeck = async (deck: Omit<Deck, 'id' | 'created_at' | 'player_id'>) => {
+    if (!editingDeck?.id) return;
+    try {
+      await deckApi.update(editingDeck.id, deck);
+      setEditingDeck(null);
+      setShowDeckForm(false);
+      loadPlayerDetail();
+    } catch (err) {
+      console.error('Error updating deck:', err);
+      throw err;
+    }
+  };
+
+  const handleOpenEditDeck = (deckStats: PlayerDeckStats) => {
+    // Convert PlayerDeckStats to Deck format
+    const deck: Deck = {
+      id: deckStats.deck_id,
+      name: deckStats.deck_name,
+      player_id: playerId,
+      commander: deckStats.commander,
+      commander_image_url: deckStats.commander_image_url,
+      colors: deckStats.colors,
+      disabled: deckStats.disabled,
+    };
+    setEditingDeck(deck);
+    setShowDeckForm(true);
+    setOpenMenuDeckId(null);
+  };
+
+  const handleToggleDisabled = async (deckId: string, currentDisabled: boolean) => {
+    try {
+      const deck = playerDetail?.decks.find(d => d.deck_id === deckId);
+      if (!deck) return;
+
+      await deckApi.update(deckId, {
+        name: deck.deck_name,
+        commander: deck.commander,
+        commander_image_url: deck.commander_image_url,
+        colors: deck.colors,
+        disabled: !currentDisabled,
+      } as Partial<Deck>);
+
+      setOpenMenuDeckId(null);
+      loadPlayerDetail();
+    } catch (err) {
+      console.error('Error toggling deck disabled status:', err);
+      alert('Failed to update deck status');
     }
   };
 
@@ -171,7 +223,40 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
             ) : (
               <div className="decks-grid">
                 {playerDetail.decks.map((deck) => (
-                  <div key={deck.deck_id} className="deck-card">
+                  <div
+                    key={deck.deck_id}
+                    className={`deck-card ${deck.disabled ? 'deck-disabled' : ''}`}
+                  >
+                    {deck.disabled && (
+                      <div className="deck-disabled-badge">DISABLED</div>
+                    )}
+                    {isOwnProfile && (
+                      <div className="deck-menu-container">
+                        <button
+                          className="deck-menu-btn"
+                          onClick={() => setOpenMenuDeckId(openMenuDeckId === deck.deck_id ? null : deck.deck_id)}
+                          aria-label="Deck options"
+                        >
+                          ⋮
+                        </button>
+                        {openMenuDeckId === deck.deck_id && (
+                          <div className="deck-menu-dropdown">
+                            <button
+                              className="deck-menu-item"
+                              onClick={() => handleOpenEditDeck(deck)}
+                            >
+                              ✏️ Edit Deck
+                            </button>
+                            <button
+                              className="deck-menu-item"
+                              onClick={() => handleToggleDisabled(deck.deck_id, deck.disabled || false)}
+                            >
+                              {deck.disabled ? '✓ Enable Deck' : '✕ Disable Deck'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {deck.commander_image_url && (
                       <div className="deck-card-image">
                         <img
@@ -215,14 +300,19 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
       {/* Deck Form Modal */}
       {showDeckForm && playerDetail && (
         <DeckForm
-          onSubmit={handleCreateDeck}
-          onCancel={() => setShowDeckForm(false)}
-          initialData={{
+          onSubmit={editingDeck ? handleEditDeck : handleCreateDeck}
+          onCancel={() => {
+            setShowDeckForm(false);
+            setEditingDeck(null);
+          }}
+          initialData={editingDeck || {
             name: '',
             player_id: playerId,
             commander: '',
             colors: [],
+            disabled: false,
           } as Deck}
+          isEdit={!!editingDeck}
         />
       )}
     </div>

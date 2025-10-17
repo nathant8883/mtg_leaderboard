@@ -46,7 +46,7 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
   };
 
   const getPlayerDecks = (playerId: string): Deck[] => {
-    return decks.filter(deck => deck.player_id === playerId);
+    return decks.filter(deck => deck.player_id === playerId && !deck.disabled);
   };
 
   const getPlayerName = (playerId: string): string => {

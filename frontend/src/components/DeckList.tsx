@@ -40,12 +40,13 @@ function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
             <th>Commander Name</th>
             <th>Player</th>
             <th className="center">Colors</th>
+            <th className="center">Status</th>
             <th className="center">Actions</th>
           </tr>
         </thead>
         <tbody>
           {decks.map((deck) => (
-            <tr key={deck.id}>
+            <tr key={deck.id} className={deck.disabled ? 'deck-row-disabled' : ''}>
               <td>
                 {deck.commander_image_url ? (
                   <div
@@ -89,6 +90,13 @@ function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
               </td>
               <td className="center">
                 {deck.colors.length > 0 ? <ColorPips colors={deck.colors} /> : '-'}
+              </td>
+              <td className="center">
+                {deck.disabled ? (
+                  <span className="status-badge status-disabled">Disabled</span>
+                ) : (
+                  <span className="status-badge status-active">Active</span>
+                )}
               </td>
               <td className="center">
                 <div className="action-buttons">

@@ -114,9 +114,12 @@ async def get_dashboard_stats() -> Dict[str, Any]:
     matches = await Match.find_all().to_list()
     decks = await Deck.find_all().to_list()
 
+    # Filter out disabled decks for stats
+    enabled_decks = [deck for deck in decks if not deck.disabled]
+
     total_games = len(matches)
     total_players = len(players)  # Excludes guests
-    total_decks = len(decks)
+    total_decks = len(enabled_decks)  # Only count enabled decks
 
     # Calculate average pod size
     avg_pod_size = 0
@@ -167,12 +170,12 @@ async def get_dashboard_stats() -> Dict[str, Any]:
         if deck_game_counts:
             most_played_deck = max(deck_game_counts, key=lambda x: x["games_played"])
 
-    # Most popular single color (any deck containing that color)
+    # Most popular single color (only from enabled decks)
     most_popular_color = None
-    if decks:
-        # Count individual colors across all decks
+    if enabled_decks:
+        # Count individual colors across enabled decks only
         color_counts = {}
-        for deck in decks:
+        for deck in enabled_decks:
             if deck.colors:
                 for color in deck.colors:
                     color_counts[color] = color_counts.get(color, 0) + 1
@@ -181,15 +184,15 @@ async def get_dashboard_stats() -> Dict[str, Any]:
             most_common_color = max(color_counts.items(), key=lambda x: x[1])
             most_popular_color = {
                 "color": most_common_color[0],
-                "percentage": round((most_common_color[1] / len(decks)) * 100, 1)
+                "percentage": round((most_common_color[1] / len(enabled_decks)) * 100, 1)
             }
 
-    # Most popular color identity (exact color combination)
+    # Most popular color identity (only from enabled decks)
     most_popular_identity = None
-    if decks:
-        # Count color identity combinations
+    if enabled_decks:
+        # Count color identity combinations from enabled decks only
         identity_combos = []
-        for deck in decks:
+        for deck in enabled_decks:
             if deck.colors:
                 # Sort colors to create consistent combo representation
                 sorted_colors = tuple(sorted(deck.colors))
@@ -205,7 +208,7 @@ async def get_dashboard_stats() -> Dict[str, Any]:
                 "colors": identity_colors,
                 "name": identity_name,
                 "count": most_common_identity[1],
-                "percentage": round((most_common_identity[1] / len(decks)) * 100, 1)
+                "percentage": round((most_common_identity[1] / len(enabled_decks)) * 100, 1)
             }
 
     return {

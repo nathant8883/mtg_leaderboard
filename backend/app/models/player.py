@@ -11,6 +11,7 @@ class Deck(Document):
     commander: str  # Full commander card name (e.g., "Atraxa, Praetors' Voice")
     commander_image_url: Optional[str] = None  # Cached Scryfall image URL
     colors: list[str] = Field(default_factory=list)  # MTG color identity (W/U/B/R/G)
+    disabled: bool = False  # If True, deck won't appear in match selection or stats
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:

@@ -15,6 +15,7 @@ class CreateDeckRequest(BaseModel):
     commander: str
     commander_image_url: str | None = None
     colors: list[str] = []
+    disabled: bool = False
 
 
 @router.get("/")
@@ -30,6 +31,7 @@ async def get_all_decks():
             "commander": deck.commander,
             "commander_image_url": deck.commander_image_url,
             "colors": deck.colors,
+            "disabled": deck.disabled,
             "created_at": deck.created_at
         }
         for deck in decks
@@ -49,6 +51,7 @@ async def get_deck(deck_id: PydanticObjectId):
         "commander": deck.commander,
         "commander_image_url": deck.commander_image_url,
         "colors": deck.colors,
+        "disabled": deck.disabled,
         "created_at": deck.created_at
     }
 
@@ -88,7 +91,8 @@ async def create_deck(
         player_id=str(current_player.id),
         commander=deck_request.commander,
         commander_image_url=commander_image_url,
-        colors=colors
+        colors=colors,
+        disabled=deck_request.disabled
     )
 
     await deck.insert()
@@ -99,6 +103,7 @@ async def create_deck(
         "commander": deck.commander,
         "commander_image_url": deck.commander_image_url,
         "colors": deck.colors,
+        "disabled": deck.disabled,
         "created_at": deck.created_at
     }
 
@@ -142,6 +147,7 @@ async def update_deck(
         Deck.commander: deck_request.commander,
         Deck.commander_image_url: commander_image_url,
         Deck.colors: colors,
+        Deck.disabled: deck_request.disabled,
     })
     return {
         "id": str(deck.id),
@@ -150,6 +156,7 @@ async def update_deck(
         "commander": deck.commander,
         "commander_image_url": deck.commander_image_url,
         "colors": deck.colors,
+        "disabled": deck.disabled,
         "created_at": deck.created_at
     }
 
