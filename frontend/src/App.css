@@ -1289,6 +1289,7 @@ body {
   overflow: hidden;
   transition: all 0.3s;
   cursor: pointer;
+  position: relative;
 }
 
 .deck-card:hover {
@@ -1400,8 +1401,8 @@ body {
 }
 
 .deck-menu-btn {
-  background: rgba(26, 27, 30, 0.9);
-  border: 1px solid #2C2E33;
+  background: transparent;
+  border: none;
   border-radius: 6px;
   color: #C1C2C5;
   padding: 4px 8px;
@@ -1414,6 +1415,7 @@ body {
   justify-content: center;
   width: 32px;
   height: 32px;
+  opacity: 1;
 }
 
 .deck-menu-btn:hover {

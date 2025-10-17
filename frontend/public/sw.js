@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 // Service Worker for MTG Commander Leaderboard PWA
 
-const CACHE_NAME = 'mtg-leaderboard-v12';
+const CACHE_NAME = 'mtg-leaderboard-v13';
 const urlsToCache = [
   '/',
   '/index.html'
