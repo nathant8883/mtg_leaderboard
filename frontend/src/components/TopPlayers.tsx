@@ -70,7 +70,7 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
       <div className="card-header">
         <h2 className="card-title">Top Players</h2>
         <button className="view-all-link" onClick={onViewLeaderboard}>
-          View All →
+          View All
         </button>
       </div>
 

@@ -71,7 +71,7 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
       <div className="card-header">
         <h2 className="card-title">Top Decks</h2>
         <button className="view-all-link" onClick={onViewLeaderboard}>
-          View All →
+          View All
         </button>
       </div>
 
