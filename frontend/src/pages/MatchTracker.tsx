@@ -6,7 +6,7 @@ import ActiveGame from '../components/match-tracker/ActiveGame';
 import WinnerScreen from '../components/match-tracker/WinnerScreen';
 import { matchApi } from '../services/api';
 
-export type LayoutType = 'grid' | 'horizontal' | 'vertical' | 'table' | 'sides' | 'circle';
+export type LayoutType = 'table';
 export type StepType = 'setup' | 'assignment' | 'game' | 'winner';
 
 export interface PlayerSlot {
@@ -69,7 +69,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     return {
       playerCount: 4,
       players: [],
-      layout: 'grid',
+      layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
     };
@@ -92,7 +92,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     }
   }, [matchState]);
 
-  const handleGameConfig = (playerCount: number, layout: LayoutType, startingLife: number) => {
+  const handleGameConfig = (playerCount: number, startingLife: number) => {
     // Initialize empty player slots
     const emptyPlayers: PlayerSlot[] = Array.from({ length: playerCount }, (_, i) => ({
       position: i + 1,
@@ -109,7 +109,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
       ...matchState,
       playerCount,
       players: emptyPlayers,
-      layout,
+      layout: 'table',
       startingLife,
       currentStep: 'assignment',
     });
@@ -201,7 +201,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     setMatchState({
       playerCount: 4,
       players: [],
-      layout: 'grid',
+      layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
     });
@@ -218,7 +218,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     setMatchState({
       playerCount: 4,
       players: [],
-      layout: 'grid',
+      layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
     });
@@ -252,7 +252,6 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
       {matchState.currentStep === 'setup' && (
         <GameSetup
           initialPlayerCount={matchState.playerCount}
-          initialLayout={matchState.layout}
           initialStartingLife={matchState.startingLife}
           onComplete={handleGameConfig}
           onExit={onExitToHome}

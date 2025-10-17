@@ -1857,7 +1857,7 @@ body {
     background: rgba(51, 217, 178, 0.15);
     color: var(--accent-cyan);
     opacity: 1;
-    box-shadow: 0 -2px 12px rgba(51, 217, 178, 0.4);
+    box-shadow: 0 -2px 6px rgba(51, 217, 178, 0.15);
   }
 
   .mobile-action-btn-primary {

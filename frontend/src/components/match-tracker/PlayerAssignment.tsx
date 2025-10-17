@@ -7,7 +7,7 @@ interface PlayerAssignmentProps {
   playerCount: number;
   players: PlayerSlot[];
   layout: LayoutType;
-  onComplete: (players: PlayerSlot[], layout: LayoutType) => void;
+  onComplete: (players: PlayerSlot[]) => void;
   onBack: () => void;
 }
 
@@ -103,7 +103,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   };
 
   const handleStartGame = () => {
-    onComplete(players, layout);
+    onComplete(players);
   };
 
   const allSlotsFilled = players.every((p) => p.playerId !== null);

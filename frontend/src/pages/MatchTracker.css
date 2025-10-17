@@ -601,90 +601,12 @@
   padding: 4px;
 }
 
-/* Grid Layout - 3 players */
-.players-grid.layout-grid.players-3 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.players-grid.layout-grid.players-3 .player-slot:last-child {
-  grid-column: 1 / -1;
-}
-
-/* Grid Layout - 4 players */
-.players-grid.layout-grid.players-4 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-/* Grid Layout - 5 players */
-.players-grid.layout-grid.players-5 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.players-grid.layout-grid.players-5 .player-slot:nth-child(5) {
-  grid-column: 2 / 4;
-}
-
-/* Grid Layout - 6 players */
-.players-grid.layout-grid.players-6 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-/* Horizontal Layout */
-.players-grid.layout-horizontal.players-3 {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
-}
-
-.players-grid.layout-horizontal.players-4 {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
-}
-
-.players-grid.layout-horizontal.players-5 {
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(5, 1fr);
-}
-
-.players-grid.layout-horizontal.players-6 {
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(6, 1fr);
-}
-
-/* Vertical Layout */
-.players-grid.layout-vertical.players-3 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr;
-}
-
-.players-grid.layout-vertical.players-4 {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr;
-}
-
-.players-grid.layout-vertical.players-5 {
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: 1fr;
-}
-
-.players-grid.layout-vertical.players-6 {
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: 1fr;
-}
-
 /* Table Layout - Optimized for landscape orientation (phone sideways) */
 
-/* Table Layout - 3 players: 1 on top (rotated), 2 on bottom */
+/* Table Layout - 3 players: 2x2 grid with one blank quadrant */
 .players-grid.layout-table.players-3 {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-}
-
-.players-grid.layout-table.players-3 .player-slot:first-child {
-  grid-column: 1 / -1;
 }
 
 /* Table Layout - 4 players: 2 on top (rotated), 2 on bottom */
@@ -710,36 +632,16 @@
   grid-template-rows: 1fr 1fr;
 }
 
-/* Sides Layout - 3 players */
-.players-grid.layout-sides.players-3 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-/* Circle Layout - 5 players */
-.players-grid.layout-circle.players-5 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.players-grid.layout-circle.players-5 .player-slot:nth-child(1) {
-  grid-column: 2;
-}
-
-/* Circle Layout - 6 players */
-.players-grid.layout-circle.players-6 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
 /* ==================== ROTATION TRANSFORMS ==================== */
 
 /* Table Layout Rotations - 3 players */
-.players-grid.layout-table.players-3 .player-slot:nth-child(1) {
+.players-grid.layout-table.players-3 .player-slot:nth-child(1),
+.players-grid.layout-table.players-3 .player-slot:nth-child(2) {
   transform: rotate(180deg);
 }
 
-.players-grid.layout-table.players-3 .player-slot:nth-child(1) * {
+.players-grid.layout-table.players-3 .player-slot:nth-child(1) *,
+.players-grid.layout-table.players-3 .player-slot:nth-child(2) * {
   transform: rotate(180deg);
 }
 
@@ -778,75 +680,6 @@
 .players-grid.layout-table.players-6 .player-slot:nth-child(2) *,
 .players-grid.layout-table.players-6 .player-slot:nth-child(3) * {
   transform: rotate(180deg);
-}
-
-/* Sides Layout Rotations - 3 players */
-.players-grid.layout-sides.players-3 .player-slot:nth-child(1) {
-  transform: rotate(90deg);
-}
-
-.players-grid.layout-sides.players-3 .player-slot:nth-child(1) * {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-sides.players-3 .player-slot:nth-child(3) {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-sides.players-3 .player-slot:nth-child(3) * {
-  transform: rotate(90deg);
-}
-
-/* Circle Layout Rotations - 5 players */
-.players-grid.layout-circle.players-5 .player-slot:nth-child(1) {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-5 .player-slot:nth-child(1) * {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-5 .player-slot:nth-child(2) {
-  transform: rotate(90deg);
-}
-
-.players-grid.layout-circle.players-5 .player-slot:nth-child(2) * {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-5 .player-slot:nth-child(5) {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-5 .player-slot:nth-child(5) * {
-  transform: rotate(90deg);
-}
-
-/* Circle Layout Rotations - 6 players */
-.players-grid.layout-circle.players-6 .player-slot:nth-child(1),
-.players-grid.layout-circle.players-6 .player-slot:nth-child(2) {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-6 .player-slot:nth-child(1) *,
-.players-grid.layout-circle.players-6 .player-slot:nth-child(2) * {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-6 .player-slot:nth-child(3) {
-  transform: rotate(90deg);
-}
-
-.players-grid.layout-circle.players-6 .player-slot:nth-child(3) * {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-6 .player-slot:nth-child(6) {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-6 .player-slot:nth-child(6) * {
-  transform: rotate(90deg);
 }
 
 /* ==================== PLAYER SLOTS (Assignment & Game) ==================== */
@@ -1552,39 +1385,11 @@
   justify-items: center;
 }
 
-/* Default Grid Layout */
-.layout-grid .player-cards-container {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-
-/* Horizontal Layout */
-.layout-horizontal .player-cards-container {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  grid-auto-flow: column;
-}
-
-/* Vertical Layout */
-.layout-vertical .player-cards-container {
-  grid-template-rows: repeat(auto-fit, minmax(200px, 1fr));
-}
-
 /* Table Layout */
 .layout-table .player-cards-container {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-}
-
-/* Sides Layout */
-.layout-sides .player-cards-container {
-  grid-template-columns: 1fr 1fr;
-}
-
-/* Circle Layout */
-.layout-circle .player-cards-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
 }
 
 /* ==================== GAME PLAYER CARDS ==================== */
@@ -1610,11 +1415,13 @@
 /* ==================== PLAYER CARD ROTATION TRANSFORMS (ACTIVE GAME) ==================== */
 
 /* Table Layout Rotations - 3 players */
-.players-grid.layout-table.players-3 .player-card:nth-child(1) {
+.players-grid.layout-table.players-3 .player-card:nth-child(1),
+.players-grid.layout-table.players-3 .player-card:nth-child(2) {
   transform: rotate(180deg);
 }
 
-.players-grid.layout-table.players-3 .player-card:nth-child(1) * {
+.players-grid.layout-table.players-3 .player-card:nth-child(1) *,
+.players-grid.layout-table.players-3 .player-card:nth-child(2) * {
   transform: rotate(180deg);
 }
 
@@ -1653,75 +1460,6 @@
 .players-grid.layout-table.players-6 .player-card:nth-child(2) *,
 .players-grid.layout-table.players-6 .player-card:nth-child(3) * {
   transform: rotate(180deg);
-}
-
-/* Sides Layout Rotations - 3 players */
-.players-grid.layout-sides.players-3 .player-card:nth-child(1) {
-  transform: rotate(90deg);
-}
-
-.players-grid.layout-sides.players-3 .player-card:nth-child(1) * {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-sides.players-3 .player-card:nth-child(3) {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-sides.players-3 .player-card:nth-child(3) * {
-  transform: rotate(90deg);
-}
-
-/* Circle Layout Rotations - 5 players */
-.players-grid.layout-circle.players-5 .player-card:nth-child(1) {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-5 .player-card:nth-child(1) * {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-5 .player-card:nth-child(2) {
-  transform: rotate(90deg);
-}
-
-.players-grid.layout-circle.players-5 .player-card:nth-child(2) * {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-5 .player-card:nth-child(5) {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-5 .player-card:nth-child(5) * {
-  transform: rotate(90deg);
-}
-
-/* Circle Layout Rotations - 6 players */
-.players-grid.layout-circle.players-6 .player-card:nth-child(1),
-.players-grid.layout-circle.players-6 .player-card:nth-child(2) {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-6 .player-card:nth-child(1) *,
-.players-grid.layout-circle.players-6 .player-card:nth-child(2) * {
-  transform: rotate(180deg);
-}
-
-.players-grid.layout-circle.players-6 .player-card:nth-child(3) {
-  transform: rotate(90deg);
-}
-
-.players-grid.layout-circle.players-6 .player-card:nth-child(3) * {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-6 .player-card:nth-child(6) {
-  transform: rotate(-90deg);
-}
-
-.players-grid.layout-circle.players-6 .player-card:nth-child(6) * {
-  transform: rotate(90deg);
 }
 
 .player-card.eliminated {
