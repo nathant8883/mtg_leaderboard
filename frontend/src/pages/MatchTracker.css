@@ -449,6 +449,11 @@
   filter: brightness(1.25);
 }
 
+/* Remove focus outline */
+.floating-menu-btn:focus {
+  outline: none;
+}
+
 /* GO text styling */
 .go-text {
   font-size: 32px;
