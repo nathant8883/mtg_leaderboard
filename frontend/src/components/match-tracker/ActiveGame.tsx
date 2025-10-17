@@ -24,8 +24,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const touchStartY = useRef<number | null>(null);
 
   // Hold button state
-  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const holdIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const holdTimerRef = useRef<number | null>(null);
+  const holdIntervalRef = useRef<number | null>(null);
   const holdStartTime = useRef<number | null>(null);
   const holdPosition = useRef<number | null>(null);
   const holdDelta = useRef<number | null>(null);
