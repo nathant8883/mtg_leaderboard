@@ -78,6 +78,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
       );
       if (winnerPosition) {
+        // Save timer value to gameState before completing
+        const finalState = { ...updatedState, elapsedSeconds: timer };
+        onUpdateGameState(finalState);
         onGameComplete(parseInt(winnerPosition));
       }
     }
@@ -174,6 +177,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
       );
       if (winnerPosition) {
+        // Save timer value to gameState before completing
+        const finalState = { ...updatedState, elapsedSeconds: timer };
+        onUpdateGameState(finalState);
         onGameComplete(parseInt(winnerPosition));
       }
     }
@@ -495,6 +501,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
               );
               if (winnerPosition) {
+                // Save timer value to gameState before completing
+                const finalState = { ...updatedState, elapsedSeconds: timer };
+                onUpdateGameState(finalState);
                 onGameComplete(parseInt(winnerPosition));
               }
             }
@@ -519,6 +528,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     className="winner-select-card"
                     onClick={() => {
                       setShowWinnerSelect(false);
+                      // Save timer value to gameState before completing
+                      const finalState = { ...gameState, elapsedSeconds: timer };
+                      onUpdateGameState(finalState);
                       onGameComplete(player.position);
                     }}
                     style={{
