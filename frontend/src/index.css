@@ -299,6 +299,16 @@
     }
   }
 
+  /* App Header - Sticky positioning for mobile */
+  .app-header {
+    position: -webkit-sticky; /* Safari */
+    position: sticky;
+    top: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
   /* Navbar and mobile action bar styles */
   .nav-btn-hover:hover {
     background: rgba(102, 126, 234, 0.2);

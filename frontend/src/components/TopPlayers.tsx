@@ -43,7 +43,7 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
 
   if (loading) {
     return (
-      <div className="bg-gradient-card rounded-[12px] p-6 shadow-card">
+      <div className="bg-gradient-card rounded-[12px] p-4 shadow-card">
         <h2 className="text-text-primary text-2xl font-semibold">Top Players</h2>
         <div className="text-center py-[60px] px-5">
           <div className="w-10 h-10 border-4 border-[#2C2E33] border-t-purple-start rounded-full animate-spin mx-auto mb-4"></div>
@@ -55,7 +55,7 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
 
   if (players.length === 0) {
     return (
-      <div className="bg-gradient-card rounded-[12px] p-6 shadow-card">
+      <div className="bg-gradient-card rounded-[12px] p-4 shadow-card">
         <h2 className="text-text-primary text-2xl font-semibold">Top Players</h2>
         <div className="text-center py-[60px] px-5">
           <div className="text-6xl mb-4">🏆</div>
@@ -67,8 +67,8 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
   }
 
   return (
-    <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-white text-2xl font-semibold m-0">Top Players</h2>
         <button
           className="bg-transparent border-none text-[#667eea] text-sm font-semibold cursor-pointer px-2 py-1 rounded-md flex items-center gap-1.5 transition-all hover:bg-[rgba(102,126,234,0.1)] hover:text-[#764ba2] after:content-['›'] after:text-lg after:transition-transform hover:after:translate-x-0.5"

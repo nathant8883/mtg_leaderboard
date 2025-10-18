@@ -44,7 +44,7 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
 
   if (loading) {
     return (
-      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
         <h2 className="text-white m-0 text-2xl font-semibold">Top Decks</h2>
         <div className="text-center py-[60px] px-5">
           <div className="loading-spinner"></div>
@@ -56,7 +56,7 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
 
   if (decks.length === 0) {
     return (
-      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
         <h2 className="text-white m-0 text-2xl font-semibold">Top Decks</h2>
         <div className="text-center py-[60px] px-5">
           <div className="text-[64px] mb-4">🃏</div>
@@ -68,8 +68,8 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
   }
 
   return (
-    <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-white m-0 text-2xl font-semibold">Top Decks</h2>
         <button className="view-all-link" onClick={onViewLeaderboard}>
           View All

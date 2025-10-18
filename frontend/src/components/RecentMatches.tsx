@@ -50,8 +50,8 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
 
   if (loading) {
     return (
-      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-        <h2 className="text-white m-0 text-2xl font-semibold mb-6">Recent Matches</h2>
+      <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <h2 className="text-white m-0 text-2xl font-semibold mb-4">Recent Matches</h2>
         <div className="text-center py-[60px] px-5">
           <div className="loading-spinner"></div>
           <p className="text-[#909296] text-sm">Loading matches...</p>
@@ -62,8 +62,8 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
 
   if (matches.length === 0) {
     return (
-      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-        <h2 className="text-white m-0 text-2xl font-semibold mb-6">Recent Matches</h2>
+      <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <h2 className="text-white m-0 text-2xl font-semibold mb-4">Recent Matches</h2>
         <div className="text-center py-[60px] px-5">
           <div className="text-[64px] mb-4">🏆</div>
           <h3 className="text-white text-xl mb-2">No matches yet</h3>
@@ -74,8 +74,8 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
   }
 
   return (
-    <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-      <h2 className="text-white m-0 text-2xl font-semibold mb-6">Recent Matches</h2>
+    <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <h2 className="text-white m-0 text-2xl font-semibold mb-4">Recent Matches</h2>
       <div className="flex flex-col gap-4">
         {matches.map((match) => {
           const winner = getWinner(match);

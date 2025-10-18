@@ -126,11 +126,11 @@ function App() {
   }
 
   return (
-    <div className="w-full max-w-full min-h-screen flex flex-col overflow-x-hidden">
+    <div className="w-full max-w-full min-h-screen flex flex-col">
       <Toaster />
       {/* Header - Hidden only in match tracker */}
       {activeView !== 'match-tracker' && (
-        <div className="bg-gradient-card border-b border-[#2C2E33] px-6 py-4 md:px-6 md:py-4 max-md:px-3 max-md:py-[10px] sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <div className="app-header bg-gradient-card border-b border-[#2C2E33] px-6 py-4 md:px-6 md:py-4 max-md:px-3 max-md:py-[10px] sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
           <div className="w-full flex justify-between items-center">
             <div className="flex items-center gap-4 max-md:gap-3">
               <div className="w-10 h-10 max-md:w-9 max-md:h-9 bg-gradient-purple rounded-[8px] flex items-center justify-center text-xl max-md:text-lg cursor-pointer" onClick={() => setActiveView('dashboard')}>🏆</div>
