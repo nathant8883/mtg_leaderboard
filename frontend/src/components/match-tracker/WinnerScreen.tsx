@@ -21,57 +21,57 @@ function WinnerScreen({ players, gameState, winnerPosition, onSave, onDiscard }:
   };
 
   return (
-    <div className="winner-screen">
+    <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center bg-gradient-to-br from-[rgba(102,126,234,0.1)] to-[rgba(20,21,23,1)] overflow-hidden m-0 p-4 box-border">
       {/* Left Side - Winner Info */}
-      <div className="winner-info-section">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 h-full box-border">
         {winner && (
-          <div className="winner-card">
-            <div className="trophy-icon">🏆</div>
+          <div className="bg-[#1A1B1E] border-[3px] border-[#FFD700] rounded-[16px] p-5 text-center shadow-[0_8px_32px_rgba(255,215,0,0.3)] min-w-[220px] flex flex-col items-center">
+            <div className="text-[48px] mb-3 animate-[bounce_0.8s_ease-out] [filter:drop-shadow(0_4px_12px_rgba(255,215,0,0.5))]">🏆</div>
             {winner.commanderImageUrl ? (
               <img
                 src={winner.commanderImageUrl}
                 alt={winner.commanderName}
-                className="winner-commander-art"
+                className="w-[100px] h-[100px] rounded-[12px] object-cover object-[center_20%] mx-auto mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-[2px] border-[#FFD700]"
               />
             ) : (
-              <div className="winner-commander-art winner-placeholder">🎴</div>
+              <div className="w-[100px] h-[100px] rounded-[12px] mx-auto mb-4 shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-[2px] border-[#FFD700] bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-[56px]">🎴</div>
             )}
-            <div className="winner-info">
-              <div className="winner-name">{winner.playerName}</div>
-              <div className="winner-deck">{winner.deckName}</div>
+            <div className="w-full">
+              <div className="text-[28px] font-black mb-2 text-[#FFD700] leading-[1.2]">{winner.playerName}</div>
+              <div className="text-[14px] text-[#909296] italic leading-[1.3]">{winner.deckName}</div>
             </div>
           </div>
         )}
       </div>
 
       {/* Right Side - Match Stats */}
-      <div className="match-stats-section">
-        <div className="winner-stats-grid">
-          <div className="stat-row">
-            <div className="stat-label">
-              <span className="stat-icon">⏱️</span>
+      <div className="flex-1 flex flex-col justify-center p-4 bg-[rgba(26,27,30,0.5)] h-full box-border">
+        <div className="flex flex-col gap-2 mb-3">
+          <div className="flex justify-between items-center py-2 px-3 bg-[#1A1B1E] rounded-[8px] border border-[#2C2E33]">
+            <div className="text-[11px] text-[#909296] flex items-center gap-1">
+              <span className="text-[14px]">⏱️</span>
               <span>Duration</span>
             </div>
-            <div className="stat-value highlight">
+            <div className="text-[18px] font-bold text-[#FFD700]">
               {gameState ? formatDuration(gameState.elapsedSeconds) : '0:00'}
             </div>
           </div>
 
-          <div className="stat-row">
-            <div className="stat-label">
-              <span className="stat-icon">👥</span>
+          <div className="flex justify-between items-center py-2 px-3 bg-[#1A1B1E] rounded-[8px] border border-[#2C2E33]">
+            <div className="text-[11px] text-[#909296] flex items-center gap-1">
+              <span className="text-[14px]">👥</span>
               <span>Players</span>
             </div>
-            <div className="stat-value">{players.length}</div>
+            <div className="text-[16px] font-bold text-[#667eea]">{players.length}</div>
           </div>
         </div>
 
-        <div className="action-buttons">
-          <button className="action-btn discard-btn" onClick={onDiscard}>
+        <div className="flex gap-2">
+          <button className="flex-1 py-[10px] px-3 border-none rounded-[8px] text-[12px] font-bold cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap bg-[rgba(255,255,255,0.1)] text-white border border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.15)] active:scale-[0.98]" onClick={onDiscard}>
             <span>✕</span>
             <span>Discard</span>
           </button>
-          <button className="action-btn save-btn" onClick={onSave}>
+          <button className="flex-1 py-[10px] px-3 border-none rounded-[8px] text-[12px] font-bold cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white shadow-[0_4px_12px_rgba(102,126,234,0.4)] hover:shadow-[0_6px_16px_rgba(102,126,234,0.6)] active:scale-[0.98]" onClick={onSave}>
             <span>💾</span>
             <span>Save Match</span>
           </button>
