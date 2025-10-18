@@ -1023,13 +1023,7 @@
     font-weight: 900;
     line-height: 1;
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-    cursor: pointer;
     user-select: none;
-    transition: transform 0.1s ease;
-  }
-
-  .life-total:active {
-    transform: scale(0.95);
   }
 
   /* Lethal damage styling (for 21+ commander damage) */

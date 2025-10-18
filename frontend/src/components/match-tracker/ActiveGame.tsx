@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
-import LifeInputModal from './LifeInputModal';
 
 interface ActiveGameProps {
   players: PlayerSlot[];
@@ -14,7 +13,6 @@ interface ActiveGameProps {
 function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState }: ActiveGameProps) {
   const [timer, setTimer] = useState(gameState.elapsedSeconds || 0);
   const [showMenu, setShowMenu] = useState(false);
-  const [lifeInputPlayer, setLifeInputPlayer] = useState<PlayerSlot | null>(null);
   const [commanderDamageMode, setCommanderDamageMode] = useState(false);
   const [trackingPlayerPosition, setTrackingPlayerPosition] = useState<number | null>(null);
   const [showWinnerSelect, setShowWinnerSelect] = useState(false);
@@ -384,11 +382,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                   </button>
 
                   <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
-                    <div className="life-total" onClick={() => {
-                      if (!playerState.eliminated) {
-                        setLifeInputPlayer(player);
-                      }
-                    }}>
+                    <div className="life-total">
                       {playerState.life}
                     </div>
                   </div>
@@ -472,44 +466,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           );
         })}
       </div>
-
-      {/* Life Input Modal */}
-      {lifeInputPlayer && (
-        <LifeInputModal
-          onConfirm={(newLife) => {
-            const updatedState = {
-              ...gameState,
-              playerStates: {
-                ...gameState.playerStates,
-                [lifeInputPlayer.position]: {
-                  ...gameState.playerStates[lifeInputPlayer.position],
-                  life: newLife,
-                  eliminated: newLife <= 0,
-                },
-              },
-            };
-
-            onUpdateGameState(updatedState);
-
-            // Check if only one player remains
-            const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
-            if (remainingPlayers.length === 1) {
-              const winnerPosition = Object.keys(updatedState.playerStates).find(
-                (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
-              );
-              if (winnerPosition) {
-                // Save timer value to gameState before completing
-                const finalState = { ...updatedState, elapsedSeconds: timer };
-                onUpdateGameState(finalState);
-                onGameComplete(parseInt(winnerPosition));
-              }
-            }
-
-            setLifeInputPlayer(null);
-          }}
-          onCancel={() => setLifeInputPlayer(null)}
-        />
-      )}
 
       {/* Winner Selection Modal */}
       {showWinnerSelect && (
