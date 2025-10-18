@@ -24,7 +24,6 @@ function App() {
   const { currentPlayer } = useAuth()
   const [activeView, setActiveView] = useState<ViewType>('dashboard')
   const [showMatchForm, setShowMatchForm] = useState(false)
-  const [showMenu, setShowMenu] = useState(false)
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
   const [players, setPlayers] = useState<Player[]>([])
@@ -73,6 +72,31 @@ function App() {
       window.removeEventListener('viewMatchDetail', handleViewMatchDetailEvent);
     };
   }, [handleViewMatchDetail])
+
+  // Listen for open match form event
+  useEffect(() => {
+    const handleOpenMatchFormEvent = () => {
+      setShowMatchForm(true);
+    };
+
+    window.addEventListener('openMatchForm', handleOpenMatchFormEvent);
+    return () => {
+      window.removeEventListener('openMatchForm', handleOpenMatchFormEvent);
+    };
+  }, [])
+
+  // Listen for navigate to view event
+  useEffect(() => {
+    const handleNavigateToViewEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<{ view: ViewType }>;
+      setActiveView(customEvent.detail.view);
+    };
+
+    window.addEventListener('navigateToView', handleNavigateToViewEvent);
+    return () => {
+      window.removeEventListener('navigateToView', handleNavigateToViewEvent);
+    };
+  }, [])
 
   const loadPlayersAndDecks = async () => {
     try {
@@ -160,47 +184,6 @@ function App() {
                 <span>➕</span>
                 <span> Record Match</span>
               </button>
-              <div className="relative">
-                <button
-                  className="px-4 py-2 max-md:px-[10px] max-md:py-2 max-md:min-w-[40px] bg-transparent border-none rounded-[6px] text-[#909296] cursor-pointer font-medium text-xl transition-all duration-200 flex items-center justify-center nav-btn-hover"
-                  onClick={() => setShowMenu(!showMenu)}
-                >
-                  ☰
-                </button>
-                {showMenu && (
-                  <div className="absolute top-[calc(100%+8px)] right-0 bg-gradient-card border border-[#2C2E33] rounded-[8px] min-w-[160px] shadow-[0_2px_8px_rgba(0,0,0,0.2)] z-[1000] overflow-hidden">
-                    <button
-                      className="w-full px-4 py-3 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all duration-200 flex items-center gap-2 menu-item-hover menu-item-border"
-                      onClick={() => {
-                        setShowMatchForm(true)
-                        setShowMenu(false)
-                      }}
-                    >
-                      ➕ Add Match
-                    </button>
-                    <button
-                      className="w-full px-4 py-3 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all duration-200 flex items-center gap-2 menu-item-hover menu-item-border"
-                      onClick={() => {
-                        setActiveView('leaderboard')
-                        setShowMenu(false)
-                      }}
-                    >
-                      🏆 Leaderboard
-                    </button>
-                    {currentPlayer?.is_superuser && (
-                      <button
-                        className="w-full px-4 py-3 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all duration-200 flex items-center gap-2 menu-item-hover menu-item-border"
-                        onClick={() => {
-                          setActiveView('admin')
-                          setShowMenu(false)
-                        }}
-                      >
-                        ⚙️ Admin
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
               <ProfileDropdown />
             </div>
           </div>

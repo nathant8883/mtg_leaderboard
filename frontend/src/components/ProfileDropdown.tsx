@@ -42,6 +42,27 @@ export const ProfileDropdown: React.FC = () => {
     setIsOpen(false);
   };
 
+  const handleRecordMatch = () => {
+    // Dispatch custom event for App.tsx to handle
+    const event = new CustomEvent('openMatchForm');
+    window.dispatchEvent(event);
+    setIsOpen(false);
+  };
+
+  const handleViewLeaderboard = () => {
+    // Dispatch custom event for App.tsx to handle
+    const event = new CustomEvent('navigateToView', { detail: { view: 'leaderboard' } });
+    window.dispatchEvent(event);
+    setIsOpen(false);
+  };
+
+  const handleViewAdmin = () => {
+    // Dispatch custom event for App.tsx to handle
+    const event = new CustomEvent('navigateToView', { detail: { view: 'admin' } });
+    window.dispatchEvent(event);
+    setIsOpen(false);
+  };
+
   const handleLogout = async () => {
     await authService.logout();
     logout();
@@ -83,6 +104,18 @@ export const ProfileDropdown: React.FC = () => {
               <div className="profile-menu-email">{currentPlayer.email}</div>
             )}
           </div>
+          <div className="profile-menu-divider"></div>
+          <button className="profile-menu-item" onClick={handleRecordMatch}>
+            ➕ Record Match
+          </button>
+          <button className="profile-menu-item" onClick={handleViewLeaderboard}>
+            🏆 Leaderboard
+          </button>
+          {currentPlayer.is_superuser && (
+            <button className="profile-menu-item" onClick={handleViewAdmin}>
+              ⚙️ Admin
+            </button>
+          )}
           <div className="profile-menu-divider"></div>
           <button className="profile-menu-item" onClick={handleMyProfile}>
             My Profile

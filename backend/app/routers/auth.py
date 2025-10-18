@@ -11,6 +11,9 @@ from app.middleware.auth import get_current_player
 
 router = APIRouter()
 
+# Hardcoded superuser emails
+SUPERUSER_EMAILS = ["nathant8883@yahoo.com"]
+
 # Initialize OAuth client
 oauth = OAuth()
 oauth.register(
@@ -64,12 +67,14 @@ async def google_callback(request: Request):
 
         if not player:
             # Create new player
+            is_superuser = email in SUPERUSER_EMAILS
             player = Player(
                 name=name or email.split('@')[0],
                 email=email,
                 google_id=google_id,
                 picture=picture,
-                avatar=name[0].upper() if name else email[0].upper()
+                avatar=name[0].upper() if name else email[0].upper(),
+                is_superuser=is_superuser
             )
             await player.insert()
         else:
@@ -81,6 +86,10 @@ async def google_callback(request: Request):
                 update_data[Player.email] = email
             if not player.picture:
                 update_data[Player.picture] = picture
+
+            # Always ensure superuser status is correct for hardcoded emails
+            if email in SUPERUSER_EMAILS and not player.is_superuser:
+                update_data[Player.is_superuser] = True
 
             if update_data:
                 await player.set(update_data)
