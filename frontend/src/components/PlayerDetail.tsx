@@ -200,55 +200,64 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
         </div>
 
         {/* Main Content */}
-        <div className="player-main-content">
-          <div className="content-section">
-            <div className="section-header">
+        <div className="min-h-screen">
+          <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-8 mb-6">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="section-title">Decks</h2>
-                <span className="deck-count">{playerDetail.decks.length} total decks</span>
+                <h2 className="text-xl font-semibold text-white">Decks</h2>
+                <span className="text-[#909296] text-sm block mt-1">{playerDetail.decks.length} total decks</span>
               </div>
               {isOwnProfile && (
-                <button className="section-action" onClick={() => setShowDeckForm(true)}>
+                <button
+                  className="py-2 px-4 bg-[#667eea] text-white border-none rounded-[6px] text-[13px] font-semibold cursor-pointer transition-all hover:bg-[#5568d3]"
+                  onClick={() => setShowDeckForm(true)}
+                >
                   + Add Deck
                 </button>
               )}
             </div>
 
             {playerDetail.decks.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🃏</div>
-                <h3>No decks yet</h3>
-                <p>Add a deck to get started!</p>
+              <div className="text-center py-[60px] px-5">
+                <div className="text-[64px] mb-4">🃏</div>
+                <h3 className="text-white text-xl mb-2">No decks yet</h3>
+                <p className="text-[#909296] text-sm">Add a deck to get started!</p>
               </div>
             ) : (
-              <div className="decks-grid">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
                 {playerDetail.decks.map((deck) => (
                   <div
                     key={deck.deck_id}
-                    className={`deck-card ${deck.disabled ? 'deck-disabled' : ''}`}
+                    className={`bg-[#25262B] border border-[#2C2E33] rounded-[12px] overflow-hidden transition-all cursor-pointer relative ${
+                      deck.disabled
+                        ? 'opacity-50 grayscale-[70%] cursor-default hover:transform-none hover:border-[#2C2E33]'
+                        : 'hover:border-[#667eea] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]'
+                    }`}
                   >
                     {deck.disabled && (
-                      <div className="deck-disabled-badge">DISABLED</div>
+                      <div className="absolute top-3 left-3 bg-[rgba(144,146,150,0.9)] text-white py-1 px-3 rounded-[12px] text-[11px] font-semibold tracking-[0.5px] uppercase z-10 shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+                        DISABLED
+                      </div>
                     )}
                     {isOwnProfile && (
-                      <div className="deck-menu-container">
+                      <div className="absolute top-3 right-3 z-20">
                         <button
-                          className="deck-menu-btn"
+                          className="bg-transparent border-none rounded-[6px] text-[#C1C2C5] p-1 px-2 text-xl leading-none cursor-pointer transition-all flex items-center justify-center w-8 h-8 opacity-100 hover:bg-[#667eea] hover:text-white hover:border-[#667eea]"
                           onClick={() => setOpenMenuDeckId(openMenuDeckId === deck.deck_id ? null : deck.deck_id)}
                           aria-label="Deck options"
                         >
                           ⋮
                         </button>
                         {openMenuDeckId === deck.deck_id && (
-                          <div className="deck-menu-dropdown">
+                          <div className="absolute top-[calc(100%+4px)] right-0 bg-gradient-card border border-[#2C2E33] rounded-[8px] min-w-[160px] shadow-[0_4px_12px_rgba(0,0,0,0.3)] overflow-hidden z-[1000]">
                             <button
-                              className="deck-menu-item"
+                              className="w-full py-3 px-4 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all flex items-center gap-2 hover:bg-[#25262B] hover:text-white border-b border-[#2C2E33]"
                               onClick={() => handleOpenEditDeck(deck)}
                             >
                               ✏️ Edit Deck
                             </button>
                             <button
-                              className="deck-menu-item"
+                              className="w-full py-3 px-4 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all flex items-center gap-2 hover:bg-[#25262B] hover:text-white"
                               onClick={() => handleToggleDisabled(deck.deck_id, deck.disabled || false)}
                             >
                               {deck.disabled ? '✓ Enable Deck' : '✕ Disable Deck'}
@@ -258,35 +267,35 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
                       </div>
                     )}
                     {deck.commander_image_url && (
-                      <div className="deck-card-image">
+                      <div className="w-full h-[200px] overflow-hidden mb-4">
                         <img
                           src={deck.commander_image_url}
                           alt={deck.commander}
-                          className="deck-commander-image"
+                          className="w-full h-full object-cover object-[center_20%]"
                         />
                       </div>
                     )}
-                    <div className="deck-header">
+                    <div className="flex items-start justify-between mb-4 px-5">
                       <div>
-                        <h3 className="deck-name">{deck.deck_name}</h3>
-                        <div className="deck-commander">{deck.commander}</div>
+                        <h3 className="text-lg font-semibold mb-1 text-white">{deck.deck_name}</h3>
+                        <div className="text-[13px] text-[#909296] mb-3">{deck.commander}</div>
                       </div>
-                      <div className="deck-colors">
+                      <div className="flex gap-1">
                         <ColorPips colors={deck.colors} />
                       </div>
                     </div>
-                    <div className="deck-stats">
-                      <div className="deck-stat">
-                        <div className="deck-stat-value">{deck.games_played}</div>
-                        <div className="deck-stat-label">Games</div>
+                    <div className="grid grid-cols-3 gap-3 py-4 px-5 border-t border-[#2C2E33]">
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-[#667eea]">{deck.games_played}</div>
+                        <div className="text-[11px] text-[#666] uppercase mt-1">Games</div>
                       </div>
-                      <div className="deck-stat">
-                        <div className="deck-stat-value">{deck.wins}</div>
-                        <div className="deck-stat-label">Wins</div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-[#667eea]">{deck.wins}</div>
+                        <div className="text-[11px] text-[#666] uppercase mt-1">Wins</div>
                       </div>
-                      <div className="deck-stat">
-                        <div className="deck-stat-value">{deck.win_rate.toFixed(0)}%</div>
-                        <div className="deck-stat-label">Win Rate</div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-[#667eea]">{deck.win_rate.toFixed(0)}%</div>
+                        <div className="text-[11px] text-[#666] uppercase mt-1">Win Rate</div>
                       </div>
                     </div>
                   </div>

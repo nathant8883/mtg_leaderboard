@@ -75,13 +75,13 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
   };
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">{isEdit ? 'Edit Deck' : 'Add New Deck'}</h2>
+    <div className="fixed inset-0 bg-black/70 flex items-start md:items-center justify-center z-[1000] p-3 md:p-6" onClick={onCancel}>
+      <div className="bg-gradient-card rounded-[16px] md:rounded-[12px] p-0 md:p-8 w-full max-w-full md:max-w-[500px] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-h-[calc(100vh-24px)] md:min-h-0 max-h-[calc(100vh-24px)] md:max-h-none flex flex-col md:block overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-0 md:mb-6 flex items-center justify-between sticky md:static top-0 bg-gradient-card border-b border-[#2C2E33] md:border-b-0 p-4 px-5 md:p-0 z-10 flex-shrink-0">
+          <h2 className="text-white m-0 text-xl md:text-2xl font-semibold flex-1">{isEdit ? 'Edit Deck' : 'Add New Deck'}</h2>
           <button
             type="button"
-            className="modal-close-btn"
+            className="flex md:hidden bg-transparent border-none text-[#909296] text-2xl cursor-pointer p-1 px-2 items-center justify-center rounded-[6px] transition-all hover:bg-[rgba(144,146,150,0.1)] hover:text-white active:scale-95 ml-3"
             onClick={onCancel}
             aria-label="Close"
           >
@@ -89,9 +89,9 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="deckName">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto md:overflow-y-visible p-5 md:p-0 pb-10 md:pb-0 flex flex-col md:block">
+          <div className="mb-5">
+            <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="deckName">
               Deck Name *
             </label>
             <input
@@ -100,22 +100,22 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter deck name (e.g., Atraxa Superfriends)"
-              className="form-input"
+              className="w-full p-3 rounded-[6px] bg-[#25262B] border border-[#2C2E33] text-[#C1C2C5] text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#667eea] disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
               autoFocus
             />
           </div>
 
           {showPlayerSelector && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="player">
+            <div className="mb-5">
+              <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="player">
                 Player *
               </label>
               <select
                 id="player"
                 value={playerId}
                 onChange={(e) => setPlayerId(e.target.value)}
-                className="form-input"
+                className="w-full p-3 rounded-[6px] bg-[#25262B] border border-[#2C2E33] text-[#C1C2C5] text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#667eea] disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting}
               >
                 <option value="">Select a player...</option>
@@ -128,8 +128,8 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="commander">
+          <div className="mb-5">
+            <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="commander">
               Commander *
             </label>
             <CommanderAutocomplete
@@ -137,27 +137,22 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
               onChange={handleCommanderChange}
               disabled={isSubmitting}
             />
-            <div className="form-help">
+            <div className="text-[#909296] text-xs mt-1">
               Start typing to search for legendary creatures
             </div>
           </div>
 
           {commanderImageUrl && (
-            <div className="form-group">
-              <label className="form-label">Commander Preview</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="mb-5">
+              <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">Commander Preview</label>
+              <div className="flex items-center gap-3">
                 <img
                   src={commanderImageUrl}
                   alt={commander}
-                  style={{
-                    width: '100px',
-                    height: 'auto',
-                    borderRadius: '8px',
-                    border: '2px solid #2C2E33',
-                  }}
+                  className="w-[100px] h-auto rounded-[8px] border-2 border-[#2C2E33]"
                 />
                 <div>
-                  <div style={{ color: '#fff', fontWeight: 500, marginBottom: '4px' }}>
+                  <div className="text-white font-medium mb-1">
                     {commander}
                   </div>
                   {colors.length > 0 && (
@@ -168,11 +163,11 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
             </div>
           )}
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="disabled">
+          <div className="mb-5">
+            <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="disabled">
               Deck Status
             </label>
-            <div className="toggle-container">
+            <div className="flex items-center gap-3">
               <label className="toggle-switch">
                 <input
                   type="checkbox"
@@ -183,27 +178,27 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
                 />
                 <span className="toggle-slider"></span>
               </label>
-              <span className="toggle-label">
+              <span className="text-[#C1C2C5] text-sm font-medium">
                 {disabled ? 'Disabled (hidden from matches & stats)' : 'Active'}
               </span>
             </div>
             {disabled && (
-              <div className="form-help" style={{ color: '#e74c3c', marginTop: '8px' }}>
+              <div className="text-[#e74c3c] text-xs mt-2">
                 ⚠️ This deck will not appear in match selection or count towards statistics
               </div>
             )}
           </div>
 
           {error && (
-            <div className="form-error">
+            <div className="bg-[rgba(255,107,107,0.1)] text-[#FF6B6B] p-3 rounded-[6px] text-sm mb-5">
               {error}
             </div>
           )}
 
-          <div className="button-group">
+          <div className="flex gap-2 md:gap-3 justify-end mt-auto md:mt-6 pt-5 md:pt-0 flex-shrink-0">
             <button
               type="button"
-              className="secondary-btn"
+              className="py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] bg-transparent border border-[#2C2E33] text-[#C1C2C5] cursor-pointer font-medium text-sm transition-all hover:bg-[#25262B] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCancel}
               disabled={isSubmitting}
             >
@@ -211,7 +206,11 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
             </button>
             <button
               type="submit"
-              className={`submit-btn ${!isSubmitting ? 'enabled' : ''}`}
+              className={`py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] border-none text-white font-semibold text-sm transition-all ${
+                isSubmitting
+                  ? 'bg-[#2C2E33] cursor-not-allowed opacity-50'
+                  : 'bg-gradient-purple cursor-pointer opacity-100 hover:-translate-y-0.5'
+              }`}
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Saving...' : (isEdit ? 'Update Deck' : 'Create Deck')}
