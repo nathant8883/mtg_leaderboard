@@ -876,4 +876,317 @@
   .deck-wheel-item:nth-child(4) .deck-icon-circle { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
   .deck-wheel-item:nth-child(5) .deck-icon-circle { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
   .deck-wheel-item:nth-child(6) .deck-icon-circle { background: linear-gradient(135deg, #30e8a7 0%, #1cb5e0 100%); }
+
+  /* ==================== ACTIVE GAME - PLAYER CARDS ==================== */
+
+  /* Player card gradient colors */
+  .player-card:nth-child(1) { --card-bg-start: #667eea; --card-bg-end: #764ba2; }
+  .player-card:nth-child(2) { --card-bg-start: #f093fb; --card-bg-end: #f5576c; }
+  .player-card:nth-child(3) { --card-bg-start: #4facfe; --card-bg-end: #00f2fe; }
+  .player-card:nth-child(4) { --card-bg-start: #fa709a; --card-bg-end: #fee140; }
+  .player-card:nth-child(5) { --card-bg-start: #30e8a7; --card-bg-end: #1cb5e0; }
+  .player-card:nth-child(6) { --card-bg-start: #ff6b6b; --card-bg-end: #ee5a6f; }
+
+  .player-card {
+    background: linear-gradient(135deg, var(--card-bg-start) 0%, var(--card-bg-end) 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+    border-radius: 16px;
+  }
+
+  /* Player Card Rotations - 3 players */
+  .players-grid.layout-table.players-3 .player-card:nth-child(1),
+  .players-grid.layout-table.players-3 .player-card:nth-child(2) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-3 .player-card:nth-child(1) *,
+  .players-grid.layout-table.players-3 .player-card:nth-child(2) * {
+    transform: rotate(180deg);
+  }
+
+  /* Player Card Rotations - 4 players */
+  .players-grid.layout-table.players-4 .player-card:nth-child(1),
+  .players-grid.layout-table.players-4 .player-card:nth-child(2) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-4 .player-card:nth-child(1) *,
+  .players-grid.layout-table.players-4 .player-card:nth-child(2) * {
+    transform: rotate(180deg);
+  }
+
+  /* Player Card Rotations - 5 players */
+  .players-grid.layout-table.players-5 .player-card:nth-child(1),
+  .players-grid.layout-table.players-5 .player-card:nth-child(2),
+  .players-grid.layout-table.players-5 .player-card:nth-child(3) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-5 .player-card:nth-child(1) *,
+  .players-grid.layout-table.players-5 .player-card:nth-child(2) *,
+  .players-grid.layout-table.players-5 .player-card:nth-child(3) * {
+    transform: rotate(180deg);
+  }
+
+  /* Player Card Rotations - 6 players */
+  .players-grid.layout-table.players-6 .player-card:nth-child(1),
+  .players-grid.layout-table.players-6 .player-card:nth-child(2),
+  .players-grid.layout-table.players-6 .player-card:nth-child(3) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-6 .player-card:nth-child(1) *,
+  .players-grid.layout-table.players-6 .player-card:nth-child(2) *,
+  .players-grid.layout-table.players-6 .player-card:nth-child(3) * {
+    transform: rotate(180deg);
+  }
+
+  /* Eliminated state */
+  .player-card.eliminated {
+    opacity: 0.3;
+    filter: grayscale(100%);
+  }
+
+  /* Eliminated overlay */
+  .eliminated-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 900;
+    color: #ef4444;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+    border: 4px solid #ef4444;
+    border-radius: 16px;
+  }
+
+  /* Life buttons */
+  .life-btn-side {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 35%;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 48px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    user-select: none;
+    z-index: 1;
+  }
+
+  .life-btn-left {
+    left: 0;
+  }
+
+  .life-btn-right {
+    right: 0;
+  }
+
+  .life-btn-side:active {
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 1);
+  }
+
+  .life-btn-side:focus {
+    outline: none;
+  }
+
+  .life-btn-side:disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+  }
+
+  /* Life total */
+  .life-total {
+    font-size: 96px;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s ease;
+  }
+
+  .life-total:active {
+    transform: scale(0.95);
+  }
+
+  /* Lethal damage styling (for 21+ commander damage) */
+  .life-total.lethal-damage {
+    color: #ef4444;
+    animation: lethalPulseNumber 1.5s ease-in-out infinite;
+  }
+
+  @keyframes lethalPulseNumber {
+    0%, 100% {
+      text-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(239, 68, 68, 0.6);
+    }
+    50% {
+      text-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(239, 68, 68, 0.8);
+    }
+  }
+
+  /* Commander damage mode */
+  .player-card.commander-damage-mode {
+    cursor: default;
+  }
+
+  /* Tracking player's card - dark overlay */
+  .player-card.tracking-player::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1;
+    border-radius: 16px;
+  }
+
+  /* Commander damage indicator for tracking player */
+  .commander-damage-indicator {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+  }
+
+  .commander-indicator-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    margin: 2px 0;
+  }
+
+  .commander-indicator-subtitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 12px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .commander-indicator-return {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 24px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 6px;
+  }
+
+  .commander-indicator-return:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+  }
+
+  /* Menu option button */
+  .menu-option {
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    margin-bottom: 4px;
+  }
+
+  .menu-option:last-child {
+    margin-bottom: 0;
+  }
+
+  .menu-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Commander mode exit button - Red/Warning style */
+  .floating-menu-btn.commander-mode-exit::before {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+    animation: glowBreatheExit 2.5s ease-in-out infinite;
+  }
+
+  @keyframes glowBreatheExit {
+    0%, 100% {
+      filter:
+        drop-shadow(0 0 12px rgba(239, 68, 68, 0.6))
+        drop-shadow(0 0 24px rgba(239, 68, 68, 0.45))
+        drop-shadow(0 0 36px rgba(239, 68, 68, 0.3))
+        drop-shadow(0 6px 16px rgba(0, 0, 0, 0.9))
+        drop-shadow(0 2px 4px rgba(0, 0, 0, 1));
+      opacity: 0.95;
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 16px rgba(239, 68, 68, 0.75))
+        drop-shadow(0 0 32px rgba(239, 68, 68, 0.6))
+        drop-shadow(0 0 48px rgba(239, 68, 68, 0.4))
+        drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+        drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+      opacity: 1;
+    }
+  }
+
+  .floating-menu-btn.commander-mode-exit::after {
+    background: linear-gradient(145deg, rgba(40, 10, 10, 0.95), rgba(30, 5, 5, 0.95));
+    box-shadow:
+      0 0 6px rgba(239, 68, 68, 0.2) inset,
+      0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .floating-menu-btn.commander-mode-exit:hover::before {
+    filter:
+      brightness(1.25)
+      drop-shadow(0 0 16px rgba(239, 68, 68, 0.8))
+      drop-shadow(0 0 32px rgba(239, 68, 68, 0.6))
+      drop-shadow(0 0 48px rgba(239, 68, 68, 0.4))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+      drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+  }
 }

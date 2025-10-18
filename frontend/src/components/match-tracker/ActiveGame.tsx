@@ -259,7 +259,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const playerCount = players.length;
 
   return (
-    <div className="active-game">
+    <div className="min-h-screen flex flex-col">
       {/* Floating Center Button - Hamburger Menu or Exit Commander Damage Mode */}
       <div className="floating-menu-btn-wrapper">
         <button
@@ -279,11 +279,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       {/* Menu Overlay */}
       {showMenu && (
         <>
-          <div className="menu-overlay" onClick={() => setShowMenu(false)} />
-          <div className="floating-menu">
-            <div className="menu-option" style={{ textAlign: 'center', padding: '12px', borderBottom: '1px solid #2c2e33' }}>
-              <div style={{ fontSize: '12px', color: '#909296' }}>Game Time</div>
-              <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '4px' }}>{formatTime(timer)}</div>
+          <div className="fixed inset-0 bg-black/70 z-[250]" onClick={() => setShowMenu(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-2 z-[300] min-w-[200px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
+            <div className="text-center p-3 border-b border-[#2c2e33]">
+              <div className="text-xs text-[#909296]">Game Time</div>
+              <div className="text-lg font-bold mt-1">{formatTime(timer)}</div>
             </div>
             <button
               className="menu-option"
@@ -323,9 +323,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
 
-              <div className="player-info">
+              <div className="absolute top-3 left-20 right-20 z-[2] text-center">
                 <div
-                  className="player-name"
+                  className="text-lg font-bold text-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   onClick={() => {
                     if (!commanderDamageMode && !playerState.eliminated) {
                       setCommanderDamageMode(true);
@@ -336,7 +336,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 >
                   {player.playerName}
                 </div>
-                <div className="player-deck">{player.deckName}</div>
+                <div className="text-xs opacity-90 text-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">{player.deckName}</div>
               </div>
 
               {/* Normal Life Tracking Mode */}
@@ -383,7 +383,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     +
                   </button>
 
-                  <div className="life-section">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
                     <div className="life-total" onClick={() => {
                       if (!playerState.eliminated) {
                         setLifeInputPlayer(player);
@@ -454,7 +454,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                         +
                       </button>
 
-                      <div className="life-section">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
                         <div
                           className={`life-total ${isLethalDamage ? 'lethal-damage' : ''}`}
                           onClick={() => {
@@ -513,16 +513,16 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
       {/* Winner Selection Modal */}
       {showWinnerSelect && (
-        <div className="modal-overlay" onClick={() => setShowWinnerSelect(false)}>
-          <div className="modal-content winner-select-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Select Winner</h2>
-            <div className="winner-select-grid">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4" onClick={() => setShowWinnerSelect(false)}>
+          <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-4 max-w-[600px] w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold mb-3 text-center">Select Winner</h2>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 mb-3 overflow-y-auto flex-1 min-h-0">
               {players.map((player) => {
                 const playerState = gameState.playerStates[player.position];
                 return (
                   <button
                     key={player.position}
-                    className="winner-select-card"
+                    className="relative flex flex-col items-center gap-1.5 p-3 px-2 bg-[#2c2e33] border-2 border-[#3c3e43] rounded-[10px] text-white cursor-pointer transition-all duration-200 min-h-0 hover:bg-[#3c3e43] hover:border-[#667eea] hover:-translate-y-0.5 active:translate-y-0"
                     onClick={() => {
                       setShowWinnerSelect(false);
                       // Save timer value to gameState before completing
@@ -533,21 +533,21 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                       opacity: playerState.eliminated ? 0.6 : 1,
                     }}
                   >
-                    <div className="player-avatar-small">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-sm font-semibold">
                       {player.playerName.charAt(0).toUpperCase()}
                     </div>
-                    <div className="winner-select-info">
-                      <div className="winner-select-name">{player.playerName}</div>
-                      <div className="winner-select-deck">{player.deckName}</div>
+                    <div className="text-center w-full">
+                      <div className="text-[13px] font-semibold mb-0.5 leading-tight">{player.playerName}</div>
+                      <div className="text-[10px] text-[#6b7280] leading-tight">{player.deckName}</div>
                     </div>
                     {playerState.eliminated && (
-                      <div className="winner-select-eliminated">✕</div>
+                      <div className="absolute top-1.5 right-1.5 w-[18px] h-[18px] bg-[#ef4444] rounded-full flex items-center justify-center text-[11px] font-bold text-white">✕</div>
                     )}
                   </button>
                 );
               })}
             </div>
-            <button className="btn-secondary" onClick={() => setShowWinnerSelect(false)} style={{ width: '100%' }}>
+            <button className="bg-[#2c2e33] text-white border border-[#3c3e43] rounded-[8px] py-3 px-6 text-sm font-semibold cursor-pointer transition-all duration-200 w-full hover:bg-[#3c3e43]" onClick={() => setShowWinnerSelect(false)}>
               Cancel
             </button>
           </div>
