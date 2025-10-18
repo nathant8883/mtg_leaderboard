@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
-// Service Worker for MTG Commander Leaderboard PWA
+// Service Worker for Pod Pal PWA
 
-const CACHE_NAME = 'mtg-leaderboard-v20';
+const CACHE_NAME = 'pod-pal-v21';
 const urlsToCache = [
   '/',
   '/index.html'

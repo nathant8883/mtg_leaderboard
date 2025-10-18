@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     database_name: str = "mtg_leaderboard"
 
     # API settings
-    api_title: str = "MTG Commander Leaderboard API"
+    api_title: str = "Pod Pal API"
     api_version: str = "1.0.12"
     api_description: str = "API for tracking MTG Commander games and leaderboards"
 

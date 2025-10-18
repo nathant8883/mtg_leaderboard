@@ -52,7 +52,7 @@ app.include_router(scryfall.router, prefix="/api/scryfall", tags=["scryfall"])
 @app.get("/")
 async def root():
     return {
-        "message": "MTG Commander Leaderboard API",
+        "message": "Pod Pal API",
         "version": settings.api_version,
         "docs": "/docs"
     }

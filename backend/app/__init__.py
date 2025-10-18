@@ -1,1 +1,1 @@
-# MTG Leaderboard Backend Application
+# Pod Pal Backend Application

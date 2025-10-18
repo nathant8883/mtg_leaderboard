@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MTG Commander Leaderboard - A full-stack web application for tracking Magic: The Gathering Commander games among friends. The application tracks players, their decks, match results, and generates leaderboards.
+Pod Pal - A full-stack web application for tracking Magic: The Gathering Commander games among friends. The application tracks players, their decks, match results, and generates leaderboards.
 
 **Tech Stack:**
 - Backend: FastAPI (Python 3.13) + Beanie ODM + Motor (async MongoDB driver)

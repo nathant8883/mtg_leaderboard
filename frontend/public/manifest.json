@@ -1,6 +1,6 @@
 {
-  "name": "MTG Commander Leaderboard",
-  "short_name": "MTG Leaderboard",
+  "name": "Pod Pal",
+  "short_name": "Pod Pal",
   "description": "Track your Magic: The Gathering Commander games and compete with friends",
   "start_url": "/",
   "display": "fullscreen",

@@ -158,7 +158,7 @@ function App() {
           <div className="w-full flex justify-between items-center">
             <div className="flex items-center gap-4 max-md:gap-3">
               <div className="w-10 h-10 max-md:w-9 max-md:h-9 bg-gradient-purple rounded-[8px] flex items-center justify-center text-xl max-md:text-lg cursor-pointer" onClick={() => setActiveView('dashboard')}>🏆</div>
-              <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Commander League</h1>
+              <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Pod Pal</h1>
             </div>
             <div className="flex gap-3 max-md:gap-[6px]">
               <button

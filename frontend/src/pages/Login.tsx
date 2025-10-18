@@ -61,7 +61,7 @@ export const Login: React.FC = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1 className="login-title">MTG Commander Leaderboard</h1>
+        <h1 className="login-title">Pod Pal</h1>
         <p className="login-subtitle">Track your Commander games and compete with friends</p>
 
         <button className="google-login-btn" onClick={handleGoogleLogin}>

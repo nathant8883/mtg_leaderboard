@@ -1,4 +1,4 @@
-# MTG Commander Leaderboard
+# Pod Pal
 
 A web application for tracking Magic: The Gathering Commander games and managing leaderboards among friends.
 
