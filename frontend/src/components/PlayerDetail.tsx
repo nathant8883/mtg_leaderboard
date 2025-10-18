@@ -108,10 +108,10 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
 
   if (loading) {
     return (
-      <div className="player-detail-container">
-        <div className="loading-state">
+      <div className="w-full min-h-screen">
+        <div className="text-center py-[60px] px-5">
           <div className="loading-spinner"></div>
-          <p>Loading player details...</p>
+          <p className="text-[#909296] text-sm">Loading player details...</p>
         </div>
       </div>
     );
@@ -119,11 +119,14 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
 
   if (!playerDetail) {
     return (
-      <div className="player-detail-container">
-        <div className="empty-state">
-          <div className="empty-icon">❌</div>
-          <h3>Player not found</h3>
-          <button className="back-btn" onClick={onBack}>
+      <div className="w-full min-h-screen">
+        <div className="text-center py-[60px] px-5">
+          <div className="text-[64px] mb-4">❌</div>
+          <h3 className="text-white text-xl mb-2">Player not found</h3>
+          <button
+            className="bg-transparent border border-[#2C2E33] text-[#909296] py-2 px-4 rounded-[6px] cursor-pointer text-sm transition-all font-medium hover:border-[#667eea] hover:text-[#667eea]"
+            onClick={onBack}
+          >
             ← Back
           </button>
         </div>
@@ -132,65 +135,68 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
   }
 
   return (
-    <div className="player-detail-container">
+    <div className="w-full min-h-screen">
       {/* Navigation Bar */}
-      <div className="player-nav-bar">
-        <div className="player-nav-content">
-          <button className="back-btn" onClick={onBack}>
+      <div className="bg-[#1A1B1E] border-b border-[#2C2E33] py-4 px-6 mb-6">
+        <div className="max-w-[1400px] mx-auto flex items-center gap-4">
+          <button
+            className="bg-transparent border border-[#2C2E33] text-[#909296] py-2 px-4 rounded-[6px] cursor-pointer text-sm transition-all font-medium hover:border-[#667eea] hover:text-[#667eea]"
+            onClick={onBack}
+          >
             ← Back
           </button>
-          <span className="nav-title">
+          <span className="text-lg font-semibold text-[#909296]">
             Player Details • {playerDetail.player_name}
           </span>
         </div>
       </div>
 
       {/* Sidebar + Main Content Layout */}
-      <div className="sidebar-layout">
+      <div className="grid grid-cols-[350px_1fr] gap-6 max-w-[1400px] mx-auto px-6 pb-10">
         {/* Sidebar */}
-        <div className="player-sidebar">
-          <div className="sidebar-card">
-            <div className="sidebar-avatar">
+        <div className="sticky top-6 h-fit">
+          <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-8 mb-5">
+            <div className="w-[120px] h-[120px] rounded-full bg-gradient-purple flex items-center justify-center text-[48px] font-bold mx-auto mb-5 border-4 border-[#2C2E33] text-white">
               {playerDetail.avatar || playerDetail.player_name.charAt(0).toUpperCase()}
             </div>
-            <h2 className="sidebar-name">{playerDetail.player_name}</h2>
-            <div className="sidebar-rank">
+            <h2 className="text-center text-[28px] font-bold mb-2 text-white">{playerDetail.player_name}</h2>
+            <div className="text-center text-[#909296] text-sm mb-5">
               {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'} • Member since {formatMemberSince(playerDetail.member_since)}
             </div>
 
-            <div className="sidebar-stats">
-              <div className="sidebar-stat">
-                <span className="sidebar-stat-label">Win Rate</span>
-                <span className="sidebar-stat-value">{playerDetail.win_rate.toFixed(1)}%</span>
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                <span className="text-[#909296] text-[13px]">Win Rate</span>
+                <span className="text-lg font-bold text-[#667eea]">{playerDetail.win_rate.toFixed(1)}%</span>
               </div>
-              <div className="sidebar-stat">
-                <span className="sidebar-stat-label">Total Games</span>
-                <span className="sidebar-stat-value">{playerDetail.total_games}</span>
+              <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                <span className="text-[#909296] text-[13px]">Total Games</span>
+                <span className="text-lg font-bold text-[#667eea]">{playerDetail.total_games}</span>
               </div>
-              <div className="sidebar-stat">
-                <span className="sidebar-stat-label">Wins</span>
-                <span className="sidebar-stat-value">{playerDetail.wins}</span>
+              <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                <span className="text-[#909296] text-[13px]">Wins</span>
+                <span className="text-lg font-bold text-[#667eea]">{playerDetail.wins}</span>
               </div>
-              <div className="sidebar-stat">
-                <span className="sidebar-stat-label">Losses</span>
-                <span className="sidebar-stat-value">{playerDetail.losses}</span>
+              <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                <span className="text-[#909296] text-[13px]">Losses</span>
+                <span className="text-lg font-bold text-[#667eea]">{playerDetail.losses}</span>
               </div>
-              <div className="sidebar-stat">
-                <span className="sidebar-stat-label">Active Decks</span>
-                <span className="sidebar-stat-value">{playerDetail.active_decks}</span>
+              <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                <span className="text-[#909296] text-[13px]">Active Decks</span>
+                <span className="text-lg font-bold text-[#667eea]">{playerDetail.active_decks}</span>
               </div>
               {playerDetail.favorite_single_color && (
-                <div className="sidebar-stat">
-                  <span className="sidebar-stat-label">Favorite Color</span>
-                  <span className="sidebar-stat-value">
+                <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                  <span className="text-[#909296] text-[13px]">Favorite Color</span>
+                  <span className="text-lg font-bold text-[#667eea]">
                     <ColorPips colors={[playerDetail.favorite_single_color]} />
                   </span>
                 </div>
               )}
               {playerDetail.favorite_color_combo && playerDetail.favorite_color_combo.length > 0 && (
-                <div className="sidebar-stat">
-                  <span className="sidebar-stat-label">Favorite Identity</span>
-                  <span className="sidebar-stat-value">
+                <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                  <span className="text-[#909296] text-[13px]">Favorite Identity</span>
+                  <span className="text-lg font-bold text-[#667eea]">
                     <ColorPips colors={playerDetail.favorite_color_combo} />
                   </span>
                 </div>
