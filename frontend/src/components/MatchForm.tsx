@@ -102,64 +102,74 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
-        <div className="modal-header">
-          <h2 className="modal-title">Record New Match</h2>
+    <div className="fixed inset-0 bg-black/70 flex items-start md:items-center justify-center z-[1000] p-3 md:p-6" onClick={onCancel}>
+      <div className="bg-gradient-card rounded-[16px] md:rounded-[12px] p-0 md:p-8 w-full max-w-full md:max-w-[700px] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-h-[calc(100vh-24px)] md:min-h-0 max-h-[calc(100vh-24px)] md:max-h-none flex flex-col md:block overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-0 md:mb-6 flex items-center justify-between sticky md:static top-0 bg-gradient-card border-b border-[#2C2E33] md:border-b-0 p-4 px-5 md:p-0 z-10 flex-shrink-0">
+          <h2 className="text-white m-0 text-xl md:text-2xl font-semibold flex-1">Record New Match</h2>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto md:overflow-y-visible p-5 md:p-0 pb-10 md:pb-0 flex flex-col md:block">
           {/* Player Selection */}
-          <div className="form-group">
-            <label className="form-label">
+          <div className="mb-5">
+            <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">
               Select Players (3-6) - Selected: {selectedPlayerIds.length}/6
             </label>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="flex gap-3 flex-wrap">
               {players.sort((a, b) => a.name.localeCompare(b.name)).map((player) => (
                 <div
                   key={player.id}
-                  className={`player-chip ${selectedPlayerIds.includes(player.id!) ? 'selected' : ''}`}
+                  className={`py-2 px-4 rounded-[20px] border-2 cursor-pointer font-medium transition-all inline-flex items-center gap-2 ${
+                    selectedPlayerIds.includes(player.id!)
+                      ? 'bg-[#667eea] border-[#667eea] text-white'
+                      : 'bg-[#25262B] border-[#2C2E33] text-[#909296]'
+                  }`}
                   onClick={() => togglePlayer(player.id!)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="player-avatar">{getPlayerAvatar(player.id!)}</div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                    selectedPlayerIds.includes(player.id!)
+                      ? 'bg-white text-[#667eea]'
+                      : 'bg-[#667eea] text-white'
+                  }`}>
+                    {getPlayerAvatar(player.id!)}
+                  </div>
                   {player.name}
                 </div>
               ))}
             </div>
-            <div className="form-help">
+            <div className="text-[#909296] text-xs mt-1">
               Click to select/deselect players
             </div>
           </div>
 
           {/* Deck Selection & Winner - Only show when 3+ players selected */}
           {selectedPlayerIds.length >= 3 && (
-            <div className="form-group">
-              <label className="form-label">Select Decks & Winner</label>
+            <div className="mb-5">
+              <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">Select Decks & Winner</label>
               {selectedPlayerIds.map((playerId) => {
                 const playerDecks = getPlayerDecks(playerId);
                 return (
-                  <div key={playerId} className="player-deck-row" style={{ marginBottom: '16px' }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '12px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div className="player-avatar-large">{getPlayerAvatar(playerId)}</div>
-                        <span style={{ color: '#fff', fontWeight: 600 }}>{getPlayerName(playerId)}</span>
+                  <div key={playerId} className="bg-[#25262B] rounded-[8px] p-4 border border-[#2C2E33] mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#667eea] text-white flex items-center justify-center text-sm font-semibold">
+                          {getPlayerAvatar(playerId)}
+                        </div>
+                        <span className="text-white font-semibold">{getPlayerName(playerId)}</span>
                       </div>
                       <button
                         type="button"
-                        className={`winner-btn ${winnerId === playerId ? 'winner' : ''}`}
+                        className={`py-1.5 px-4 rounded-[6px] border-2 cursor-pointer font-semibold text-sm transition-all ${
+                          winnerId === playerId
+                            ? 'bg-gradient-winner border-transparent text-white'
+                            : 'bg-transparent border-[#2C2E33] text-[#909296] hover:bg-[#25262B]'
+                        }`}
                         onClick={() => handleSetWinner(playerId)}
                       >
                         {winnerId === playerId ? '🏆 Winner' : 'Set Winner'}
                       </button>
                     </div>
                     <select
-                      className="form-input"
+                      className="w-full p-3 rounded-[6px] bg-[#25262B] border border-[#2C2E33] text-[#C1C2C5] text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#667eea] disabled:opacity-50 disabled:cursor-not-allowed"
                       value={playerDeckMap[playerId] || ''}
                       onChange={(e) => handleDeckSelect(playerId, e.target.value)}
                       disabled={isSubmitting}
@@ -179,14 +189,14 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
 
           {/* Match Date - Only show when 3+ players selected */}
           {selectedPlayerIds.length >= 3 && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="matchDate">
+            <div className="mb-5">
+              <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="matchDate">
                 Match Date
               </label>
               <input
                 id="matchDate"
                 type="date"
-                className="form-input"
+                className="w-full p-3 rounded-[6px] bg-[#25262B] border border-[#2C2E33] text-[#C1C2C5] text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#667eea] disabled:opacity-50 disabled:cursor-not-allowed"
                 value={matchDate}
                 onChange={(e) => setMatchDate(e.target.value)}
                 disabled={isSubmitting}
@@ -195,15 +205,15 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
           )}
 
           {error && (
-            <div className="form-error">
+            <div className="bg-[rgba(255,107,107,0.1)] text-[#FF6B6B] p-3 rounded-[6px] text-sm mb-5">
               {error}
             </div>
           )}
 
-          <div className="button-group">
+          <div className="flex gap-2 md:gap-3 justify-end mt-auto md:mt-6 pt-5 md:pt-0 flex-shrink-0">
             <button
               type="button"
-              className="secondary-btn"
+              className="py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] bg-transparent border border-[#2C2E33] text-[#C1C2C5] cursor-pointer font-medium text-sm transition-all hover:bg-[#25262B] disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCancel}
               disabled={isSubmitting}
             >
@@ -211,7 +221,11 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
             </button>
             <button
               type="submit"
-              className={`submit-btn ${isFormValid() && !isSubmitting ? 'enabled' : ''}`}
+              className={`py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] border-none text-white font-semibold text-sm transition-all ${
+                isFormValid() && !isSubmitting
+                  ? 'bg-gradient-purple cursor-pointer opacity-100 hover:-translate-y-0.5'
+                  : 'bg-[#2C2E33] cursor-not-allowed opacity-50'
+              }`}
               disabled={!isFormValid() || isSubmitting}
             >
               {isSubmitting ? 'Recording...' : 'Submit Match'}

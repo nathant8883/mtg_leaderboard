@@ -347,4 +347,9 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
+
+  /* Winner button gradient for match form */
+  .bg-gradient-winner {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
 }
