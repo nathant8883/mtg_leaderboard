@@ -78,7 +78,7 @@ function MatchList({ matches, onEdit, onDelete, isLoading = false }: MatchListPr
                           ({player.deck_name})
                         </span>
                         {player.deck_colors && player.deck_colors.length > 0 && (
-                          <ColorPips colors={player.deck_colors} size="small" />
+                          <ColorPips colors={player.deck_colors} />
                         )}
                       </div>
                     ))}
@@ -91,7 +91,7 @@ function MatchList({ matches, onEdit, onDelete, isLoading = false }: MatchListPr
                         🏆 {winner.player_name}
                       </span>
                       {winner.deck_colors && winner.deck_colors.length > 0 && (
-                        <ColorPips colors={winner.deck_colors} size="small" />
+                        <ColorPips colors={winner.deck_colors} />
                       )}
                     </div>
                   )}
