@@ -86,10 +86,10 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
 
   if (loading) {
     return (
-      <div className="match-detail-container">
-        <div className="loading-state">
+      <div className="w-full min-h-screen">
+        <div className="text-center py-[60px] px-5">
           <div className="loading-spinner"></div>
-          <p>Loading match details...</p>
+          <p className="text-[#909296] text-sm">Loading match details...</p>
         </div>
       </div>
     );
@@ -97,10 +97,10 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
 
   if (!match) {
     return (
-      <div className="match-detail-container">
-        <div className="empty-state">
-          <div className="empty-icon">❌</div>
-          <h3>Match not found</h3>
+      <div className="w-full min-h-screen">
+        <div className="text-center py-[60px] px-5">
+          <div className="text-[64px] mb-4">❌</div>
+          <h3 className="text-white text-xl mb-2">Match not found</h3>
           <button className="back-btn" onClick={onBack}>
             ← Back
           </button>
@@ -113,7 +113,7 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
   const hasEliminationOrder = match.players.some(p => p.elimination_order !== undefined && p.elimination_order !== null);
 
   return (
-    <div className="match-detail-container">
+    <div className="w-full min-h-screen">
       {/* Navigation Bar */}
       <div className="player-nav-bar">
         <div className="player-nav-content">
@@ -127,66 +127,68 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
       </div>
 
       {/* Match Info Section */}
-      <div className="match-metadata-section">
-        <div className="match-metadata-card">
-          <div className="metadata-item">
-            <Calendar className="metadata-icon" size={20} />
+      <div className="max-w-[1400px] mx-auto mb-8 px-6">
+        <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6">
+          <div className="flex items-center gap-4">
+            <Calendar className="text-[#667eea] flex-shrink-0" size={20} />
             <div>
-              <div className="metadata-label">Date</div>
-              <div className="metadata-value">{formatDate(match.match_date)}</div>
+              <div className="text-xs text-[#909296] uppercase tracking-[0.5px] mb-1">Date</div>
+              <div className="text-lg font-semibold text-white">{formatDate(match.match_date)}</div>
             </div>
           </div>
-          <div className="metadata-item">
-            <Clock className="metadata-icon" size={20} />
+          <div className="flex items-center gap-4">
+            <Clock className="text-[#667eea] flex-shrink-0" size={20} />
             <div>
-              <div className="metadata-label">Duration</div>
-              <div className="metadata-value">{formatDuration(match.duration_seconds)}</div>
+              <div className="text-xs text-[#909296] uppercase tracking-[0.5px] mb-1">Duration</div>
+              <div className="text-lg font-semibold text-white">{formatDuration(match.duration_seconds)}</div>
             </div>
           </div>
-          <div className="metadata-item">
-            <Users className="metadata-icon" size={20} />
+          <div className="flex items-center gap-4">
+            <Users className="text-[#667eea] flex-shrink-0" size={20} />
             <div>
-              <div className="metadata-label">Players</div>
-              <div className="metadata-value">{match.players.length}</div>
+              <div className="text-xs text-[#909296] uppercase tracking-[0.5px] mb-1">Players</div>
+              <div className="text-lg font-semibold text-white">{match.players.length}</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Final Standings Section */}
-      <div className="match-standings-section">
-        <h2 className="section-title">
+      <div className="max-w-[1400px] mx-auto px-6 pb-10">
+        <h2 className="text-2xl font-semibold text-white mb-6">
           {hasEliminationOrder ? 'Final Standings' : 'Match Result'}
         </h2>
 
-        <div className="match-players-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
           {sortedPlayers.map((player) => (
             <div
               key={`${player.player_id}-${player.deck_id}`}
-              className={`match-player-card ${player.is_winner ? 'winner' : ''}`}
+              className={`bg-[linear-gradient(135deg,#25262B_0%,#27282D_100%)] border border-[#2C2E33] rounded-[16px] p-6 transition-all duration-300 relative hover:border-[#667eea] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] ${
+                player.is_winner ? 'border-[#FFA500]' : ''
+              }`}
             >
               {hasEliminationOrder && player.elimination_order && (
-                <div className="placement-badge">
-                  <span className="placement-emoji">{getPlacementBadge(player.elimination_order)}</span>
-                  <span className="placement-text">{getPlacementText(player.elimination_order)}</span>
+                <div className="flex items-center gap-2 mb-4 py-2 px-4 rounded-[8px] bg-[rgba(102,126,234,0.1)] border border-[rgba(102,126,234,0.2)]">
+                  <span className="text-2xl">{getPlacementBadge(player.elimination_order)}</span>
+                  <span className="text-sm font-semibold text-[#667eea] uppercase tracking-[0.5px]">{getPlacementText(player.elimination_order)}</span>
                 </div>
               )}
               {!hasEliminationOrder && player.is_winner && (
-                <div className="placement-badge winner-badge">
-                  <span className="placement-emoji">🏆</span>
-                  <span className="placement-text">Winner</span>
+                <div className="flex items-center gap-2 mb-4 py-2 px-4 rounded-[8px] bg-[rgba(255,165,0,0.1)] border border-[rgba(255,165,0,0.3)]">
+                  <span className="text-2xl">🏆</span>
+                  <span className="text-sm font-semibold text-[#FFA500] uppercase tracking-[0.5px]">Winner</span>
                 </div>
               )}
               {!hasEliminationOrder && !player.is_winner && (
-                <div className="participant-label">Participant</div>
+                <div className="text-xs text-[#909296] uppercase tracking-[0.5px] mb-4">Participant</div>
               )}
 
-              <div className="match-player-info">
-                <div className="player-name-section">
-                  <h3 className="match-player-name">{player.player_name}</h3>
-                  <div className="match-deck-name">{player.deck_name}</div>
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl font-semibold text-white mb-2">{player.player_name}</h3>
+                  <div className="text-sm text-[#909296]">{player.deck_name}</div>
                 </div>
-                <div className="match-deck-colors">
+                <div className="flex-shrink-0">
                   <ColorPips colors={player.deck_colors} />
                 </div>
               </div>
