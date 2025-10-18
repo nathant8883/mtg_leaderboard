@@ -137,7 +137,7 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
   return (
     <div className="w-full min-h-screen">
       {/* Sidebar + Main Content Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-4 md:gap-6 max-w-[1400px] mx-auto px-0 md:px-6 pb-6 md:pb-10 pt-3 md:pt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-4 md:gap-6 max-w-[1400px] mx-auto px-0 md:px-6 pb-20 md:pb-10 pt-3 md:pt-6">
         {/* Sidebar */}
         <div className="lg:sticky lg:top-6 h-fit">
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-8 mb-4 md:mb-5">
@@ -191,7 +191,7 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
         </div>
 
         {/* Main Content */}
-        <div className="min-h-screen">
+        <div>
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-2 md:p-8 mb-4 md:mb-6">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div>

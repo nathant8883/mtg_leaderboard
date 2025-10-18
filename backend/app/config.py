@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # API settings
     api_title: str = "MTG Commander Leaderboard API"
-    api_version: str = "1.0.9"
+    api_version: str = "1.0.10"
     api_description: str = "API for tracking MTG Commander games and leaderboards"
 
     # CORS settings

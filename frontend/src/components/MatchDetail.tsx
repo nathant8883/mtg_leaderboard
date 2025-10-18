@@ -114,8 +114,8 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
 
   return (
     <div className="w-full min-h-screen">
-      {/* Navigation Bar */}
-      <div className="player-nav-bar">
+      {/* Navigation Bar - Hidden on mobile */}
+      <div className="player-nav-bar max-md:hidden">
         <div className="player-nav-content">
           <button className="back-btn" onClick={onBack}>
             ← Back
@@ -154,7 +154,7 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
       </div>
 
       {/* Final Standings Section */}
-      <div className="max-w-[1400px] mx-auto px-6 pb-10">
+      <div className="max-w-[1400px] mx-auto px-6 pb-24 md:pb-10">
         <h2 className="text-2xl font-semibold text-white mb-6">
           {hasEliminationOrder ? 'Final Standings' : 'Match Result'}
         </h2>
