@@ -39,7 +39,6 @@ def serialize_match(match: Match) -> dict:
         "winner_deck_id": match.winner_deck_id,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
-        "notes": match.notes,
         "created_at": match.created_at.isoformat()
     }
 
@@ -175,7 +174,6 @@ async def create_match(request: CreateMatchRequest):
         "winner_deck_id": match.winner_deck_id,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
-        "notes": match.notes,
         "created_at": match.created_at.isoformat()
     }
 
