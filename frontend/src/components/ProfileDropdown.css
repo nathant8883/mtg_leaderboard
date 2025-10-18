@@ -95,3 +95,17 @@
 .profile-menu-item:active {
   background: #3c3e43;
 }
+
+.profile-menu-version {
+  padding: 10px 16px;
+  font-size: 11px;
+  color: #6b7280;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.version-line {
+  font-family: 'Courier New', monospace;
+}
