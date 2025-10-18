@@ -19,6 +19,16 @@ class CreateMatchRequest(BaseModel):
     elimination_orders: dict[str, int] | None = None  # Maps player_id to placement (1=winner, 2=2nd, 3=3rd, 4=4th)
 
 
+class UpdateMatchRequest(BaseModel):
+    """Request body for updating a match"""
+    player_deck_pairs: list[dict[str, str]] | None = None
+    winner_player_id: str | None = None
+    winner_deck_id: str | None = None
+    match_date: date | None = None
+    duration_seconds: int | None = None
+    elimination_orders: dict[str, int] | None = None
+
+
 def serialize_match(match: Match) -> dict:
     """Helper function to serialize a match with id instead of _id"""
     return {
@@ -58,26 +68,12 @@ async def get_recent_matches(limit: int = 10):
 
 
 @router.get("/{match_id}")
-async def get_match(match_id: str):
+async def get_match(match_id: PydanticObjectId):
     """Get a specific match by ID"""
-    try:
-        # Convert string to PydanticObjectId
-        obj_id = PydanticObjectId(match_id)
-
-        # Workaround: Beanie's find_one with _id filter seems to have issues
-        # Use find_all and filter in Python instead
-        all_matches = await Match.find_all().to_list()
-        match = next((m for m in all_matches if m.id == obj_id), None)
-
-        if not match:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
-        return serialize_match(match)
-    except HTTPException:
-        raise
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid match ID: {str(e)}")
+    match = await Match.get(match_id)
+    if not match:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
+    return serialize_match(match)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -176,6 +172,117 @@ async def create_match(request: CreateMatchRequest):
         "duration_seconds": match.duration_seconds,
         "created_at": match.created_at.isoformat()
     }
+
+
+@router.put("/{match_id}")
+async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
+    """
+    Update an existing match.
+
+    Re-fetches player and deck data to ensure snapshots are current.
+    """
+    match = await Match.get(match_id)
+    if not match:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
+
+    # Update match date if provided
+    if request.match_date is not None:
+        match.match_date = request.match_date
+
+    # Update duration if provided
+    if request.duration_seconds is not None:
+        match.duration_seconds = request.duration_seconds
+
+    # Update player/deck pairs if provided
+    if request.player_deck_pairs is not None:
+        # Validate player count
+        if len(request.player_deck_pairs) < 3:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Match must have at least 3 players"
+            )
+        if len(request.player_deck_pairs) > 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Match cannot have more than 6 players"
+            )
+
+        # Build new MatchPlayer objects with fresh snapshot data
+        match_players = []
+        player_ids = []
+
+        # Use updated winner IDs if provided, otherwise use existing
+        winner_player_id = request.winner_player_id if request.winner_player_id is not None else match.winner_player_id
+        winner_deck_id = request.winner_deck_id if request.winner_deck_id is not None else match.winner_deck_id
+
+        for pair in request.player_deck_pairs:
+            player_id = pair["player_id"]
+            deck_id = pair["deck_id"]
+            player_ids.append(player_id)
+
+            # Fetch player and deck data
+            player = await Player.get(PydanticObjectId(player_id))
+            if not player:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Player {player_id} not found"
+                )
+
+            deck = await Deck.get(PydanticObjectId(deck_id))
+            if not deck:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Deck {deck_id} not found"
+                )
+
+            # Create MatchPlayer with snapshot data
+            is_winner = (player_id == winner_player_id and deck_id == winner_deck_id)
+            elimination_order = request.elimination_orders.get(player_id) if request.elimination_orders else None
+            match_players.append(MatchPlayer(
+                player_id=player_id,
+                player_name=player.name,
+                deck_id=deck_id,
+                deck_name=deck.name,
+                deck_colors=deck.colors,
+                elimination_order=elimination_order,
+                is_winner=is_winner
+            ))
+
+        # Validate winner is in the match
+        if winner_player_id not in player_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Winner must be one of the players in the match"
+            )
+
+        # Update match fields
+        match.players = match_players
+        match.winner_player_id = winner_player_id
+        match.winner_deck_id = winner_deck_id
+
+    elif request.winner_player_id is not None or request.winner_deck_id is not None:
+        # Only updating winner without changing players
+        winner_player_id = request.winner_player_id if request.winner_player_id is not None else match.winner_player_id
+        winner_deck_id = request.winner_deck_id if request.winner_deck_id is not None else match.winner_deck_id
+
+        # Validate winner is in the match
+        player_ids = [p.player_id for p in match.players]
+        if winner_player_id not in player_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Winner must be one of the players in the match"
+            )
+
+        # Update winner info and is_winner flags
+        match.winner_player_id = winner_player_id
+        match.winner_deck_id = winner_deck_id
+        for player in match.players:
+            player.is_winner = (player.player_id == winner_player_id and player.deck_id == winner_deck_id)
+
+    # Save the updated match
+    await match.save()
+
+    return serialize_match(match)
 
 
 @router.delete("/{match_id}", status_code=status.HTTP_204_NO_CONTENT)

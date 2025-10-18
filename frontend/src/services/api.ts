@@ -279,6 +279,11 @@ export const matchApi = {
     return response.data;
   },
 
+  update: async (id: string, match: Partial<CreateMatchRequest>): Promise<Match> => {
+    const response = await api.put(`/matches/${id}`, match);
+    return response.data;
+  },
+
   delete: async (id: string): Promise<void> => {
     await api.delete(`/matches/${id}`);
   },

@@ -1,28 +1,35 @@
 import { useState, useEffect } from 'react';
-import type { Player, Deck } from '../services/api';
-import { playerApi, deckApi } from '../services/api';
+import type { Player, Deck, Match, CreateMatchRequest } from '../services/api';
+import { playerApi, deckApi, matchApi } from '../services/api';
 import PlayerList from './PlayerList';
 import PlayerForm from './PlayerForm';
 import DeckList from './DeckList';
 import DeckForm from './DeckForm';
+import MatchList from './MatchList';
+import MatchForm from './MatchForm';
+import EditMatchForm from './EditMatchForm';
 
-type Tab = 'players' | 'decks';
+type Tab = 'players' | 'decks' | 'matches';
 
 function AdminPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('players');
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPlayerForm, setShowPlayerForm] = useState(false);
   const [showDeckForm, setShowDeckForm] = useState(false);
+  const [showMatchForm, setShowMatchForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [error, setError] = useState('');
 
-  // Load players on mount
+  // Load data on mount
   useEffect(() => {
     loadPlayers();
     loadDecks();
+    loadMatches();
   }, []);
 
   const loadPlayers = async () => {
@@ -48,6 +55,20 @@ function AdminPanel() {
     } catch (err) {
       setError('Failed to load decks');
       console.error('Error loading decks:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMatches = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const data = await matchApi.getAll(100); // Load up to 100 matches
+      setMatches(data);
+    } catch (err) {
+      setError('Failed to load matches');
+      console.error('Error loading matches:', err);
     } finally {
       setIsLoading(false);
     }
@@ -143,6 +164,51 @@ function AdminPanel() {
     setEditingDeck(null);
   };
 
+  const handleCreateMatch = async (matchData: CreateMatchRequest) => {
+    try {
+      await matchApi.create(matchData);
+      setShowMatchForm(false);
+      await loadMatches();
+    } catch (err) {
+      console.error('Error creating match:', err);
+      throw new Error('Failed to create match');
+    }
+  };
+
+  const handleUpdateMatch = async (matchData: Partial<CreateMatchRequest>) => {
+    if (!editingMatch?.id) return;
+
+    try {
+      await matchApi.update(editingMatch.id, matchData);
+      setEditingMatch(null);
+      setShowMatchForm(false);
+      await loadMatches();
+    } catch (err) {
+      console.error('Error updating match:', err);
+      throw new Error('Failed to update match');
+    }
+  };
+
+  const handleDeleteMatch = async (matchId: string) => {
+    try {
+      await matchApi.delete(matchId);
+      await loadMatches();
+    } catch (err) {
+      console.error('Error deleting match:', err);
+      alert('Failed to delete match');
+    }
+  };
+
+  const handleEditMatch = (match: Match) => {
+    setEditingMatch(match);
+    setShowMatchForm(true);
+  };
+
+  const handleCloseMatchForm = () => {
+    setShowMatchForm(false);
+    setEditingMatch(null);
+  };
+
   return (
     <div className="w-full">
       <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
@@ -150,9 +216,13 @@ function AdminPanel() {
           <h2 className="text-white m-0 text-2xl font-semibold">Admin Panel</h2>
           <button
             className="bg-gradient-purple text-white border-none py-3 px-6 rounded-[8px] text-sm font-semibold cursor-pointer shadow-primary transition-all primary-btn-hover"
-            onClick={() => activeTab === 'players' ? setShowPlayerForm(true) : setShowDeckForm(true)}
+            onClick={() => {
+              if (activeTab === 'players') setShowPlayerForm(true);
+              else if (activeTab === 'decks') setShowDeckForm(true);
+              else if (activeTab === 'matches') setShowMatchForm(true);
+            }}
           >
-            {activeTab === 'players' ? '➕ Add Player' : '➕ Add Deck'}
+            {activeTab === 'players' ? '➕ Add Player' : activeTab === 'decks' ? '➕ Add Deck' : '➕ Add Match'}
           </button>
         </div>
 
@@ -176,6 +246,16 @@ function AdminPanel() {
             onClick={() => setActiveTab('decks')}
           >
             🃏 Decks
+          </button>
+          <button
+            className={`py-3 px-6 bg-transparent border-none border-b-2 cursor-pointer font-semibold text-sm transition-all ${
+              activeTab === 'matches'
+                ? 'border-b-[#667eea] text-[#667eea]'
+                : 'border-transparent text-[#909296]'
+            }`}
+            onClick={() => setActiveTab('matches')}
+          >
+            🎮 Matches
           </button>
         </div>
 
@@ -202,6 +282,15 @@ function AdminPanel() {
             onDelete={handleDeleteDeck}
           />
         )}
+
+        {activeTab === 'matches' && (
+          <MatchList
+            matches={matches}
+            onEdit={handleEditMatch}
+            onDelete={handleDeleteMatch}
+            isLoading={isLoading}
+          />
+        )}
       </div>
 
       {showPlayerForm && (
@@ -221,6 +310,25 @@ function AdminPanel() {
           initialData={editingDeck || undefined}
           isEdit={!!editingDeck}
           showPlayerSelector={true}
+        />
+      )}
+
+      {showMatchForm && !editingMatch && (
+        <MatchForm
+          onSubmit={handleCreateMatch}
+          onCancel={handleCloseMatchForm}
+          players={players}
+          decks={decks}
+        />
+      )}
+
+      {showMatchForm && editingMatch && (
+        <EditMatchForm
+          onSubmit={handleUpdateMatch}
+          onCancel={handleCloseMatchForm}
+          players={players}
+          decks={decks}
+          initialData={editingMatch}
         />
       )}
     </div>

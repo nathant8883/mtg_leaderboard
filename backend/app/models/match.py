@@ -46,10 +46,6 @@ class Match(Document):
         name = "matches"
         use_state_management = True
         use_revision = False
-        # Configure Beanie to serialize _id as id in JSON responses
-        bson_encoders = {
-            PydanticObjectId: str
-        }
 
     model_config = ConfigDict(
         populate_by_name=True,
