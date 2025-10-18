@@ -15,29 +15,6 @@
     flex: 1;
 }
 
-
-/* Card Styles */
-.card {
-    background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.card-title {
-    color: #fff;
-    margin: 0;
-    font-size: 24px;
-    font-weight: 600;
-}
-
 .view-all-link {
     background: transparent;
     border: none;
@@ -66,55 +43,6 @@
 
 .view-all-link:hover::after {
     transform: translateX(2px);
-}
-
-.primary-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    transition: all 0.2s;
-}
-
-.primary-btn:hover {
-    transform: translateY(-2px);
-}
-
-.primary-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Tabs */
-.tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid #2C2E33;
-    padding-bottom: 0;
-}
-
-.tab-btn {
-    padding: 12px 24px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: #909296;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.tab-btn.active {
-    border-bottom-color: #667eea;
-    color: #667eea;
 }
 
 /* Table Styles */
@@ -249,16 +177,6 @@
 
 .loading-state p {
     color: #909296;
-    font-size: 14px;
-}
-
-/* Error Banner */
-.error-banner {
-    background: rgba(255, 107, 107, 0.1);
-    color: #FF6B6B;
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-bottom: 20px;
     font-size: 14px;
 }
 
@@ -596,11 +514,6 @@
     color: #C1C2C5;
     font-size: 13px;
     opacity: 0.7;
-}
-
-/* Tab Content */
-.tab-content {
-    margin-top: 0;
 }
 
 /* Clickable Player Names */
@@ -1362,7 +1275,6 @@ input:disabled + .toggle-slider {
         font-size: 11px;
     }
 
-    .primary-btn,
     .secondary-btn,
     .submit-btn {
         padding: 10px 20px;
@@ -1464,30 +1376,6 @@ input:disabled + .toggle-slider {
 
 /* Small Mobile (480px) - Critical adjustments only */
 @media (max-width: 480px) {
-    /* ===== HEADER ===== */
-    .header {
-        padding: 10px 12px;
-    }
-
-    .header-title {
-        display: none; /* Hide title on very small screens */
-    }
-
-    .logo {
-        width: 36px;
-        height: 36px;
-        font-size: 18px;
-    }
-
-    /* Show only icons on very small screens */
-    .nav-btn {
-        padding: 8px;
-    }
-
-    .record-match-btn {
-        padding: 8px;
-    }
-
     /* ===== CONTAINER ===== */
     .container {
         padding: 12px;
@@ -1506,34 +1394,6 @@ input:disabled + .toggle-slider {
     /* ===== CARDS ===== */
     .card {
         padding: 16px;
-    }
-
-    /* ===== STATS ===== */
-    .stat-card-header {
-        padding: 14px 16px;
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .stat-icon-circle {
-        margin: 0 auto 8px;
-    }
-
-    .stat-header-value {
-        font-size: 18px;
-    }
-
-    /* ===== PLAYER DETAIL ===== */
-    .sidebar-layout {
-        padding: 0 12px 32px;
-    }
-
-    .sidebar-card {
-        padding: 20px;
-    }
-
-    .content-section {
-        padding: 20px;
     }
 
     /* ===== TABLES - Even more compact ===== */
@@ -1563,279 +1423,11 @@ input:disabled + .toggle-slider {
         font-size: 13px;
     }
 
-    /* ===== DECK CARDS ===== */
-    .deck-name {
-        font-size: 16px;
-    }
-
-    .deck-commander {
-        font-size: 12px;
-    }
-
-    .deck-stat-value {
-        font-size: 18px;
-    }
-}
-
-/* ========================================
-   MOBILE ACTION BAR
-   ======================================== */
-
-/* Hide by default on desktop */
-.mobile-action-bar {
-    display: none;
-}
-
-/* Hide mobile card views on desktop */
-.player-cards-mobile,
-.deck-cards-mobile {
-    display: none;
-}
-
-/* Show on mobile */
-@media (max-width: 768px) {
-    .mobile-action-bar {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(26, 27, 30, 0.95);
-        backdrop-filter: blur(10px);
-        border-top: 1px solid #2C2E33;
-        padding: 8px 12px;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom));
-        z-index: 900;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-        gap: 8px;
-    }
-
-    .mobile-action-btn {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        padding: 12px 8px;
-        border: none;
-        border-radius: 12px;
-        background: transparent;
-        color: #909296;
-        cursor: pointer;
-        transition: all 0.15s ease-out;
-        font-size: 12px;
-        font-weight: 600;
-        opacity: 0.6;
-    }
-
-    .mobile-action-btn .action-icon {
-        font-size: 24px;
-        display: block;
-    }
-
-    .mobile-action-btn .action-label {
-        font-size: 11px;
-        display: block;
-    }
-
-    .mobile-action-btn:active {
-        transform: scale(0.95);
-    }
-
-    .mobile-action-btn.active {
-        background: rgba(51, 217, 178, 0.15);
-        color: var(--accent-cyan);
-        opacity: 1;
-        box-shadow: 0 -2px 6px rgba(51, 217, 178, 0.15);
-    }
-
-    .mobile-action-btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: #fff !important;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        opacity: 1 !important;
-    }
-
-    .mobile-action-btn-primary:active {
-        transform: scale(0.95);
-    }
-
-    /* ========================================
-       MOBILE-FIRST HOME SCREEN REDESIGN
-       ======================================== */
-    /* Hide last 2 stat cards (show only Total Games, Players, Decks) */
-    .stats-grid .stat-card:nth-child(n+4) {
-        display: none;
-    }
 
     /* Hide desktop table views */
     .leaderboard-table-container {
         display: none !important;
     }
-
-    /* Show mobile card views */
-    .player-cards-mobile {
-        display: flex !important;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .deck-cards-mobile {
-        display: flex !important;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    /* Player Card Mobile Styles */
-    .player-card-mobile {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: linear-gradient(135deg, #25262B 0%, #27282D 100%);
-        border: 1px solid #2C2E33;
-        border-radius: 12px;
-        padding: 16px;
-        cursor: pointer;
-        transition: all 0.15s ease-out;
-    }
-
-    .player-card-mobile:active {
-        transform: scale(0.98);
-        background: linear-gradient(135deg, #2C2E33 0%, #2E2F34 100%);
-    }
-
-    .player-card-rank {
-        flex-shrink: 0;
-    }
-
-    .player-card-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        font-weight: 700;
-        flex-shrink: 0;
-    }
-
-    .player-card-info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .player-card-name {
-        font-size: 16px;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 4px;
-    }
-
-    .player-card-record {
-        font-size: 12px;
-        color: #909296;
-        margin-bottom: 4px;
-        opacity: 0.7;
-    }
-
-    .player-card-tier {
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        display: inline-block;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .player-card-tier.s-tier {
-        background: rgba(255, 215, 0, 0.15);
-        color: #FFD700;
-    }
-
-    .player-card-tier.a-tier {
-        background: rgba(51, 217, 178, 0.15);
-        color: #33D9B2;
-    }
-
-    .player-card-tier.b-tier {
-        background: rgba(79, 172, 254, 0.15);
-        color: #4FACFE;
-    }
-
-    .player-card-tier.d-tier {
-        background: rgba(255, 107, 107, 0.15);
-        color: #FF6B6B;
-    }
-
-    .player-card-winrate {
-        font-size: 24px;
-        font-weight: 700;
-        flex-shrink: 0;
-        margin-left: auto;
-    }
-
-    .player-card-winrate.s-tier {
-        color: #FFD700;
-    }
-
-    .player-card-winrate.a-tier {
-        color: #33D9B2;
-    }
-
-    .player-card-winrate.b-tier {
-        color: #4FACFE;
-    }
-
-    .player-card-winrate.d-tier {
-        color: #FF6B6B;
-    }
-
-    /* Deck Card Mobile Styles */
-    .deck-card-mobile {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: linear-gradient(135deg, #25262B 0%, #27282D 100%);
-        border: 1px solid #2C2E33;
-        border-radius: 12px;
-        padding: 16px;
-        transition: all 0.15s ease-out;
-    }
-
-    .deck-card-mobile:active {
-        transform: scale(0.98);
-        border-color: var(--accent-purple);
-    }
-
-
-
-
-    .deck-card-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        overflow: hidden;
-        flex-shrink: 0;
-        background: #1A1B1E;
-        border: 2px solid #2C2E33;
-    }
-
-    .deck-card-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center 20%;
-    }
-
-
-
-
 
 
 }

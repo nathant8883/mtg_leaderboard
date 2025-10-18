@@ -46,11 +46,11 @@ function Leaderboard({ onPlayerClick }: LeaderboardProps) {
   };
 
   return (
-    <div className="card">
-      <h2 className="card-title">Leaderboard</h2>
+    <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <h2 className="text-white m-0 text-2xl font-semibold">Leaderboard</h2>
 
       {/* Tab Navigation */}
-      <div className="tabs">
+      <div className="flex gap-2 mb-6 border-b border-[#2C2E33] pb-0">
         <button
           className={`tab-btn ${activeTab === 'players' ? 'active' : ''}`}
           onClick={() => setActiveTab('players')}
@@ -66,7 +66,7 @@ function Leaderboard({ onPlayerClick }: LeaderboardProps) {
       </div>
 
       {/* Tab Content */}
-      <div className="tab-content">
+      <div className="mt-0">
         {activeTab === 'players' && (
           <PlayerLeaderboard players={players} loading={loadingPlayers} onPlayerClick={onPlayerClick} />
         )}

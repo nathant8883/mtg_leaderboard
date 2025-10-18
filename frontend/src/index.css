@@ -369,6 +369,40 @@
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   }
 
+  /* Primary button shadow */
+  .shadow-primary {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  /* Primary button hover effect */
+  .primary-btn-hover:hover {
+    transform: translateY(-2px);
+  }
+
+  .primary-btn-hover:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Tab buttons with active state */
+  .tab-btn {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #909296;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    border-bottom-color: #667eea;
+    color: #667eea;
+  }
+
   /* ==================== MATCH TRACKER - FLOATING HEXAGON BUTTON ==================== */
 
   /* Floating Hamburger Menu Button Wrapper - Outer Border Ring */

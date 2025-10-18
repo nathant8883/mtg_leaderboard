@@ -144,27 +144,35 @@ function AdminPanel() {
   };
 
   return (
-    <div className="admin-panel">
-      <div className="card">
-        <div className="card-header">
-          <h2 className="card-title">Admin Panel</h2>
+    <div className="w-full">
+      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-white m-0 text-2xl font-semibold">Admin Panel</h2>
           <button
-            className="primary-btn"
+            className="bg-gradient-purple text-white border-none py-3 px-6 rounded-[8px] text-sm font-semibold cursor-pointer shadow-primary transition-all primary-btn-hover"
             onClick={() => activeTab === 'players' ? setShowPlayerForm(true) : setShowDeckForm(true)}
           >
             {activeTab === 'players' ? '➕ Add Player' : '➕ Add Deck'}
           </button>
         </div>
 
-        <div className="tabs">
+        <div className="flex gap-2 mb-6 border-b border-[#2C2E33] pb-0">
           <button
-            className={`tab-btn ${activeTab === 'players' ? 'active' : ''}`}
+            className={`py-3 px-6 bg-transparent border-none border-b-2 cursor-pointer font-semibold text-sm transition-all ${
+              activeTab === 'players'
+                ? 'border-b-[#667eea] text-[#667eea]'
+                : 'border-transparent text-[#909296]'
+            }`}
             onClick={() => setActiveTab('players')}
           >
             👥 Players
           </button>
           <button
-            className={`tab-btn ${activeTab === 'decks' ? 'active' : ''}`}
+            className={`py-3 px-6 bg-transparent border-none border-b-2 cursor-pointer font-semibold text-sm transition-all ${
+              activeTab === 'decks'
+                ? 'border-b-[#667eea] text-[#667eea]'
+                : 'border-transparent text-[#909296]'
+            }`}
             onClick={() => setActiveTab('decks')}
           >
             🃏 Decks
@@ -172,7 +180,7 @@ function AdminPanel() {
         </div>
 
         {error && (
-          <div className="error-banner">
+          <div className="bg-[rgba(255,107,107,0.1)] text-[#FF6B6B] py-3 px-4 rounded-[6px] mb-5 text-sm">
             {error}
           </div>
         )}
