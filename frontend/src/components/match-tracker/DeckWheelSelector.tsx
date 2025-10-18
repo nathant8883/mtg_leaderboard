@@ -69,11 +69,11 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
 
   if (loading) {
     return (
-      <div className="modal-overlay">
-        <div className="modal-content deck-selector-modal">
-          <div className="loading-state">
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4">
+        <div className="bg-transparent border-none p-3 max-w-full w-full max-h-screen h-screen flex flex-col overflow-hidden">
+          <div className="text-center py-[60px] px-5">
             <div className="loading-spinner"></div>
-            <p>Loading decks...</p>
+            <p className="text-[#909296] text-sm">Loading decks...</p>
           </div>
         </div>
       </div>
@@ -82,13 +82,13 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
 
   if (decks.length === 0) {
     return (
-      <div className="modal-overlay">
-        <div className="modal-content deck-selector-modal">
-          <h2>No Decks Found</h2>
-          <p>{playerName} doesn't have any decks registered yet.</p>
-          <p>Please add a deck from the player's profile before starting a match.</p>
-          <div className="modal-actions">
-            <button className="btn-primary" onClick={onCancel}>
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4">
+        <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-6 max-w-[500px] w-full max-h-[90vh] overflow-y-auto">
+          <h2 className="text-xl font-semibold mb-4">No Decks Found</h2>
+          <p className="mb-4">{playerName} doesn't have any decks registered yet.</p>
+          <p className="mb-6">Please add a deck from the player's profile before starting a match.</p>
+          <div className="flex gap-3 mt-6">
+            <button className="flex-1 py-3 px-6 border-none rounded-[8px] text-sm font-semibold cursor-pointer transition-all bg-gradient-purple text-white hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]" onClick={onCancel}>
               Back
             </button>
           </div>
@@ -109,13 +109,13 @@ function DeckWheelSelector({ playerId, playerName, onSelect, onCancel }: DeckWhe
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content deck-selector-modal">
-        <div className="deck-wheel-header">
-          <h2>Select Deck for {playerName}</h2>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4">
+      <div className="bg-transparent border-none p-3 max-w-full w-full max-h-screen h-screen flex flex-col overflow-hidden">
+        <div className="text-center mb-3 bg-[rgba(26,27,30,0.95)] backdrop-blur-[10px] py-[10px] px-4 rounded-[12px] border border-[#2c2e33] flex-shrink-0">
+          <h2 className="m-0 text-base font-semibold">Select Deck for {playerName}</h2>
         </div>
 
-        <div className="deck-wheel-container">
+        <div className="flex-1 flex items-center justify-center relative overflow-visible min-h-0">
           <div className="deck-wheel">
             {/* Center circle */}
             <div className="deck-wheel-center"></div>
