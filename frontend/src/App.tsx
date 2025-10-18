@@ -130,45 +130,47 @@ function App() {
       <Toaster />
       {/* Header - Hidden in match tracker */}
       {activeView !== 'match-tracker' && (
-        <div className="header">
-          <div className="header-content">
-            <div className="header-left">
-              <div className="logo" onClick={() => setActiveView('dashboard')} style={{ cursor: 'pointer' }}>🏆</div>
-              <h1 className="header-title">Commander League</h1>
+        <div className="bg-gradient-card border-b border-[#2C2E33] px-6 py-4 md:px-6 md:py-4 max-md:px-3 max-md:py-[10px] sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+          <div className="w-full flex justify-between items-center">
+            <div className="flex items-center gap-4 max-md:gap-3">
+              <div className="w-10 h-10 max-md:w-9 max-md:h-9 bg-gradient-purple rounded-[8px] flex items-center justify-center text-xl max-md:text-lg cursor-pointer" onClick={() => setActiveView('dashboard')}>🏆</div>
+              <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Commander League</h1>
             </div>
-            <div className="nav-buttons">
+            <div className="flex gap-3 max-md:gap-[6px]">
               <button
-                className={`nav-btn ${activeView === 'dashboard' ? 'active' : ''}`}
+                className={`px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden ${
+                  activeView === 'dashboard' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
+                }`}
                 onClick={() => setActiveView('dashboard')}
               >
                 <span>🚀</span>
                 <span> Launchpad</span>
               </button>
               <button
-                className="record-match-btn"
+                className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden"
                 onClick={() => setActiveView('match-tracker')}
               >
                 <span>🎮</span>
                 <span> Match Tracker</span>
               </button>
               <button
-                className="record-match-btn"
+                className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden"
                 onClick={() => setShowMatchForm(true)}
               >
                 <span>➕</span>
                 <span> Record Match</span>
               </button>
-              <div className="hamburger-menu">
+              <div className="relative">
                 <button
-                  className="hamburger-btn"
+                  className="px-4 py-2 max-md:px-[10px] max-md:py-2 max-md:min-w-[40px] bg-transparent border-none rounded-[6px] text-[#909296] cursor-pointer font-medium text-xl transition-all duration-200 flex items-center justify-center nav-btn-hover"
                   onClick={() => setShowMenu(!showMenu)}
                 >
                   ☰
                 </button>
                 {showMenu && (
-                  <div className="menu-dropdown">
+                  <div className="absolute top-[calc(100%+8px)] right-0 bg-gradient-card border border-[#2C2E33] rounded-[8px] min-w-[160px] shadow-[0_2px_8px_rgba(0,0,0,0.2)] z-[1000] overflow-hidden">
                     <button
-                      className="menu-item"
+                      className="w-full px-4 py-3 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all duration-200 flex items-center gap-2 menu-item-hover menu-item-border"
                       onClick={() => {
                         setShowMatchForm(true)
                         setShowMenu(false)
@@ -177,7 +179,7 @@ function App() {
                       ➕ Add Match
                     </button>
                     <button
-                      className="menu-item"
+                      className="w-full px-4 py-3 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all duration-200 flex items-center gap-2 menu-item-hover menu-item-border"
                       onClick={() => {
                         setActiveView('leaderboard')
                         setShowMenu(false)
@@ -187,7 +189,7 @@ function App() {
                     </button>
                     {currentPlayer?.is_superuser && (
                       <button
-                        className="menu-item"
+                        className="w-full px-4 py-3 bg-transparent border-none text-[#C1C2C5] cursor-pointer font-medium text-sm text-left transition-all duration-200 flex items-center gap-2 menu-item-hover menu-item-border"
                         onClick={() => {
                           setActiveView('admin')
                           setShowMenu(false)
@@ -262,31 +264,39 @@ function App() {
 
       {/* Mobile Bottom Action Bar */}
       {activeView !== 'match-tracker' && (
-        <div className="mobile-action-bar">
+        <div className="hidden max-md:flex fixed bottom-0 left-0 right-0 bg-[rgba(26,27,30,0.95)] backdrop-blur-[10px] border-t border-[#2C2E33] px-3 py-2 pb-[calc(8px+env(safe-area-inset-bottom))] z-[900] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] gap-2">
           <button
-            className={`mobile-action-btn ${activeView === 'dashboard' ? 'active' : ''}`}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
+              activeView === 'dashboard'
+                ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
+                : 'bg-transparent text-[#909296] opacity-60'
+            }`}
             onClick={() => setActiveView('dashboard')}
           >
-            <Home className="action-icon" size={24} />
-            <span className="action-label">Home</span>
+            <Home size={24} />
+            <span className="text-[11px]">Home</span>
           </button>
           <button
-            className="mobile-action-btn mobile-action-btn-primary"
+            className="flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] bg-gradient-purple text-white cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] shadow-[0_2px_8px_rgba(102,126,234,0.3)] opacity-100 active:scale-95"
             onClick={() => setActiveView('match-tracker')}
           >
-            <Play className="action-icon" size={24} />
-            <span className="action-label">Start Game</span>
+            <Play size={24} />
+            <span className="text-[11px]">Start Game</span>
           </button>
           <button
-            className={`mobile-action-btn ${activeView === 'player-detail' ? 'active' : ''}`}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
+              activeView === 'player-detail'
+                ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
+                : 'bg-transparent text-[#909296] opacity-60'
+            }`}
             onClick={() => {
               if (currentPlayer) {
                 handleViewPlayerDetail(currentPlayer.id);
               }
             }}
           >
-            <User className="action-icon" size={24} />
-            <span className="action-label">Profile</span>
+            <User size={24} />
+            <span className="text-[11px]">Profile</span>
           </button>
         </div>
       )}

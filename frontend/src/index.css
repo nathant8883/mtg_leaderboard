@@ -266,4 +266,23 @@
       margin-right: 7.5%;
     }
   }
+
+  /* Navbar and mobile action bar styles */
+  .nav-btn-hover:hover {
+    background: rgba(102, 126, 234, 0.2);
+  }
+
+  .record-match-btn-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .menu-item-hover:hover {
+    background: #25262B;
+    color: #fff;
+  }
+
+  .menu-item-border:not(:last-child) {
+    border-bottom: 1px solid #2C2E33;
+  }
 }
