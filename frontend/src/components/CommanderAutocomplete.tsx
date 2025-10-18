@@ -112,7 +112,7 @@ function CommanderAutocomplete({ value, onChange, disabled = false }: CommanderA
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         placeholder="Search for a legendary creature..."
-        className="form-input"
+        className="w-full p-3 rounded-[6px] bg-[#25262B] border border-[#2C2E33] text-[#C1C2C5] text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#667eea] disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={disabled}
         autoComplete="off"
       />

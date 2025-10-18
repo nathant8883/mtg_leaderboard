@@ -123,9 +123,9 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
                     return (
                       <div className={`winrate-compact ${tier.class}`}>
                         <div className="tier-icon-compact">{tier.icon}</div>
-                        <div className="winrate-info-compact">
-                          <div className="tier-name-compact">{tier.letter} Tier</div>
-                          <div className="winrate-value-compact">{deck.win_rate.toFixed(1)}%</div>
+                        <div className="text-left">
+                          <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
+                          <div className="text-lg font-bold text-white">{deck.win_rate.toFixed(1)}%</div>
                         </div>
                       </div>
                     );

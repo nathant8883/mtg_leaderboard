@@ -152,9 +152,9 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
       </div>
 
       {/* Sidebar + Main Content Layout */}
-      <div className="grid grid-cols-[350px_1fr] gap-6 max-w-[1400px] mx-auto px-6 pb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6 max-w-[1400px] mx-auto px-6 pb-10 max-md:px-3">
         {/* Sidebar */}
-        <div className="sticky top-6 h-fit">
+        <div className="lg:sticky lg:top-6 h-fit">
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-8 mb-5">
             <div className="w-[120px] h-[120px] rounded-full bg-gradient-purple flex items-center justify-center text-[48px] font-bold mx-auto mb-5 border-4 border-[#2C2E33] text-white">
               {playerDetail.avatar || playerDetail.player_name.charAt(0).toUpperCase()}

@@ -281,6 +281,22 @@
     .stats-grid-mobile > *:last-child {
       margin-right: 7.5%;
     }
+
+    /* Win rate compact - mobile adjustments */
+    .winrate-compact {
+      padding: 0.375rem 0.625rem;
+    }
+
+    .tier-icon-compact {
+      width: 1.875rem;
+      height: 1.875rem;
+      font-size: 1rem;
+    }
+
+    /* Color pips - smaller mana symbols */
+    .color-pips .ms {
+      font-size: 1rem;
+    }
   }
 
   /* Navbar and mobile action bar styles */
@@ -474,26 +490,6 @@
     color: #fff;
     box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
     border: 1px solid rgba(205, 127, 50, 0.3);
-  }
-
-  /* Winrate info compact - text alignment */
-  .winrate-info-compact {
-    text-align: left;
-  }
-
-  .tier-name-compact {
-    font-size: 10px;
-    color: #909296;
-    text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 2px;
-    letter-spacing: 0.5px;
-  }
-
-  .winrate-value-compact {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
   }
 
   /* Clickable player names */
