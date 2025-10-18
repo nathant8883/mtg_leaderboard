@@ -50,11 +50,11 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
 
   if (loading) {
     return (
-      <div className="card">
-        <h2 className="card-title">Recent Matches</h2>
-        <div className="loading-state">
+      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <h2 className="text-white m-0 text-2xl font-semibold mb-6">Recent Matches</h2>
+        <div className="text-center py-[60px] px-5">
           <div className="loading-spinner"></div>
-          <p>Loading matches...</p>
+          <p className="text-[#909296] text-sm">Loading matches...</p>
         </div>
       </div>
     );
@@ -62,21 +62,21 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
 
   if (matches.length === 0) {
     return (
-      <div className="card">
-        <h2 className="card-title">Recent Matches</h2>
-        <div className="empty-state">
-          <div className="empty-icon">🏆</div>
-          <h3>No matches yet</h3>
-          <p>Record your first match to get started!</p>
+      <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+        <h2 className="text-white m-0 text-2xl font-semibold mb-6">Recent Matches</h2>
+        <div className="text-center py-[60px] px-5">
+          <div className="text-[64px] mb-4">🏆</div>
+          <h3 className="text-white text-xl mb-2">No matches yet</h3>
+          <p className="text-[#909296] text-sm">Record your first match to get started!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="card">
-      <h2 className="card-title">Recent Matches</h2>
-      <div className="recent-matches-container">
+    <div className="bg-gradient-card rounded-[12px] p-6 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+      <h2 className="text-white m-0 text-2xl font-semibold mb-6">Recent Matches</h2>
+      <div className="flex flex-col gap-4">
         {matches.map((match) => {
           const winner = getWinner(match);
           const durationText = formatDuration(match.duration_seconds);
@@ -84,39 +84,44 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
           return (
             <div
               key={match.id}
-              className="recent-match-card"
+              className="bg-[rgba(37,38,43,0.5)] rounded-[12px] p-4 border border-[#2C2E33] transition-all duration-200 hover:bg-[#25262B] hover:border-[#667eea] cursor-pointer"
               onClick={() => handleMatchClick(match.id!)}
-              style={{ cursor: 'pointer' }}
             >
               {/* Header Row: Winner + Time Info */}
-              <div className="recent-match-header">
-                <div className="recent-match-winner">
-                  <Trophy className="recent-match-trophy-icon" />
-                  <span className="recent-match-winner-name">{winner?.player_name || 'Unknown'}</span>
+              <div className="flex justify-between items-center mb-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[#FFA500] flex-shrink-0" />
+                  <span className="text-[#667eea] font-semibold text-[15px]">{winner?.player_name || 'Unknown'}</span>
                 </div>
-                <div className="recent-match-time">
+                <div className="flex items-center gap-3 text-xs text-[#909296] flex-shrink-0">
                   {durationText && (
-                    <span className="recent-match-duration">
-                      <Clock className="recent-match-clock-icon" />
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
                       {durationText}
                     </span>
                   )}
-                  <span className="recent-match-date">{formatDate(match.match_date)}</span>
+                  <span className="text-xs">{formatDate(match.match_date)}</span>
                 </div>
               </div>
 
               {/* Winner's Deck Name */}
-              <div className="recent-match-deck-name">{winner?.deck_name || 'Unknown Deck'}</div>
+              <div className="text-[#909296] text-sm mb-3">{winner?.deck_name || 'Unknown Deck'}</div>
 
               {/* Player Chips Row */}
-              <div className="recent-match-players">
+              <div className="flex flex-wrap gap-2">
                 {match.players.map((player) => (
                   <div
                     key={`${player.player_id}-${player.deck_id}`}
-                    className={`recent-match-player-chip ${player.is_winner ? 'winner' : ''}`}
+                    className={`inline-flex items-center gap-1.5 py-1.5 px-3 rounded-[16px] text-[13px] transition-all duration-200 ${
+                      player.is_winner
+                        ? 'bg-[rgba(102,126,234,0.2)] border border-[rgba(102,126,234,0.3)]'
+                        : 'bg-[rgba(44,46,51,0.5)]'
+                    }`}
                   >
-                    <span className="recent-match-player-name">{player.player_name}</span>
-                    <span className="recent-match-separator">•</span>
+                    <span className={`font-medium ${player.is_winner ? 'text-[#667eea]' : 'text-[#C1C2C5]'}`}>
+                      {player.player_name}
+                    </span>
+                    <span className="text-[#666] text-xs">•</span>
                     <ColorPips colors={player.deck_colors || []} />
                   </div>
                 ))}
