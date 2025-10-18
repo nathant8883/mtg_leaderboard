@@ -48,20 +48,20 @@ function StatsCards() {
 
   if (loading) {
     return (
-      <div className="stats-grid">
-        <div className="stat-card purple">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile">
+        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-purple">
           <div className="loading-spinner"></div>
         </div>
-        <div className="stat-card pink">
+        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-pink">
           <div className="loading-spinner"></div>
         </div>
-        <div className="stat-card blue">
+        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-blue">
           <div className="loading-spinner"></div>
         </div>
-        <div className="stat-card orange">
+        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-orange">
           <div className="loading-spinner"></div>
         </div>
-        <div className="stat-card purple">
+        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-purple">
           <div className="loading-spinner"></div>
         </div>
       </div>
@@ -73,72 +73,72 @@ function StatsCards() {
   }
 
   return (
-    <div className="stats-grid">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile">
       {/* Total Games Card */}
-      <div className="stat-card pink">
-        <div className="stat-card-header">
-          <div className="stat-icon-circle">⚔️</div>
-          <div className="stat-header-text">
-            <div className="stat-header-label">Total Games</div>
-            <div className="stat-header-value">{stats.total_games}</div>
+      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-pink">
+        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
+          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">⚔️</div>
+          <div className="flex-1 text-white">
+            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Total Games</div>
+            <div className="text-2xl font-bold text-white">{stats.total_games}</div>
           </div>
         </div>
-        <div className="stat-card-body">
-          <div className="stat-card-details">
+        <div className="px-6 py-5 bg-[#1A1B1E]">
+          <div className="text-[#909296] text-[13px]">
             Last game {formatLastGameDate(stats.last_game_date)}
           </div>
         </div>
       </div>
 
       {/* Most Games Played Card */}
-      <div className="stat-card purple">
-        <div className="stat-card-header">
-          <div className="stat-icon-circle stat-icon-avatar">
+      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-purple">
+        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
+          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">
             {stats.most_games_player ? (
-              <div className="stat-player-avatar">
+              <div className="w-full h-full bg-[rgba(255,255,255,0.2)] rounded-full flex items-center justify-center text-2xl font-bold text-white">
                 {stats.most_games_player.player_name.charAt(0).toUpperCase()}
               </div>
             ) : (
               '👤'
             )}
           </div>
-          <div className="stat-header-text">
-            <div className="stat-header-label">Most Games</div>
-            <div className="stat-header-value">
+          <div className="flex-1 text-white">
+            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Most Games</div>
+            <div className="text-2xl font-bold text-white">
               {stats.most_games_player ? stats.most_games_player.player_name : '-'}
             </div>
           </div>
         </div>
-        <div className="stat-card-body">
-          <div className="stat-card-details">
+        <div className="px-6 py-5 bg-[#1A1B1E]">
+          <div className="text-[#909296] text-[13px]">
             {stats.most_games_player ? `${stats.most_games_player.games_played} games played` : 'No data yet'}
           </div>
         </div>
       </div>
 
       {/* Most Played Deck Card */}
-      <div className="stat-card blue">
-        <div className="stat-card-header">
-          <div className="stat-icon-circle stat-icon-commander">
+      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-blue">
+        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
+          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">
             {stats.most_played_deck?.commander_image_url ? (
               <img
                 src={stats.most_played_deck.commander_image_url}
                 alt={stats.most_played_deck.deck_name}
-                className="stat-commander-image"
+                className="w-full h-full object-cover object-[center_20%]"
               />
             ) : (
               '🃏'
             )}
           </div>
-          <div className="stat-header-text">
-            <div className="stat-header-label">Most Played</div>
-            <div className="stat-header-value">
+          <div className="flex-1 text-white">
+            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Most Played</div>
+            <div className="text-2xl font-bold text-white">
               {stats.most_played_deck ? stats.most_played_deck.deck_name : '-'}
             </div>
           </div>
         </div>
-        <div className="stat-card-body">
-          <div className="stat-card-details">
+        <div className="px-6 py-5 bg-[#1A1B1E]">
+          <div className="text-[#909296] text-[13px]">
             {stats.most_played_deck
               ? `${stats.most_played_deck.player_name} • ${stats.most_played_deck.games_played} games`
               : 'No data yet'}
@@ -147,24 +147,24 @@ function StatsCards() {
       </div>
 
       {/* Most Popular Color Card */}
-      <div className="stat-card orange">
-        <div className="stat-card-header">
-          <div className="stat-icon-circle stat-icon-mana">
+      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-orange">
+        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
+          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative stat-icon-mana">
             {stats.most_popular_color ? (
               <ColorPips colors={[stats.most_popular_color.color]} />
             ) : (
               '🎨'
             )}
           </div>
-          <div className="stat-header-text">
-            <div className="stat-header-label">Popular Color</div>
-            <div className="stat-header-value">
+          <div className="flex-1 text-white">
+            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Popular Color</div>
+            <div className="text-2xl font-bold text-white">
               {stats.most_popular_color ? getColorName(stats.most_popular_color.color) : '-'}
             </div>
           </div>
         </div>
-        <div className="stat-card-body">
-          <div className="stat-card-details">
+        <div className="px-6 py-5 bg-[#1A1B1E]">
+          <div className="text-[#909296] text-[13px]">
             {stats.most_popular_color
               ? `${stats.most_popular_color.percentage}% of decks run ${getColorName(stats.most_popular_color.color)}`
               : 'No data yet'}
@@ -173,14 +173,14 @@ function StatsCards() {
       </div>
 
       {/* Most Popular Identity Card */}
-      <div className="stat-card purple">
-        <div className="stat-card-header">
-          <div className="stat-icon-circle">
+      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-purple">
+        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
+          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">
             ✨
           </div>
-          <div className="stat-header-text">
-            <div className="stat-header-label">Popular Identity</div>
-            <div className="stat-header-value-colors">
+          <div className="flex-1 text-white">
+            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Popular Identity</div>
+            <div className="text-2xl font-bold flex items-center gap-2 min-h-[28px] stat-header-value-colors">
               {stats.most_popular_identity ? (
                 <>
                   <span>{stats.most_popular_identity.name}</span>
@@ -192,8 +192,8 @@ function StatsCards() {
             </div>
           </div>
         </div>
-        <div className="stat-card-body">
-          <div className="stat-card-details">
+        <div className="px-6 py-5 bg-[#1A1B1E]">
+          <div className="text-[#909296] text-[13px]">
             {stats.most_popular_identity
               ? `${stats.most_popular_identity.count} deck${stats.most_popular_identity.count !== 1 ? 's' : ''} • ${stats.most_popular_identity.percentage}% of pool`
               : 'No data yet'}
