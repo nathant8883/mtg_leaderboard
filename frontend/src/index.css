@@ -426,6 +426,86 @@
     border: 1px solid rgba(144, 146, 150, 0.3);
   }
 
+  /* Player avatar badge - circular gradient */
+  .player-avatar-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  /* Rank badges with medal gradients */
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 20px;
+    background: #2C2E33;
+    color: #909296;
+    font-weight: 700;
+    font-size: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .rank-badge-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #1A1B1E;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+  }
+
+  .rank-badge-silver {
+    background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+    color: #1A1B1E;
+    box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+    border: 1px solid rgba(192, 192, 192, 0.3);
+  }
+
+  .rank-badge-bronze {
+    background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
+    border: 1px solid rgba(205, 127, 50, 0.3);
+  }
+
+  /* Winrate info compact - text alignment */
+  .winrate-info-compact {
+    text-align: left;
+  }
+
+  .tier-name-compact {
+    font-size: 10px;
+    color: #909296;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+  }
+
+  .winrate-value-compact {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* Clickable player names */
+  .player-name-clickable {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .player-name-clickable:hover {
+    color: #667eea;
+  }
+
   /* ==================== MATCH TRACKER - FLOATING HEXAGON BUTTON ==================== */
 
   /* Floating Hamburger Menu Button Wrapper - Outer Border Ring */
