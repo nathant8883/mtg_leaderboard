@@ -233,17 +233,23 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
   };
 
   return (
-    <div className="match-tracker">
+    <div className="fixed top-0 left-0 right-0 bottom-0 min-h-screen max-h-screen bg-gradient-to-br from-[#1a1b1e] to-[#2c2e33] text-white p-0 m-0 overflow-hidden">
       {showResumeModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Resume Game?</h2>
-            <p>You have an active game in progress. Would you like to resume it?</p>
-            <div className="modal-actions">
-              <button className="btn-secondary" onClick={handleStartNewGame}>
+        <div className="fixed top-0 left-0 right-0 bottom-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-[1000] p-4">
+          <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-6 max-w-[500px] w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-semibold m-0 mb-4">Resume Game?</h2>
+            <p className="mb-6">You have an active game in progress. Would you like to resume it?</p>
+            <div className="flex gap-3 mt-6">
+              <button
+                className="flex-1 py-3 px-6 bg-[#2c2e33] border border-[#3c3e43] rounded-[8px] text-white text-sm font-semibold cursor-pointer transition-all hover:bg-[#3c3e43]"
+                onClick={handleStartNewGame}
+              >
                 Start New
               </button>
-              <button className="btn-primary" onClick={handleResumeGame}>
+              <button
+                className="flex-1 py-3 px-6 bg-gradient-purple border-none rounded-[8px] text-white text-sm font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]"
+                onClick={handleResumeGame}
+              >
                 Resume
               </button>
             </div>

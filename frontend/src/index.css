@@ -352,4 +352,392 @@
   .bg-gradient-winner {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   }
+
+  /* ==================== MATCH TRACKER - FLOATING HEXAGON BUTTON ==================== */
+
+  /* Floating Hamburger Menu Button Wrapper - Outer Border Ring */
+  .floating-menu-btn-wrapper {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px;
+    height: 90px;
+    z-index: 200;
+    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.8)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.9));
+  }
+
+  /* Outer hexagon dark border */
+  .floating-menu-btn-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    clip-path: polygon(
+      25% 5%, 30% 0%, 70% 0%, 75% 5%,
+      95% 35%, 100% 50%, 95% 65%,
+      75% 95%, 70% 100%, 30% 100%, 25% 95%,
+      5% 65%, 0% 50%, 5% 35%
+    );
+    z-index: -1;
+  }
+
+  /* Floating Hamburger Menu Button - Lotus Style */
+  .floating-menu-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Hexagon gradient border with breathing glow */
+  .floating-menu-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #8fd3f4 0%, #667eea 50%, #c471ed 100%);
+    clip-path: polygon(
+      25% 5%, 30% 0%, 70% 0%, 75% 5%,
+      95% 35%, 100% 50%, 95% 65%,
+      75% 95%, 70% 100%, 30% 100%, 25% 95%,
+      5% 65%, 0% 50%, 5% 35%
+    );
+    z-index: -1;
+    transition: all 0.3s ease;
+    animation: glowBreathe 3.5s ease-in-out infinite;
+  }
+
+  /* Breathing animation - glow intensity pulse only */
+  @keyframes glowBreathe {
+    0%, 100% {
+      filter:
+        drop-shadow(0 0 8px rgba(143, 211, 244, 0.4))
+        drop-shadow(0 0 16px rgba(102, 126, 234, 0.3))
+        drop-shadow(0 0 24px rgba(196, 113, 237, 0.2))
+        drop-shadow(0 6px 16px rgba(0, 0, 0, 0.9))
+        drop-shadow(0 2px 4px rgba(0, 0, 0, 1));
+      opacity: 0.9;
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 12px rgba(143, 211, 244, 0.5))
+        drop-shadow(0 0 20px rgba(102, 126, 234, 0.4))
+        drop-shadow(0 0 28px rgba(196, 113, 237, 0.3))
+        drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+        drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+      opacity: 1;
+    }
+  }
+
+  /* Hexagon inner background with depth */
+  .floating-menu-btn::after {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    background: linear-gradient(145deg, rgba(5, 5, 5, 0.98), rgba(0, 0, 0, 0.98));
+    backdrop-filter: blur(12px);
+    clip-path: polygon(
+      25% 5%, 30% 0%, 70% 0%, 75% 5%,
+      95% 35%, 100% 50%, 95% 65%,
+      75% 95%, 70% 100%, 30% 100%, 25% 95%,
+      5% 65%, 0% 50%, 5% 35%
+    );
+    z-index: -1;
+    box-shadow:
+      0 0 4px rgba(255, 255, 255, 0.15) inset,
+      0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  /* Hover state */
+  .floating-menu-btn-wrapper:hover {
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.85)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.95));
+  }
+
+  .floating-menu-btn:hover {
+    animation: none;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .floating-menu-btn:hover::before {
+    filter:
+      brightness(1.15)
+      drop-shadow(0 0 12px rgba(143, 211, 244, 0.5))
+      drop-shadow(0 0 20px rgba(102, 126, 234, 0.4))
+      drop-shadow(0 0 28px rgba(196, 113, 237, 0.3))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+      drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+  }
+
+  .floating-menu-btn:hover::after {
+    background: linear-gradient(145deg, rgba(8, 8, 8, 0.98), rgba(3, 3, 3, 0.98));
+  }
+
+  /* Active/pressed state */
+  .floating-menu-btn:active {
+    animation: none;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+
+  .floating-menu-btn:active::before {
+    filter: brightness(1.25);
+  }
+
+  /* Remove focus outline */
+  .floating-menu-btn:focus {
+    outline: none;
+  }
+
+  /* GO text styling */
+  .go-text {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Ready to Start State - Emerald GO button with premium glow */
+  .floating-menu-btn.ready-to-start::before {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+    animation: glowBreatheReady 2.5s ease-in-out infinite;
+  }
+
+  @keyframes glowBreatheReady {
+    0%, 100% {
+      filter:
+        drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))
+        drop-shadow(0 0 24px rgba(16, 185, 129, 0.45))
+        drop-shadow(0 0 36px rgba(16, 185, 129, 0.3))
+        drop-shadow(0 6px 16px rgba(0, 0, 0, 0.9))
+        drop-shadow(0 2px 4px rgba(0, 0, 0, 1));
+      opacity: 0.95;
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 16px rgba(16, 185, 129, 0.75))
+        drop-shadow(0 0 32px rgba(16, 185, 129, 0.6))
+        drop-shadow(0 0 48px rgba(16, 185, 129, 0.4))
+        drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+        drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+      opacity: 1;
+    }
+  }
+
+  .floating-menu-btn.ready-to-start::after {
+    background: linear-gradient(145deg, rgba(16, 50, 38, 0.95), rgba(6, 40, 30, 0.95));
+    box-shadow:
+      0 0 6px rgba(52, 211, 153, 0.2) inset,
+      0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .floating-menu-btn.ready-to-start:hover {
+    animation: none;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+
+  .floating-menu-btn.ready-to-start:hover::before {
+    filter:
+      brightness(1.25)
+      drop-shadow(0 0 16px rgba(16, 185, 129, 0.8))
+      drop-shadow(0 0 32px rgba(16, 185, 129, 0.5))
+      drop-shadow(0 0 48px rgba(16, 185, 129, 0.3))
+      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
+      drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+  }
+
+  .floating-menu-btn.ready-to-start:hover::after {
+    background: linear-gradient(145deg, rgba(20, 60, 45, 0.95), rgba(10, 50, 38, 0.95));
+  }
+
+  .floating-menu-btn.ready-to-start:active {
+    animation: none;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  /* ==================== MATCH TRACKER - PLAYER SLOTS & GRID ==================== */
+
+  /* Players Grid - Shared by Assignment and Game */
+  .players-grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    gap: 12px;
+    background: #000000;
+    padding: 4px;
+  }
+
+  /* Table Layout - Optimized for landscape orientation (phone sideways) */
+
+  /* Table Layout - 3 players: 2x2 grid with one blank quadrant */
+  .players-grid.layout-table.players-3 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  /* Table Layout - 4 players: 2 on top (rotated), 2 on bottom */
+  .players-grid.layout-table.players-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  /* Table Layout - 5 players: 3 on top (rotated), 2 on bottom */
+  .players-grid.layout-table.players-5 {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .players-grid.layout-table.players-5 .player-slot:nth-child(4),
+  .players-grid.layout-table.players-5 .player-slot:nth-child(5) {
+    grid-column: span 1;
+  }
+
+  /* Table Layout - 6 players: 3 on top (rotated), 3 on bottom */
+  .players-grid.layout-table.players-6 {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  /* ==================== ROTATION TRANSFORMS ==================== */
+
+  /* Table Layout Rotations - 3 players */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1),
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) *,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) * {
+    transform: rotate(180deg);
+  }
+
+  /* Table Layout Rotations - 4 players */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1),
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) *,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) * {
+    transform: rotate(180deg);
+  }
+
+  /* Table Layout Rotations - 5 players */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1),
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2),
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) *,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) *,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) * {
+    transform: rotate(180deg);
+  }
+
+  /* Table Layout Rotations - 6 players */
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1),
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2),
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) *,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) *,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) * {
+    transform: rotate(180deg);
+  }
+
+  /* ==================== PLAYER SLOTS (Assignment & Game) ==================== */
+
+  /* Position-based gradient colors with midpoints and animation delays */
+  .player-slot:nth-child(1) { --card-bg-start: #667eea; --card-bg-mid: #6e64c6; --card-bg-end: #764ba2; animation-delay: 0s, 0s; }
+  .player-slot:nth-child(2) { --card-bg-start: #f093fb; --card-bg-mid: #f275b4; --card-bg-end: #f5576c; animation-delay: 0s, 0.1s; }
+  .player-slot:nth-child(3) { --card-bg-start: #4facfe; --card-bg-mid: #28cffe; --card-bg-end: #00f2fe; animation-delay: 0s, 0.2s; }
+  .player-slot:nth-child(4) { --card-bg-start: #f27a8d; --card-bg-mid: #f3a886; --card-bg-end: #f5d680; animation-delay: 0s, 0.3s; }
+  .player-slot:nth-child(5) { --card-bg-start: #30e8a7; --card-bg-mid: #26cec4; --card-bg-end: #1cb5e0; animation-delay: 0s, 0.4s; }
+  .player-slot:nth-child(6) { --card-bg-start: #ff6b6b; --card-bg-mid: #f6626d; --card-bg-end: #ee5a6f; animation-delay: 0s, 0.5s; }
+
+  .player-slot {
+    background: radial-gradient(circle at top left, var(--card-bg-start) 0%, var(--card-bg-mid) 50%, var(--card-bg-end) 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    min-height: 0;
+    min-width: 0;
+    border-radius: 16px;
+    animation: gradientShift 3s ease-in-out infinite, slotEntry 0.4s ease-out backwards;
+  }
+
+  @keyframes slotEntry {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      /* No transform here - let the static rotation rules apply */
+    }
+  }
+
+  @keyframes gradientShift {
+    0%, 100% {
+      filter: hue-rotate(0deg) brightness(1);
+    }
+    50% {
+      filter: hue-rotate(5deg) brightness(1.05);
+    }
+  }
+
+  .player-slot:active {
+    transform: scale(0.98);
+    filter: brightness(1.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Noise texture overlay for depth */
+  .player-slot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: 16px;
+  }
+
+  /* Empty slot styling */
+  .player-slot.empty {
+    opacity: 0.5;
+  }
+
+  .player-slot.empty::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+  }
 }
