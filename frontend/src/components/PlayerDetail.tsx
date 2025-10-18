@@ -136,23 +136,8 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
 
   return (
     <div className="w-full min-h-screen">
-      {/* Navigation Bar */}
-      <div className="bg-[#1A1B1E] border-b border-[#2C2E33] py-4 px-6 mb-6">
-        <div className="max-w-[1400px] mx-auto flex items-center gap-4">
-          <button
-            className="bg-transparent border border-[#2C2E33] text-[#909296] py-2 px-4 rounded-[6px] cursor-pointer text-sm transition-all font-medium hover:border-[#667eea] hover:text-[#667eea]"
-            onClick={onBack}
-          >
-            ← Back
-          </button>
-          <span className="text-lg font-semibold text-[#909296]">
-            Player Details • {playerDetail.player_name}
-          </span>
-        </div>
-      </div>
-
       {/* Sidebar + Main Content Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6 max-w-[1400px] mx-auto px-6 pb-10 max-md:px-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6 max-w-[1400px] mx-auto px-6 pb-10 pt-6 max-md:px-3 max-md:pt-3">
         {/* Sidebar */}
         <div className="lg:sticky lg:top-6 h-fit">
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-8 mb-5">

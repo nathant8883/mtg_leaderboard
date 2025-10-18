@@ -20,7 +20,7 @@ function PlayerList({ players, onEdit, onDelete, isLoading = false }: PlayerList
   if (players.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">👥</div>
+        <div className="text-[64px] mb-4">👥</div>
         <h3>No players yet</h3>
         <p>Add your first player to get started!</p>
       </div>
@@ -34,7 +34,7 @@ function PlayerList({ players, onEdit, onDelete, isLoading = false }: PlayerList
   };
 
   return (
-    <div className="player-table-container">
+    <div className="overflow-x-auto">
       <table className="admin-table">
         <thead>
           <tr>
@@ -53,22 +53,22 @@ function PlayerList({ players, onEdit, onDelete, isLoading = false }: PlayerList
                 </div>
               </td>
               <td>
-                <span className="player-name">{player.name}</span>
+                <span className="text-white font-medium text-[15px]">{player.name}</span>
               </td>
               <td className="center">
-                <span className="deck-count">{player.deck_ids?.length || 0}</span>
+                <span className="text-[#C1C2C5] font-medium">{player.deck_ids?.length || 0}</span>
               </td>
               <td className="center">
-                <div className="action-buttons">
+                <div className="flex gap-2 justify-center">
                   <button
-                    className="icon-btn edit-btn"
+                    className="icon-btn"
                     onClick={() => onEdit(player)}
                     title="Edit player"
                   >
                     ✏️
                   </button>
                   <button
-                    className="icon-btn delete-btn"
+                    className="icon-btn"
                     onClick={() => handleDelete(player)}
                     title="Delete player"
                   >
