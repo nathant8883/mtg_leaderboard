@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import './MatchTracker.css';
 import GameSetup from '../components/match-tracker/GameSetup';
 import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
 import ActiveGame from '../components/match-tracker/ActiveGame';
