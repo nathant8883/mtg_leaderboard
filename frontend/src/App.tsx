@@ -126,7 +126,7 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className="w-full max-w-full min-h-screen flex flex-col overflow-x-hidden">
       <Toaster />
       {/* Header - Hidden in match tracker and player detail (player detail has its own nav) */}
       {activeView !== 'match-tracker' && activeView !== 'player-detail' && activeView !== 'match-detail' && (
@@ -208,7 +208,7 @@ function App() {
       )}
 
       {/* Main Content */}
-      <div className="container">
+      <div className="p-6 w-full flex-1">
         {activeView === 'match-tracker' && (
           <MatchTracker onExitToHome={() => setActiveView('dashboard')} />
         )}
@@ -218,7 +218,7 @@ function App() {
             <div>
               <StatsCards />
 
-              <div className="dashboard-widgets-grid">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <TopPlayers
                   onViewLeaderboard={() => setActiveView('leaderboard')}
                   onPlayerClick={handleViewPlayerDetail}

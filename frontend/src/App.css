@@ -1,20 +1,5 @@
 /* Base styles moved to index.css with @layer directives */
 
-.app {
-    width: 100%;
-    max-width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-}
-
-.container {
-    padding: 24px;
-    width: 100%;
-    flex: 1;
-}
-
 .view-all-link {
     background: transparent;
     border: none;
@@ -838,14 +823,6 @@ input:disabled + .toggle-slider {
    MOBILE RESPONSIVE STYLES
    ======================================== */
 
-/* Dashboard Widgets Grid */
-.dashboard-widgets-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 32px;
-}
-
 /* Tablet & Below (1024px) */
 @media (max-width: 1024px) {
     /* Player Detail - Sidebar stacks */
@@ -856,12 +833,6 @@ input:disabled + .toggle-slider {
 
     .player-sidebar {
         position: static;
-    }
-
-    /* Dashboard Widgets - Stack on tablet */
-    .dashboard-widgets-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
     }
 }
 
