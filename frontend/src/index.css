@@ -403,6 +403,29 @@
     color: #667eea;
   }
 
+  /* Status badges with specific color schemes */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .status-badge.status-active {
+    background: rgba(51, 217, 178, 0.15);
+    color: #33D9B2;
+    border: 1px solid rgba(51, 217, 178, 0.3);
+  }
+
+  .status-badge.status-disabled {
+    background: rgba(144, 146, 150, 0.15);
+    color: #909296;
+    border: 1px solid rgba(144, 146, 150, 0.3);
+  }
+
   /* ==================== MATCH TRACKER - FLOATING HEXAGON BUTTON ==================== */
 
   /* Floating Hamburger Menu Button Wrapper - Outer Border Ring */
