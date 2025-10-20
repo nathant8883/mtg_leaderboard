@@ -103,7 +103,7 @@ export function MainLayout() {
           </span>
           <button
             onClick={() => {
-              handleUndoMatch(tempId);
+              handleUndoMatch(queuedMatch.tempId);
               toast.dismiss(t.id);
             }}
             className="px-3 py-1 bg-[#667eea] text-white rounded-[4px] text-sm font-semibold hover:bg-[#5568d3] transition-colors"
