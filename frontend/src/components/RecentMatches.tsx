@@ -1,4 +1,5 @@
 import { Trophy, Clock, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Match } from '../services/api';
 import type { PendingMatch } from '../types/matchTypes';
 import ColorPips from './ColorPips';
@@ -16,6 +17,8 @@ function isPendingMatch(match: Match | PendingMatch): match is PendingMatch {
 }
 
 function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
+  const navigate = useNavigate();
+
   const formatDate = (dateString: string): string => {
     // Parse date string as local date to avoid UTC timezone issues
     const [year, month, day] = dateString.split('-').map(Number);
@@ -58,9 +61,7 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
   };
 
   const handleMatchClick = (matchId: string) => {
-    window.dispatchEvent(new CustomEvent('viewMatchDetail', {
-      detail: { matchId }
-    }));
+    navigate(`/matches/${matchId}`);
   };
 
   if (loading) {

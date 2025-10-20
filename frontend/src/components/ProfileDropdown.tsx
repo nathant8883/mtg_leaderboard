@@ -57,16 +57,12 @@ export const ProfileDropdown: React.FC = () => {
   };
 
   const handleViewLeaderboard = () => {
-    // Dispatch custom event for App.tsx to handle
-    const event = new CustomEvent('navigateToView', { detail: { view: 'leaderboard' } });
-    window.dispatchEvent(event);
+    navigate('/leaderboard');
     setIsOpen(false);
   };
 
   const handleViewAdmin = () => {
-    // Dispatch custom event for App.tsx to handle
-    const event = new CustomEvent('navigateToView', { detail: { view: 'admin' } });
-    window.dispatchEvent(event);
+    navigate('/admin');
     setIsOpen(false);
   };
 
