@@ -1172,6 +1172,17 @@
     border-radius: 16px;
   }
 
+  /* Shake animation for commander damage */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-1px); }
+    20%, 40%, 60%, 80% { transform: translateX(1px); }
+  }
+
+  .player-card.shake {
+    animation: shake 0.3s ease-in-out;
+  }
+
   /* Player Card Rotations - 3 players */
   .players-grid.layout-table.players-3 .player-card:nth-child(1),
   .players-grid.layout-table.players-3 .player-card:nth-child(2) {
@@ -1276,7 +1287,8 @@
     right: 0;
   }
 
-  .life-btn-side:active {
+  .life-btn-side:active,
+  .life-btn-side.active {
     background: rgba(0, 0, 0, 0.3);
     color: rgba(255, 255, 255, 1);
   }

@@ -17,6 +17,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const [trackingPlayerPosition, setTrackingPlayerPosition] = useState<number | null>(null);
   const [showWinnerSelect, setShowWinnerSelect] = useState(false);
 
+  // Track active button presses for visual feedback
+  const [activeButton, setActiveButton] = useState<{ position: number; type: 'minus' | 'plus' } | null>(null);
+
+  // Track shake animation for commander damage
+  const [isShaking, setIsShaking] = useState(false);
+
   // Track touch start position for swipe detection
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -98,6 +104,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     // Clear any existing timers
     clearHoldTimers();
 
+    // Set active button for visual feedback
+    setActiveButton({ position, type: delta > 0 ? 'plus' : 'minus' });
+
     // Store button state
     holdStartTime.current = Date.now();
     holdPosition.current = position;
@@ -125,6 +134,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       }
     }
 
+    // Clear active button state
+    setActiveButton(null);
+
     clearHoldTimers();
     holdStartTime.current = null;
     holdPosition.current = null;
@@ -141,6 +153,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Handle commander damage increment/decrement
   const handleCommanderDamageChange = (fromOpponentPosition: number, delta: number) => {
     if (trackingPlayerPosition === null) return;
+
+    // Trigger shake animation
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 300); // Match animation duration
 
     // Read from ref to get the latest state
     const currentState = gameStateRef.current;
@@ -192,6 +208,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     // Clear any existing timers
     clearHoldTimers();
 
+    // Set active button for visual feedback
+    setActiveButton({ position: opponentPosition, type: delta > 0 ? 'plus' : 'minus' });
+
     // Store button state
     holdStartTime.current = Date.now();
     holdPosition.current = opponentPosition; // Store opponent position instead of player position
@@ -218,6 +237,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         handleCommanderDamageChange(opponentPosition, holdDelta.current);
       }
     }
+
+    // Clear active button state
+    setActiveButton(null);
 
     clearHoldTimers();
     holdStartTime.current = null;
@@ -319,7 +341,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           return (
             <div
               key={player.position}
-              className={`player-card ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''}`}
+              className={`player-card ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${isTrackingPlayer && isShaking ? 'shake' : ''}`}
               onTouchStart={(e) => !commanderDamageMode && handleTouchStart(e, player)}
               onTouchEnd={(e) => !commanderDamageMode && handleTouchEnd(e, player)}
             >
@@ -346,7 +368,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <>
                   {/* Life buttons on sides */}
                   <button
-                    className="life-btn-side life-btn-left"
+                    className={`life-btn-side life-btn-left ${activeButton?.position === player.position && activeButton?.type === 'minus' ? 'active' : ''}`}
                     onMouseDown={() => handleLifeButtonDown(player.position, -1)}
                     onMouseUp={handleLifeButtonUp}
                     onMouseLeave={handleLifeButtonUp}
@@ -366,7 +388,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                   </button>
 
                   <button
-                    className="life-btn-side life-btn-right"
+                    className={`life-btn-side life-btn-right ${activeButton?.position === player.position && activeButton?.type === 'plus' ? 'active' : ''}`}
                     onMouseDown={() => handleLifeButtonDown(player.position, 1)}
                     onMouseUp={handleLifeButtonUp}
                     onMouseLeave={handleLifeButtonUp}
@@ -415,7 +437,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     <>
                       {/* Commander damage buttons on sides */}
                       <button
-                        className="life-btn-side life-btn-left"
+                        className={`life-btn-side life-btn-left ${activeButton?.position === player.position && activeButton?.type === 'minus' ? 'active' : ''}`}
                         onMouseDown={() => handleCommanderDamageButtonDown(player.position, -1)}
                         onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
                         onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
@@ -434,7 +456,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                       </button>
 
                       <button
-                        className="life-btn-side life-btn-right"
+                        className={`life-btn-side life-btn-right ${activeButton?.position === player.position && activeButton?.type === 'plus' ? 'active' : ''}`}
                         onMouseDown={() => handleCommanderDamageButtonDown(player.position, 1)}
                         onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
                         onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
