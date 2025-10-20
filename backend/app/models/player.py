@@ -37,6 +37,7 @@ class Player(Document):
     email: Optional[str] = None  # From Google OAuth
     google_id: Optional[str] = None  # Google OAuth unique ID
     picture: Optional[str] = None  # Google profile picture URL
+    custom_avatar: Optional[str] = None  # Base64-encoded custom avatar image (overrides picture)
 
     # Admin/permissions
     is_superuser: bool = False  # Can access admin panel and manage all data

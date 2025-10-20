@@ -1,4 +1,5 @@
 import type { PlayerLeaderboardEntry } from '../services/api';
+import PlayerAvatar from './PlayerAvatar';
 
 interface PlayerLeaderboardProps {
   players: PlayerLeaderboardEntry[];
@@ -70,9 +71,12 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
                 </td>
                 <td className="py-4 px-3 border-b border-[#2C2E33]">
                   <div className="flex items-center gap-3">
-                    <div className="player-avatar-badge">
-                      {player.player_name.charAt(0).toUpperCase()}
-                    </div>
+                    <PlayerAvatar
+                      playerName={player.player_name}
+                      customAvatar={player.custom_avatar}
+                      picture={player.picture}
+                      size="small"
+                    />
                     <span
                       className="text-white font-medium text-[15px] player-name-clickable"
                       onClick={() => onPlayerClick(player.player_id)}

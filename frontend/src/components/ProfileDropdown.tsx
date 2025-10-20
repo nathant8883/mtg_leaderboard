@@ -29,7 +29,7 @@ export const ProfileDropdown: React.FC = () => {
   // Reset image error state when currentPlayer changes
   useEffect(() => {
     setImageError(false);
-  }, [currentPlayer?.picture]);
+  }, [currentPlayer?.picture, currentPlayer?.custom_avatar]);
 
   // Don't render if not logged in and not in guest mode
   if (!currentPlayer && !isGuest) {
@@ -73,11 +73,12 @@ export const ProfileDropdown: React.FC = () => {
     setIsOpen(false);
   };
 
-  const profileImageUrl = isGuest ? null : (currentPlayer?.picture || null);
+  // Priority: custom_avatar > picture > avatar letter
+  const profileImageUrl = isGuest ? null : (currentPlayer?.custom_avatar || currentPlayer?.picture || null);
   const displayName = isGuest ? 'Guest User' : (currentPlayer?.name || currentPlayer?.email || 'User');
   const avatarLetter = isGuest ? '👤' : (currentPlayer?.avatar || displayName.charAt(0).toUpperCase());
 
-  // Show avatar if no picture URL, image failed to load, or picture is empty string, or is guest
+  // Show avatar letter if no image URL, image failed to load, or image is empty string, or is guest
   const shouldShowAvatar = isGuest || !profileImageUrl || imageError || profileImageUrl.trim() === '';
 
   return (

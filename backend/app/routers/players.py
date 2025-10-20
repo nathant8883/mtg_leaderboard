@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from beanie import PydanticObjectId
 from typing import Dict, Any
 
 from app.models.player import Player, Deck
 from app.models.match import Match
+from app.middleware.auth import get_current_player
 
 router = APIRouter()
 
@@ -142,6 +143,8 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
         "player_id": player_id_str,
         "player_name": player.name,
         "avatar": player.avatar,
+        "picture": player.picture,
+        "custom_avatar": player.custom_avatar,
         "rank": rank,
         "total_games": games_played,
         "wins": wins,
@@ -188,11 +191,22 @@ async def create_guest_player(name: str):
 
 
 @router.put("/{player_id}")
-async def update_player(player_id: PydanticObjectId, updated_player: Player):
-    """Update a player"""
+async def update_player(
+    player_id: PydanticObjectId,
+    updated_player: Player,
+    current_player: Player = Depends(get_current_player)
+):
+    """Update a player (requires authentication, can only update own profile unless superuser)"""
     player = await Player.get(player_id)
     if not player:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Player not found")
+
+    # Authorization check: user must be updating their own profile OR be a superuser
+    if str(current_player.id) != str(player_id) and not current_player.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only update your own profile"
+        )
 
     await player.set({
         Player.name: updated_player.name,

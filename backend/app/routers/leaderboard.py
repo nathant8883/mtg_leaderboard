@@ -40,6 +40,8 @@ async def get_player_leaderboard() -> list[Dict[str, Any]]:
             "player_id": player_id,
             "player_name": player.name,
             "avatar": player.avatar,
+            "picture": player.picture,
+            "custom_avatar": player.custom_avatar,
             "games_played": games_played,
             "wins": wins,
             "losses": losses,
@@ -62,8 +64,14 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
         {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
     ).to_list()
 
-    # Create player lookup (excludes guests)
-    player_lookup = {str(p.id): p.name for p in players}
+    # Create player lookup (excludes guests) - include avatar info
+    player_lookup = {
+        str(p.id): {
+            "name": p.name,
+            "picture": p.picture,
+            "custom_avatar": p.custom_avatar
+        } for p in players
+    }
 
     leaderboard = []
 
@@ -71,7 +79,8 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
         deck_id = str(deck.id)
 
         # Find player who owns this deck - check using player_id field on deck
-        owner_name = player_lookup.get(deck.player_id, "Unknown")
+        owner_info = player_lookup.get(deck.player_id, {"name": "Unknown", "picture": None, "custom_avatar": None})
+        owner_name = owner_info["name"]
 
         # Count games where this deck was played
         games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
@@ -93,6 +102,8 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
                 "colors": deck.colors,
                 "player_id": deck.player_id,
                 "player_name": owner_name,
+                "player_picture": owner_info["picture"],
+                "player_custom_avatar": owner_info["custom_avatar"],
                 "games_played": games_played,
                 "wins": wins,
                 "losses": losses,
@@ -146,6 +157,8 @@ async def get_dashboard_stats() -> Dict[str, Any]:
             if games_played > 0:
                 player_game_counts.append({
                     "player_name": player.name,
+                    "player_picture": player.picture,
+                    "player_custom_avatar": player.custom_avatar,
                     "games_played": games_played
                 })
         if player_game_counts:
@@ -154,17 +167,25 @@ async def get_dashboard_stats() -> Dict[str, Any]:
     # Most played deck (deck + player) - only consider enabled decks
     most_played_deck = None
     if enabled_decks and matches:
-        player_lookup = {str(p.id): p.name for p in players}
+        player_lookup_stats = {
+            str(p.id): {
+                "name": p.name,
+                "picture": p.picture,
+                "custom_avatar": p.custom_avatar
+            } for p in players
+        }
         deck_game_counts = []
         for deck in enabled_decks:
             deck_id = str(deck.id)
             games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
             if games_played > 0:
-                owner_name = player_lookup.get(deck.player_id, "Unknown")
+                owner_info = player_lookup_stats.get(deck.player_id, {"name": "Unknown", "picture": None, "custom_avatar": None})
                 deck_game_counts.append({
                     "deck_name": deck.name,
                     "commander_image_url": deck.commander_image_url,
-                    "player_name": owner_name,
+                    "player_name": owner_info["name"],
+                    "player_picture": owner_info["picture"],
+                    "player_custom_avatar": owner_info["custom_avatar"],
                     "games_played": games_played
                 })
         if deck_game_counts:

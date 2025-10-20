@@ -7,6 +7,7 @@ interface Player {
   email?: string;
   avatar?: string;
   picture?: string;
+  custom_avatar?: string;
   deck_ids: string[];
   is_superuser: boolean;
   created_at: string;

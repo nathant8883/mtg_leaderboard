@@ -3,6 +3,9 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
+from pydantic import BaseModel, Field, field_validator
+import base64
+import re
 
 from app.config import settings
 from app.models.player import Player
@@ -13,6 +16,51 @@ router = APIRouter()
 
 # Hardcoded superuser emails
 SUPERUSER_EMAILS = ["nathant8883@yahoo.com"]
+
+
+class PlayerProfileUpdate(BaseModel):
+    """Schema for updating player profile (name and custom avatar)"""
+    name: str = Field(..., min_length=3, max_length=50)
+    custom_avatar: str | None = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        """Validate name is not empty after stripping whitespace"""
+        if not v or not v.strip():
+            raise ValueError("Name cannot be empty")
+        return v.strip()
+
+    @field_validator('custom_avatar')
+    @classmethod
+    def validate_custom_avatar(cls, v: str | None) -> str | None:
+        """Validate custom_avatar is valid base64 or None"""
+        if v is None or v == "":
+            return None
+
+        # Check if it's a data URI (data:image/png;base64,...)
+        data_uri_pattern = r'^data:image/(jpeg|jpg|png|gif|webp);base64,(.+)$'
+        match = re.match(data_uri_pattern, v)
+
+        if match:
+            # Extract the base64 part
+            base64_data = match.group(2)
+        else:
+            # Assume it's raw base64
+            base64_data = v
+
+        try:
+            # Try to decode to verify it's valid base64
+            decoded = base64.b64decode(base64_data, validate=True)
+
+            # Check decoded size (max ~2MB)
+            if len(decoded) > 2 * 1024 * 1024:
+                raise ValueError("Image size too large (max 2MB)")
+
+            return v  # Return original value (with data URI if present)
+        except Exception:
+            raise ValueError("Invalid base64 image data")
+
 
 # Initialize OAuth client
 oauth = OAuth()
@@ -118,6 +166,45 @@ async def get_me(current_player: Player = Depends(get_current_player)):
         "email": current_player.email,
         "avatar": current_player.avatar,
         "picture": current_player.picture,
+        "custom_avatar": current_player.custom_avatar,
+        "deck_ids": current_player.deck_ids,
+        "is_superuser": current_player.is_superuser,
+        "created_at": current_player.created_at
+    }
+
+
+@router.put("/profile")
+async def update_profile(
+    profile_update: PlayerProfileUpdate,
+    current_player: Player = Depends(get_current_player)
+):
+    """Update current player's profile (name and/or custom avatar)"""
+    update_data = {}
+
+    # Update name if provided
+    if profile_update.name:
+        update_data[Player.name] = profile_update.name
+
+    # Update or remove custom_avatar
+    if profile_update.custom_avatar is not None:
+        if profile_update.custom_avatar == "":
+            # Empty string means remove custom avatar
+            update_data[Player.custom_avatar] = None
+        else:
+            update_data[Player.custom_avatar] = profile_update.custom_avatar
+
+    # Apply updates if any
+    if update_data:
+        await current_player.set(update_data)
+
+    # Return updated player data
+    return {
+        "id": str(current_player.id),
+        "name": current_player.name,
+        "email": current_player.email,
+        "avatar": current_player.avatar,
+        "picture": current_player.picture,
+        "custom_avatar": current_player.custom_avatar,
         "deck_ids": current_player.deck_ids,
         "is_superuser": current_player.is_superuser,
         "created_at": current_player.created_at

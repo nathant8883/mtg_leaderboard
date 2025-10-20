@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
+import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DashboardStats } from '../services/api';
 
 const COLOR_NAMES: Record<string, string> = {
@@ -93,13 +94,19 @@ function StatsCards() {
       {/* Most Games Played Card */}
       <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-purple">
         <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
-          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">
+          <div className="flex-shrink-0">
             {stats.most_games_player ? (
-              <div className="w-full h-full bg-[rgba(255,255,255,0.2)] rounded-full flex items-center justify-center text-2xl font-bold text-white">
-                {stats.most_games_player.player_name.charAt(0).toUpperCase()}
-              </div>
+              <PlayerAvatar
+                playerName={stats.most_games_player.player_name}
+                customAvatar={stats.most_games_player.player_custom_avatar}
+                picture={stats.most_games_player.player_picture}
+                size="large"
+                className="w-14 h-14"
+              />
             ) : (
-              '👤'
+              <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px]">
+                👤
+              </div>
             )}
           </div>
           <div className="flex-1 text-white">

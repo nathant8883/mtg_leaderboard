@@ -30,6 +30,7 @@ export interface Player {
   email?: string;
   google_id?: string;
   picture?: string;
+  custom_avatar?: string;
   created_at?: string;
 }
 
@@ -67,6 +68,14 @@ export const playerApi = {
   createGuest: async (name: string): Promise<Player> => {
     const response = await api.post('/players/guest', null, {
       params: { name }
+    });
+    return response.data;
+  },
+
+  updateProfile: async (name: string, customAvatar: string | null): Promise<Player> => {
+    const response = await api.put('/auth/profile', {
+      name,
+      custom_avatar: customAvatar
     });
     return response.data;
   },
@@ -128,6 +137,9 @@ export interface CreateMatchRequest {
 export interface PlayerLeaderboardEntry {
   player_id: string;
   player_name: string;
+  avatar?: string;
+  picture?: string;
+  custom_avatar?: string;
   games_played: number;
   wins: number;
   losses: number;
@@ -143,6 +155,8 @@ export interface DeckLeaderboardEntry {
   colors: string[];
   player_id: string;
   player_name: string;
+  player_picture?: string;
+  player_custom_avatar?: string;
   games_played: number;
   wins: number;
   losses: number;
@@ -158,12 +172,16 @@ export interface DashboardStats {
   last_game_date: string | null;
   most_games_player: {
     player_name: string;
+    player_picture?: string;
+    player_custom_avatar?: string;
     games_played: number;
   } | null;
   most_played_deck: {
     deck_name: string;
     commander_image_url?: string;
     player_name: string;
+    player_picture?: string;
+    player_custom_avatar?: string;
     games_played: number;
   } | null;
   most_popular_color: {
@@ -195,6 +213,8 @@ export interface PlayerDetail {
   player_id: string;
   player_name: string;
   avatar?: string;
+  picture?: string;
+  custom_avatar?: string;
   rank: number | null;
   total_games: number;
   wins: number;

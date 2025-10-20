@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
+import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DeckLeaderboardEntry } from '../services/api';
 
 interface TopDecksProps {
@@ -119,8 +120,15 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
                         <div className="text-[#C1C2C5] text-[13px] opacity-70 mt-0.5">
                           {deck.commander}
                         </div>
-                        <div className="text-xs mt-0.5 text-[#9ca3af]">
-                          by {deck.player_name}
+                        <div className="text-xs mt-0.5 text-[#9ca3af] flex items-center gap-1.5">
+                          <PlayerAvatar
+                            playerName={deck.player_name}
+                            customAvatar={deck.player_custom_avatar}
+                            picture={deck.player_picture}
+                            size="small"
+                            className="w-5 h-5 text-xs"
+                          />
+                          <span>by {deck.player_name}</span>
                         </div>
                       </div>
                     </div>
@@ -182,8 +190,15 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
               <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
                 <div className="text-base font-semibold text-white">{deck.deck_name}</div>
                 <div className="text-xs text-[#909296] overflow-hidden text-ellipsis whitespace-nowrap opacity-70">{deck.commander}</div>
-                <div className="text-[11px] mt-0.5 text-[#9ca3af]">
-                  by {deck.player_name}
+                <div className="text-[11px] mt-0.5 text-[#9ca3af] flex items-center gap-1.5">
+                  <PlayerAvatar
+                    playerName={deck.player_name}
+                    customAvatar={deck.player_custom_avatar}
+                    picture={deck.player_picture}
+                    size="small"
+                    className="w-5 h-5 text-xs"
+                  />
+                  <span>by {deck.player_name}</span>
                 </div>
                 <div className="mt-1 flex justify-start">
                   <ColorPips colors={deck.colors} />

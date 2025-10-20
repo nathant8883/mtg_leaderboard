@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { leaderboardApi, type PlayerLeaderboardEntry } from '../services/api';
+import PlayerAvatar from './PlayerAvatar';
 
 interface TopPlayersProps {
   onViewLeaderboard: () => void;
@@ -102,9 +103,12 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33]">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-purple text-white inline-flex items-center justify-center text-lg font-semibold">
-                        {player.player_name.charAt(0).toUpperCase()}
-                      </div>
+                      <PlayerAvatar
+                        playerName={player.player_name}
+                        customAvatar={player.custom_avatar}
+                        picture={player.picture}
+                        size="small"
+                      />
                       <span
                         className="text-white font-medium text-[15px] cursor-pointer transition-all hover:text-purple-start"
                         onClick={() => onPlayerClick(player.player_id)}
@@ -153,9 +157,12 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
               <div className={`flex-shrink-0 ${getRankBadgeStyles(rank)}`}>
                 {rank}
               </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-purple text-white flex items-center justify-center text-xl font-bold flex-shrink-0">
-                {player.player_name.charAt(0).toUpperCase()}
-              </div>
+              <PlayerAvatar
+                playerName={player.player_name}
+                customAvatar={player.custom_avatar}
+                picture={player.picture}
+                size="medium"
+              />
               <div className="flex-1 min-w-0">
                 <div className="text-base font-semibold text-white mb-1">{player.player_name}</div>
                 <div className="text-xs text-text-muted mb-1 opacity-70">{player.wins}-{player.losses}</div>

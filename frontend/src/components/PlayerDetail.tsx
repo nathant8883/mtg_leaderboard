@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ColorPips from './ColorPips';
 import DeckForm from './DeckForm';
+import ProfileEditModal from './ProfileEditModal';
 import { useAuth } from '../contexts/AuthContext';
 import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats } from '../services/api';
 
 function PlayerDetail() {
   const { playerId } = useParams<{ playerId: string }>();
   const navigate = useNavigate();
-  const { currentPlayer } = useAuth();
+  const { currentPlayer, refreshPlayer } = useAuth();
   const [playerDetail, setPlayerDetail] = useState<PlayerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeckForm, setShowDeckForm] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
   const [openMenuDeckId, setOpenMenuDeckId] = useState<string | null>(null);
+  const [showProfileEditModal, setShowProfileEditModal] = useState(false);
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
@@ -109,6 +111,13 @@ function PlayerDetail() {
     }
   };
 
+  const handleProfileUpdateSuccess = async () => {
+    // Refresh the current player data in AuthContext
+    await refreshPlayer();
+    // Reload the player detail page to show updated name/avatar
+    await loadPlayerDetail();
+  };
+
   if (loading) {
     return (
       <div className="w-full min-h-screen">
@@ -144,10 +153,32 @@ function PlayerDetail() {
         {/* Sidebar */}
         <div className="lg:sticky lg:top-6 h-fit">
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-8 mb-4 md:mb-5">
-            <div className="w-[120px] h-[120px] rounded-full bg-gradient-purple flex items-center justify-center text-[48px] font-bold mx-auto mb-5 border-4 border-[#2C2E33] text-white">
-              {playerDetail.avatar || playerDetail.player_name.charAt(0).toUpperCase()}
+            {/* Avatar - prioritize custom_avatar, then picture, then avatar letter */}
+            <div className="w-[120px] h-[120px] rounded-full bg-gradient-purple flex items-center justify-center text-[48px] font-bold mx-auto mb-5 border-4 border-[#2C2E33] text-white overflow-hidden">
+              {currentPlayer?.custom_avatar ? (
+                <img src={currentPlayer.custom_avatar} alt={playerDetail.player_name} className="w-full h-full object-cover" />
+              ) : currentPlayer?.picture ? (
+                <img src={currentPlayer.picture} alt={playerDetail.player_name} className="w-full h-full object-cover" />
+              ) : (
+                playerDetail.avatar || playerDetail.player_name.charAt(0).toUpperCase()
+              )}
             </div>
-            <h2 className="text-center text-[28px] font-bold mb-2 text-white">{playerDetail.player_name}</h2>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h2 className="text-center text-[28px] font-bold text-white">{playerDetail.player_name}</h2>
+              {isOwnProfile && (
+                <button
+                  onClick={() => setShowProfileEditModal(true)}
+                  className="p-1.5 bg-transparent border-none text-[#909296] cursor-pointer transition-all hover:text-[#667eea] active:scale-95"
+                  title="Edit Profile"
+                  aria-label="Edit Profile"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              )}
+            </div>
             <div className="text-center text-[#909296] text-sm mb-5">
               {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'} • Member since {formatMemberSince(playerDetail.member_since)}
             </div>
@@ -393,6 +424,17 @@ function PlayerDetail() {
             disabled: false,
           } as Deck}
           isEdit={!!editingDeck}
+        />
+      )}
+
+      {/* Profile Edit Modal */}
+      {showProfileEditModal && currentPlayer && (
+        <ProfileEditModal
+          currentName={currentPlayer.name}
+          currentPicture={currentPlayer.picture}
+          currentCustomAvatar={currentPlayer.custom_avatar}
+          onClose={() => setShowProfileEditModal(false)}
+          onSuccess={handleProfileUpdateSuccess}
         />
       )}
     </div>
