@@ -8,7 +8,7 @@ Pod Pal - A full-stack web application for tracking Magic: The Gathering Command
 
 **Tech Stack:**
 - Backend: FastAPI (Python 3.13) + Beanie ODM + Motor (async MongoDB driver)
-- Frontend: React + TypeScript + Vite
+- Frontend: React + TypeScript + Vite + Tailwind CSS V4
 - Database: MongoDB
 - Package Management: `uv` (Python), `npm` (JavaScript)
 - Deployment: Docker + Docker Compose
@@ -197,6 +197,72 @@ await player.delete()                     # Delete document
 - Primary gradient: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
 - Component classes follow BEM-like naming (`.header`, `.nav-btn`, `.stat-card`)
 - Responsive design with grid layouts
+
+**Tailwind CSS v4 Integration:**
+
+The application uses **Tailwind CSS v4** with a hybrid approach:
+- **Tailwind utilities** for simple styles (spacing, colors, flexbox, typography)
+- **Custom CSS classes** for complex patterns (gradients, tier system, MTG-specific styling)
+- **CSS variables** for design tokens (like `--tier-color`)
+
+**Configuration:**
+- **CSS-first approach**: No `tailwind.config.js` file
+- Configuration in `frontend/src/index.css` using `@import "tailwindcss"`
+- Vite plugin: `@tailwindcss/vite` configured in `vite.config.ts`
+
+**CSS Layer Organization (`frontend/src/index.css`):**
+```css
+@import "tailwindcss";
+
+@layer base {
+  /* Base styles - universal resets, CSS variables */
+  * { box-sizing: border-box; }
+  :root {
+    --accent-cyan: #33D9B2;
+    --accent-purple: #667eea;
+  }
+}
+
+@layer components {
+  /* Custom component classes */
+  .bg-gradient-card {
+    background: linear-gradient(135deg, #1A1B1E 0%, #1C1D21 100%);
+  }
+  .s-tier {
+    --tier-color: #FFD700;
+    --tier-color-light: #FFA500;
+  }
+  .text-tier-s { color: #FFD700; }
+}
+```
+
+**Critical Rules:**
+1. **Never use universal resets outside `@layer base`** - CSS loaded after `index.css` will override ALL Tailwind utilities
+2. **Use arbitrary values for custom values**: `rounded-[12px]`, `text-[#667eea]`, `border-[#2C2E33]`
+3. **Invalid utilities don't exist**: `rounded-12` is invalid, use `rounded-[12px]` instead
+4. **Complex patterns stay as custom classes**: Multi-color gradients, CSS variable-based tier colors, animations
+
+**Common Patterns:**
+```tsx
+// Spacing - use Tailwind utilities
+<div className="p-6 gap-3">  // padding: 24px, gap: 12px
+
+// Custom colors - use arbitrary values
+<div className="border border-[#2C2E33] text-[#667eea]">
+
+// Responsive design
+<div className="hidden md:block">  // Desktop only
+<div className="flex flex-col md:hidden">  // Mobile only
+
+// Dynamic tier classes
+const tier = getWinRateTier(winRate);
+<div className={`text-lg font-bold ${tier.color}`}>  // tier.color = 'text-tier-s'
+
+// Hybrid approach - Tailwind + custom classes
+<div className="inline-flex items-center gap-3 px-3 py-2 rounded-[8px] bg-gradient-card">
+```
+
+**Reference:** See `/frontend/TAILWIND_MIGRATION_GUIDE.md` for detailed migration patterns, common issues, and complete examples.
 
 ### Database Relationships
 
