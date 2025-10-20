@@ -8,6 +8,7 @@ import MatchTracker from './pages/MatchTracker.tsx'
 import { NotFound } from './pages/NotFound.tsx'
 import { MainLayout } from './components/MainLayout.tsx'
 import { RequireAuth } from './components/RequireAuth.tsx'
+import { LoadingScreen } from './components/LoadingScreen.tsx'
 import PlayerDetail from './components/PlayerDetail.tsx'
 import MatchDetail from './components/MatchDetail.tsx'
 import Leaderboard from './components/Leaderboard.tsx'
@@ -20,7 +21,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentPlayer, loading, isGuest } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingScreen />;
   }
 
   // Allow access if user is logged in OR in guest mode

@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { LoadingScreen } from './LoadingScreen';
 
 interface RequireAuthProps {
   children: React.ReactNode;
@@ -24,11 +25,7 @@ export function RequireAuth({ children, allowGuest = true }: RequireAuthProps) {
 
   // Show loading state while checking auth (prevents flash of login page)
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-white text-lg">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Not authenticated at all - redirect to login
