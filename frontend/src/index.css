@@ -1331,6 +1331,20 @@
     user-select: none;
   }
 
+  /* Subtle fade-in for commander damage counters when entering commander mode */
+  @keyframes commanderCounterFadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .player-card.commander-damage-mode:not(.tracking-player) .life-total {
+    animation: commanderCounterFadeIn 0.25s ease-out;
+  }
+
   /* Lethal damage styling (for 21+ commander damage) */
   .life-total.lethal-damage {
     color: #ef4444;
