@@ -17,17 +17,24 @@ function isPendingMatch(match: Match | PendingMatch): match is PendingMatch {
 
 function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Parse date string as local date to avoid UTC timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const matchDate = new Date(year, month - 1, day); // month is 0-indexed
+
+    // Get today's date at midnight for accurate comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calculate difference in days
+    const diffTime = today.getTime() - matchDate.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays > 0 && diffDays < 7) return `${diffDays} days ago`;
 
     // Format as "Oct 15, 2025"
-    return date.toLocaleDateString('en-US', {
+    return matchDate.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'

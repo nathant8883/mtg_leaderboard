@@ -29,14 +29,19 @@ function MatchList({ matches, onEdit, onDelete, isLoading = false }: MatchListPr
   }
 
   const handleDelete = (match: Match) => {
-    const date = new Date(match.match_date).toLocaleDateString();
+    // Parse date string as local date to avoid UTC timezone issues
+    const [year, month, day] = match.match_date.split('-').map(Number);
+    const date = new Date(year, month - 1, day).toLocaleDateString();
     if (window.confirm(`Are you sure you want to delete the match from ${date}?`)) {
       onDelete(match.id!);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // Parse date string as local date to avoid UTC timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
