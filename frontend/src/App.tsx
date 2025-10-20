@@ -331,8 +331,8 @@ function App() {
       <UpdatePrompt />
       <InstallPrompt />
 
-      {/* Offline Banner */}
-      {!isOnline && (
+      {/* Offline Banner - Only show when offline but NOT in offline mode */}
+      {!isOnline && !isGuest && (
         <div className="bg-[rgba(255,165,0,0.15)] border-b border-[rgba(255,165,0,0.3)] px-4 py-2 flex items-center justify-center gap-2 text-[#FFA500] text-sm font-medium sticky top-0 z-[101]">
           <WifiOff size={16} />
           <span>You're offline. Matches will sync when connection is restored.</span>
@@ -361,11 +361,11 @@ function App() {
         </div>
       )}
 
-      {/* Guest Mode Banner */}
+      {/* Offline Mode Banner */}
       {isGuest && (
         <div className="bg-[rgba(245,158,11,0.15)] border-b border-[rgba(245,158,11,0.3)] px-4 py-2 flex items-center justify-center gap-2 text-[#f59e0b] text-sm font-medium sticky top-0 z-[101]">
-          <span>👤</span>
-          <span>Guest Mode - Login to edit decks and view profiles</span>
+          <span>📴</span>
+          <span>Offline Mode - Login to edit decks and view profiles</span>
         </div>
       )}
 
