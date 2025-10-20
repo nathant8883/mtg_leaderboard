@@ -25,6 +25,18 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   const [creatingGuest, setCreatingGuest] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
+  // Helper function to get rotation for a position based on player count
+  const getRotationForPosition = (position: number): number => {
+    if (playerCount === 3 || playerCount === 4) {
+      // 3-4 players: positions 1-2 are rotated 180°
+      return position <= 2 ? 180 : 0;
+    } else if (playerCount === 5 || playerCount === 6) {
+      // 5-6 players: positions 1-3 are rotated 180°
+      return position <= 3 ? 180 : 0;
+    }
+    return 0;
+  };
+
   useEffect(() => {
     loadPlayers();
   }, []);
@@ -202,7 +214,11 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
       {/* Player Select Modal */}
       {modalState.type === 'player-select' && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4" onClick={() => setModalState({ type: 'none' })}>
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4"
+          style={{ transform: `rotate(${getRotationForPosition(modalState.position)}deg)` }}
+          onClick={() => setModalState({ type: 'none' })}
+        >
           <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-xl p-4 max-w-[600px] w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
             <h2 className="my-0 mb-3 text-center text-lg font-semibold">Select Player {modalState.position}</h2>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 mb-3 overflow-y-auto flex-1 min-h-0">
@@ -241,7 +257,10 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
       {/* Guest Name Modal */}
       {modalState.type === 'guest-name' && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4">
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4"
+          style={{ transform: `rotate(${getRotationForPosition(modalState.position)}deg)` }}
+        >
           <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-xl p-6 max-w-[400px] w-full">
             <h2 className="text-xl font-semibold my-0 mb-4">Add Guest Player</h2>
             <p className="text-[#9ca3af] my-0 mb-4 text-sm">Enter the guest player's name</p>
@@ -282,6 +301,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
         <DeckWheelSelector
           playerId={modalState.playerId}
           playerName={modalState.playerName}
+          rotation={getRotationForPosition(modalState.position)}
           onSelect={(deckInfo) => handleDeckSelect(deckInfo, modalState.position, modalState.playerId, modalState.playerName)}
           onCancel={() => setModalState({ type: 'player-select', position: modalState.position })}
         />
