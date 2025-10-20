@@ -12,7 +12,6 @@ import type { Player, Deck, CreateMatchRequest } from '../services/api';
 import { playerApi, deckApi } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import toast from 'react-hot-toast';
-import type { PendingMatch } from '../App';
 
 /**
  * MainLayout component - Shared layout for all main app pages
@@ -82,24 +81,7 @@ export function MainLayout() {
 
   const handleRecordMatch = async (matchRequest: CreateMatchRequest) => {
     try {
-      // Step 1: Create a pending match object with temp ID
-      const tempId = crypto.randomUUID();
-
-      // Create MatchPlayer objects from the request
-      const matchPlayers = matchRequest.player_deck_pairs.map(pair => {
-        const player = players.find(p => p.id === pair.player_id);
-        const deck = decks.find(d => d.id === pair.deck_id);
-        return {
-          player_id: pair.player_id,
-          player_name: player?.name || 'Unknown Player',
-          deck_id: pair.deck_id,
-          deck_name: deck?.name || 'Unknown Deck',
-          deck_colors: deck?.colors || [],
-          is_winner: pair.player_id === matchRequest.winner_player_id,
-        };
-      });
-
-      // Step 2: Add to IndexedDB queue (with deduplication check)
+      // Step 1: Add to IndexedDB queue (with deduplication check)
       const queuedMatch = await offlineQueue.addMatch(matchRequest, players, decks);
 
       if (!queuedMatch) {

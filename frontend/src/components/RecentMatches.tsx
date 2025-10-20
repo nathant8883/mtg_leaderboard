@@ -1,6 +1,6 @@
 import { Trophy, Clock, Loader2 } from 'lucide-react';
 import type { Match } from '../services/api';
-import type { PendingMatch } from '../App';
+import type { PendingMatch } from '../types/matchTypes';
 import ColorPips from './ColorPips';
 
 interface RecentMatchesProps {

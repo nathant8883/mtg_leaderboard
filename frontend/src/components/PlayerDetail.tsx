@@ -71,6 +71,8 @@ function PlayerDetail() {
   };
 
   const handleOpenEditDeck = (deckStats: PlayerDeckStats) => {
+    if (!playerId) return; // Guard: playerId should always be defined here
+
     // Convert PlayerDeckStats to Deck format
     const deck: Deck = {
       id: deckStats.deck_id,
