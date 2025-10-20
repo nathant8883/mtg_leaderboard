@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Crown, Sword, Menu } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
 
 interface ActiveGameProps {
@@ -522,7 +523,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             }
           }}
         >
-          {commanderDamageMode ? '⚔️' : '☰'}
+          {commanderDamageMode ? <Sword className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
         </button>
       </div>
 
@@ -583,10 +584,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
 
-              {/* First Player Badge - Star icon in top-right corner */}
+              {/* First Player Badge - Crown icon in top-right corner */}
               {firstPlayerPosition === player.position && !selectingFirstPlayer && (
-                <div className="absolute top-2 right-2 z-[10] w-6 h-6 rounded-full bg-black/70 flex items-center justify-center text-base">
-                  ⭐
+                <div className="absolute top-2 right-2 z-[10] w-7 h-7 rounded-full bg-black/70 flex items-center justify-center">
+                  <Crown className="w-4 h-4 text-yellow-400" />
                 </div>
               )}
 
