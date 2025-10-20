@@ -281,6 +281,12 @@
       scrollbar-width: none;
     }
 
+    /* Disable scroll-snap during auto-scroll for smooth continuous movement */
+    .stats-grid-mobile.auto-scrolling {
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+    }
+
     .stats-grid-mobile::-webkit-scrollbar {
       display: none;
     }

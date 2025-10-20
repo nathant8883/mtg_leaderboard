@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ColorPips from './ColorPips';
 import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DashboardStats } from '../services/api';
@@ -17,6 +17,10 @@ function StatsCards() {
   };
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const autoScrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -34,6 +38,77 @@ function StatsCards() {
     }
   };
 
+  // Auto-scroll functionality for mobile carousel - continuous smooth scroll
+  useEffect(() => {
+    const isMobile = () => window.innerWidth <= 768;
+
+    if (!isMobile() || loading || !stats || isUserInteracting) {
+      setIsAutoScrolling(false);
+      return;
+    }
+
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    // Enable auto-scrolling mode
+    setIsAutoScrolling(true);
+
+    let animationId: number;
+    const scrollSpeed = 0.25; // pixels per frame - adjust for speed
+    let accumulatedScroll = 0; // Track fractional pixels
+
+    const animate = () => {
+      if (carousel && !isUserInteracting) {
+        // Accumulate scroll amount to handle fractional pixels
+        accumulatedScroll += scrollSpeed;
+
+        // Only scroll when we have at least 1 pixel accumulated
+        if (accumulatedScroll >= 1) {
+          const scrollAmount = Math.floor(accumulatedScroll);
+          carousel.scrollLeft += scrollAmount;
+          accumulatedScroll -= scrollAmount;
+        }
+
+        // Reset to beginning when we reach the end (creating infinite loop effect)
+        // Leave some buffer to make the reset less noticeable
+        if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) {
+          carousel.scrollLeft = 0;
+          accumulatedScroll = 0;
+        }
+
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+
+    // Start the animation
+    animationId = requestAnimationFrame(animate);
+
+    // Handle user interaction - stop auto-scroll and snap to nearest card
+    const handleUserInteraction = () => {
+      setIsUserInteracting(true);
+      setIsAutoScrolling(false);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+
+    carousel.addEventListener('touchstart', handleUserInteraction);
+    carousel.addEventListener('mousedown', handleUserInteraction);
+    carousel.addEventListener('wheel', handleUserInteraction);
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+      setIsAutoScrolling(false);
+      if (carousel) {
+        carousel.removeEventListener('touchstart', handleUserInteraction);
+        carousel.removeEventListener('mousedown', handleUserInteraction);
+        carousel.removeEventListener('wheel', handleUserInteraction);
+      }
+    };
+  }, [loading, stats, isUserInteracting]);
+
   const formatLastGameDate = (dateStr: string | null): string => {
     if (!dateStr) return 'No games yet';
 
@@ -49,7 +124,7 @@ function StatsCards() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile">
+      <div ref={carouselRef} className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile ${isAutoScrolling ? 'auto-scrolling' : ''}`}>
         <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-purple">
           <div className="loading-spinner"></div>
         </div>
@@ -74,7 +149,7 @@ function StatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile">
+    <div ref={carouselRef} className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile ${isAutoScrolling ? 'auto-scrolling' : ''}`}>
       {/* Total Games Card */}
       <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-pink">
         <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
