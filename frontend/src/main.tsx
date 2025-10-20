@@ -1,12 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import './index.css'
-import App from './App.tsx'
 import { Login } from './pages/Login.tsx'
+import { Dashboard } from './pages/Dashboard.tsx'
+import MatchTracker from './pages/MatchTracker.tsx'
+import { NotFound } from './pages/NotFound.tsx'
+import { MainLayout } from './components/MainLayout.tsx'
+import { RequireAuth } from './components/RequireAuth.tsx'
+import PlayerDetail from './components/PlayerDetail.tsx'
+import MatchDetail from './components/MatchDetail.tsx'
+import Leaderboard from './components/Leaderboard.tsx'
+import AdminPanel from './components/AdminPanel.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
+import { Toaster } from 'react-hot-toast'
 
-// Protected route wrapper
+// Protected route wrapper - allows both authenticated users and guest mode
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentPlayer, loading, isGuest } = useAuth();
 
@@ -26,16 +35,26 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
+        <Toaster />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <App />
-              </ProtectedRoute>
-            }
-          />
+
+          {/* Main app routes with shared layout */}
+          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="leaderboard" element={<Leaderboard />} />
+            <Route path="players/:playerId" element={<PlayerDetail />} />
+            <Route path="matches/:matchId" element={<MatchDetail />} />
+
+            {/* Protected routes - require auth, no guest mode */}
+            <Route element={<RequireAuth allowGuest={false}><Outlet /></RequireAuth>}>
+              <Route path="admin" element={<AdminPanel />} />
+              <Route path="match-tracker" element={<MatchTracker />} />
+            </Route>
+
+            {/* 404 catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

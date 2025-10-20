@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, Users, Calendar } from 'lucide-react';
 import ColorPips from './ColorPips';
 import { matchApi, type Match, type MatchPlayer } from '../services/api';
 
-interface MatchDetailProps {
-  matchId: string;
-  onBack: () => void;
-}
-
-function MatchDetail({ matchId, onBack }: MatchDetailProps) {
+function MatchDetail() {
+  const { matchId } = useParams<{ matchId: string }>();
+  const navigate = useNavigate();
   const [match, setMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadMatchDetail();
+    if (matchId) {
+      loadMatchDetail();
+    }
   }, [matchId]);
 
   const loadMatchDetail = async () => {
+    if (!matchId) return;
     try {
       setLoading(true);
       const data = await matchApi.getById(matchId);
@@ -103,7 +104,7 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
         <div className="text-center py-[60px] px-5">
           <div className="text-[64px] mb-4">❌</div>
           <h3 className="text-white text-xl mb-2">Match not found</h3>
-          <button className="back-btn" onClick={onBack}>
+          <button className="back-btn" onClick={() => navigate('/')}>
             ← Back
           </button>
         </div>
@@ -119,7 +120,7 @@ function MatchDetail({ matchId, onBack }: MatchDetailProps) {
       {/* Navigation Bar - Hidden on mobile */}
       <div className="player-nav-bar max-md:hidden">
         <div className="player-nav-content">
-          <button className="back-btn" onClick={onBack}>
+          <button className="back-btn" onClick={() => navigate('/')}>
             ← Back
           </button>
           <span className="nav-title">

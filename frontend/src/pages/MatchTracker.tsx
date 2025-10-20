@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import GameSetup from '../components/match-tracker/GameSetup';
 import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
@@ -47,11 +48,8 @@ export interface MatchState {
 
 const STORAGE_KEY = 'mtg_active_match';
 
-interface MatchTrackerProps {
-  onExitToHome: () => void;
-}
-
-function MatchTracker({ onExitToHome }: MatchTrackerProps) {
+function MatchTracker() {
+  const navigate = useNavigate();
   const { isOnline } = useOnlineStatus();
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -262,7 +260,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
       localStorage.removeItem(STORAGE_KEY);
 
       // Navigate back to dashboard
-      onExitToHome();
+      navigate('/');
     } catch (error) {
       console.error('Failed to save match:', error);
       toast.error('Failed to record match. Please try again.');

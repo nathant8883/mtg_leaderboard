@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PlayerLeaderboard from './PlayerLeaderboard';
 import DeckLeaderboard from './DeckLeaderboard';
 import { leaderboardApi, type PlayerLeaderboardEntry, type DeckLeaderboardEntry } from '../services/api';
 
 type LeaderboardTab = 'players' | 'decks';
 
-interface LeaderboardProps {
-  onPlayerClick: (playerId: string) => void;
-}
-
-function Leaderboard({ onPlayerClick }: LeaderboardProps) {
+function Leaderboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<LeaderboardTab>('players');
   const [players, setPlayers] = useState<PlayerLeaderboardEntry[]>([]);
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
@@ -68,10 +66,10 @@ function Leaderboard({ onPlayerClick }: LeaderboardProps) {
       {/* Tab Content */}
       <div className="mt-0">
         {activeTab === 'players' && (
-          <PlayerLeaderboard players={players} loading={loadingPlayers} onPlayerClick={onPlayerClick} />
+          <PlayerLeaderboard players={players} loading={loadingPlayers} onPlayerClick={(id) => navigate(`/players/${id}`)} />
         )}
         {activeTab === 'decks' && (
-          <DeckLeaderboard decks={decks} loading={loadingDecks} onPlayerClick={onPlayerClick} />
+          <DeckLeaderboard decks={decks} loading={loadingDecks} onPlayerClick={(id) => navigate(`/players/${id}`)} />
         )}
       </div>
     </div>

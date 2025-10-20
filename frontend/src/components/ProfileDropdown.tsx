@@ -37,10 +37,8 @@ export const ProfileDropdown: React.FC = () => {
   }
 
   const handleMyProfile = () => {
-    // Dispatch custom event for App.tsx to handle
     if (currentPlayer) {
-      const event = new CustomEvent('viewPlayerDetail', { detail: { playerId: currentPlayer.id } });
-      window.dispatchEvent(event);
+      navigate(`/players/${currentPlayer.id}`);
       setIsOpen(false);
     }
   };

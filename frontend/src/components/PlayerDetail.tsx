@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ColorPips from './ColorPips';
 import DeckForm from './DeckForm';
 import { useAuth } from '../contexts/AuthContext';
 import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats } from '../services/api';
 
-interface PlayerDetailProps {
-  playerId: string;
-  onBack: () => void;
-}
-
-function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
+function PlayerDetail() {
+  const { playerId } = useParams<{ playerId: string }>();
+  const navigate = useNavigate();
   const { currentPlayer } = useAuth();
   const [playerDetail, setPlayerDetail] = useState<PlayerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,10 +19,13 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
   const isOwnProfile = currentPlayer?.id === playerId;
 
   useEffect(() => {
-    loadPlayerDetail();
+    if (playerId) {
+      loadPlayerDetail();
+    }
   }, [playerId]);
 
   const loadPlayerDetail = async () => {
+    if (!playerId) return;
     try {
       setLoading(true);
       const data = await playerApi.getDetail(playerId);
@@ -125,7 +126,7 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
           <h3 className="text-white text-xl mb-2">Player not found</h3>
           <button
             className="bg-transparent border border-[#2C2E33] text-[#909296] py-2 px-4 rounded-[6px] cursor-pointer text-sm transition-all font-medium hover:border-[#667eea] hover:text-[#667eea]"
-            onClick={onBack}
+            onClick={() => navigate('/')}
           >
             ← Back
           </button>
@@ -384,7 +385,7 @@ function PlayerDetail({ playerId, onBack }: PlayerDetailProps) {
           }}
           initialData={editingDeck || {
             name: '',
-            player_id: playerId,
+            player_id: playerId!,
             commander: '',
             colors: [],
             disabled: false,
