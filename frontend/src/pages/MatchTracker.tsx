@@ -118,7 +118,12 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
 
   const handleGameConfig = (playerCount: number, startingLife: number) => {
     // Initialize empty player slots
-    const emptyPlayers: PlayerSlot[] = Array.from({ length: playerCount }, (_, i) => ({
+    // For odd player counts (3, 5), create extra slots so players can choose their positions
+    // 3 players -> create 4 slots (2x2 grid)
+    // 5 players -> create 6 slots (3x2 grid)
+    const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
+
+    const emptyPlayers: PlayerSlot[] = Array.from({ length: totalSlots }, (_, i) => ({
       position: i + 1,
       playerId: null,
       playerName: '',
@@ -140,6 +145,9 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
   };
 
   const handlePlayerAssignment = (players: PlayerSlot[]) => {
+    // Filter out empty slots (for odd-number games where we create extra slots)
+    const activePlayers = players.filter(p => p.playerId !== null);
+
     // Initialize game state
     const gameState: ActiveGameState = {
       startTime: new Date(),
@@ -147,7 +155,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
       playerStates: {},
     };
 
-    players.forEach((player) => {
+    activePlayers.forEach((player) => {
       gameState.playerStates[player.position] = {
         life: matchState.startingLife,
         eliminated: false,
@@ -157,7 +165,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
 
     setMatchState({
       ...matchState,
-      players,
+      players: activePlayers,
       currentStep: 'game',
       gameState,
     });

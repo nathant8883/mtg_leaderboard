@@ -1030,6 +1030,21 @@
     z-index: 1;
   }
 
+  /* Disabled slot styling - for when max players reached in odd-number games */
+  .player-slot.disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .player-slot.disabled::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1;
+  }
+
   /* ==================== DECK WHEEL SELECTOR ==================== */
 
   /* Deck wheel container - circular layout */

@@ -41,6 +41,15 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   };
 
   const handleSlotClick = (position: number) => {
+    // Check if slot is disabled (filled slots count reached playerCount)
+    const filledCount = players.filter(p => p.playerId !== null).length;
+    const slot = players[position - 1];
+
+    // If this slot is empty and we've already filled the required number of players, don't allow selection
+    if (!slot.playerId && filledCount >= playerCount) {
+      return; // Slot is disabled
+    }
+
     setModalState({ type: 'player-select', position });
   };
 
@@ -108,7 +117,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
     onComplete(players);
   };
 
-  const allSlotsFilled = players.every((p) => p.playerId !== null);
+  const allSlotsFilled = players.filter(p => p.playerId !== null).length >= playerCount;
 
   return (
     <div className="h-screen flex flex-col bg-[#141517] relative">
@@ -152,28 +161,43 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
       {/* Player Slots in Game Layout */}
       <div className={`players-grid layout-${layout} players-${playerCount}`}>
-        {players.map((slot) => (
-          <div
-            key={slot.position}
-            className={`player-slot ${slot.playerId ? '' : 'empty'}`}
-            onClick={() => handleSlotClick(slot.position)}
-          >
-            <div className="relative z-[2] text-center w-full">
-              {slot.playerId ? (
-                <>
-                  <div className="text-[26px] font-extrabold mb-1 [text-shadow:0_2px_6px_rgba(0,0,0,0.4)]">{slot.playerName}</div>
-                  <div className="text-[13px] opacity-85 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">{slot.deckName}</div>
-                  {slot.isGuest && <div className="inline-block py-1 px-2 bg-black/30 rounded-md text-[11px] mt-1">Guest</div>}
-                </>
-              ) : (
-                <>
-                  <div className="text-5xl mb-2 opacity-80">+</div>
-                  <div className="text-sm opacity-90 font-semibold">Tap to add player</div>
-                </>
-              )}
+        {players.map((slot) => {
+          const filledCount = players.filter(p => p.playerId !== null).length;
+          const isDisabled = !slot.playerId && filledCount >= playerCount;
+
+          // Determine if this slot should be rotated (top row)
+          // For 3 players with 4 slots: positions 1, 2 are top row (rotated)
+          // For 5 players with 6 slots: positions 1, 2, 3 are top row (rotated)
+          const slotsPerRow = playerCount === 3 ? 2 : 3;
+          const isTopRow = slot.position <= slotsPerRow;
+
+          return (
+            <div
+              key={slot.position}
+              className={`player-slot ${slot.playerId ? '' : 'empty'} ${isDisabled ? 'disabled' : ''}`}
+              style={isTopRow ? { transform: 'rotate(180deg)' } : undefined}
+              onClick={() => handleSlotClick(slot.position)}
+            >
+              <div
+                className="relative z-[2] text-center w-full"
+                style={isTopRow ? { transform: 'rotate(180deg)' } : undefined}
+              >
+                {slot.playerId ? (
+                  <>
+                    <div className="text-[26px] font-extrabold mb-1 [text-shadow:0_2px_6px_rgba(0,0,0,0.4)]">{slot.playerName}</div>
+                    <div className="text-[13px] opacity-85 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">{slot.deckName}</div>
+                    {slot.isGuest && <div className="inline-block py-1 px-2 bg-black/30 rounded-md text-[11px] mt-1">Guest</div>}
+                  </>
+                ) : (
+                  <>
+                    <div className="text-5xl mb-2 opacity-80">+</div>
+                    <div className="text-sm opacity-90 font-semibold">Tap to add player</div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Player Select Modal */}

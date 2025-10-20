@@ -389,6 +389,14 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
   const playerCount = players.length;
 
+  // Create a map of position -> player for easy lookup
+  const playersByPosition = new Map(players.map(p => [p.position, p]));
+
+  // Determine total grid slots based on player count (to match PlayerAssignment layout)
+  // 3 players use 4 slots (2x2), 5 players use 6 slots (3x2), others use exact count
+  const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
+  const allSlots = Array.from({ length: totalSlots }, (_, i) => i + 1);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Floating Center Button - Hamburger Menu or Exit Commander Damage Mode */}
@@ -437,7 +445,15 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
       {/* Player Cards in Game Layout */}
       <div className={`players-grid layout-${layout} players-${playerCount}`}>
-        {players.map((player) => {
+        {allSlots.map((slotPosition) => {
+          const player = playersByPosition.get(slotPosition);
+
+          // If no player in this slot, render an empty/invisible placeholder
+          if (!player) {
+            return <div key={slotPosition} className="player-card invisible" />;
+          }
+
+          // Render the actual player card
           const playerState = gameState.playerStates[player.position];
           const isTrackingPlayer = commanderDamageMode && player.position === trackingPlayerPosition;
           const commanderDamage = commanderDamageMode && trackingPlayerPosition !== null
