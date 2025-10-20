@@ -39,6 +39,16 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/login" element={<Login />} />
 
+          {/* Match Tracker - Standalone full-screen route (no MainLayout) */}
+          <Route
+            path="/match-tracker"
+            element={
+              <RequireAuth allowGuest={false}>
+                <MatchTracker />
+              </RequireAuth>
+            }
+          />
+
           {/* Main app routes with shared layout */}
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
@@ -49,7 +59,6 @@ createRoot(document.getElementById('root')!).render(
             {/* Protected routes - require auth, no guest mode */}
             <Route element={<RequireAuth allowGuest={false}><Outlet /></RequireAuth>}>
               <Route path="admin" element={<AdminPanel />} />
-              <Route path="match-tracker" element={<MatchTracker />} />
             </Route>
 
             {/* 404 catch-all */}
