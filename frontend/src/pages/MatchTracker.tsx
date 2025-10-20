@@ -34,6 +34,7 @@ export interface PlayerGameState {
 export interface ActiveGameState {
   startTime: Date;
   elapsedSeconds: number;
+  firstPlayerPosition?: number; // Position of player who went first (for analytics)
   playerStates: Record<number, PlayerGameState>; // keyed by position
 }
 
@@ -208,12 +209,23 @@ function MatchTracker() {
       // Use the game start time as match date (format as YYYY-MM-DD)
       const matchDate = matchState.gameState.startTime.toISOString().split('T')[0];
 
+      // Map first player position to index in playerDeckPairs array
+      let firstPlayerPosition: number | undefined;
+      if (matchState.gameState.firstPlayerPosition !== undefined) {
+        // Find the index of the first player in the filtered playerDeckPairs array
+        const firstPlayer = matchState.players.find(p => p.position === matchState.gameState!.firstPlayerPosition);
+        if (firstPlayer && firstPlayer.playerId) {
+          firstPlayerPosition = playerDeckPairs.findIndex(p => p.player_id === firstPlayer.playerId);
+        }
+      }
+
       const matchRequest = {
         player_deck_pairs: playerDeckPairs,
         winner_player_id: winner.playerId,
         winner_deck_id: winner.deckId,
         match_date: matchDate,
         duration_seconds: matchState.gameState.elapsedSeconds,
+        first_player_position: firstPlayerPosition,
       };
 
       // Add to IndexedDB queue (offline-first approach)

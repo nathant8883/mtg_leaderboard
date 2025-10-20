@@ -16,6 +16,7 @@ class CreateMatchRequest(BaseModel):
     winner_deck_id: str
     match_date: date
     duration_seconds: int | None = None  # Game duration in seconds
+    first_player_position: int | None = None  # Index of player who went first (0-based position in players list)
     elimination_orders: dict[str, int] | None = None  # Maps player_id to placement (1=winner, 2=2nd, 3=3rd, 4=4th)
 
 
@@ -26,6 +27,7 @@ class UpdateMatchRequest(BaseModel):
     winner_deck_id: str | None = None
     match_date: date | None = None
     duration_seconds: int | None = None
+    first_player_position: int | None = None
     elimination_orders: dict[str, int] | None = None
 
 
@@ -49,6 +51,7 @@ def serialize_match(match: Match) -> dict:
         "winner_deck_id": match.winner_deck_id,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
+        "first_player_position": match.first_player_position,
         "created_at": match.created_at.isoformat()
     }
 
@@ -146,7 +149,8 @@ async def create_match(request: CreateMatchRequest):
         winner_player_id=request.winner_player_id,
         winner_deck_id=request.winner_deck_id,
         match_date=request.match_date,
-        duration_seconds=request.duration_seconds
+        duration_seconds=request.duration_seconds,
+        first_player_position=request.first_player_position
     )
 
     await match.insert()
@@ -170,6 +174,7 @@ async def create_match(request: CreateMatchRequest):
         "winner_deck_id": match.winner_deck_id,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
+        "first_player_position": match.first_player_position,
         "created_at": match.created_at.isoformat()
     }
 
@@ -192,6 +197,10 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
     # Update duration if provided
     if request.duration_seconds is not None:
         match.duration_seconds = request.duration_seconds
+
+    # Update first player position if provided
+    if request.first_player_position is not None:
+        match.first_player_position = request.first_player_position
 
     # Update player/deck pairs if provided
     if request.player_deck_pairs is not None:

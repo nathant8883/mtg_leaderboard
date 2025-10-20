@@ -22,6 +22,7 @@ class Match(Document):
     winner_deck_id: str
     match_date: date = Field(default_factory=date.today)
     duration_seconds: Optional[int] = None  # Game duration in seconds
+    first_player_position: Optional[int] = None  # Index of player who went first (0-based position in players list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator('players')
@@ -42,6 +43,15 @@ class Match(Document):
                 raise ValueError('Winner must be one of the players in the match')
         return v
 
+    @field_validator('first_player_position')
+    @classmethod
+    def validate_first_player_position(cls, v, info):
+        if v is not None and 'players' in info.data:
+            player_count = len(info.data['players'])
+            if v < 0 or v >= player_count:
+                raise ValueError(f'first_player_position must be between 0 and {player_count - 1}')
+        return v
+
     class Settings:
         name = "matches"
         use_state_management = True
@@ -58,6 +68,7 @@ class Match(Document):
                 "winner_deck_id": "507f1f77bcf86cd799439011",
                 "match_date": "2025-10-17",
                 "duration_seconds": 3600,
+                "first_player_position": 0,
                 "created_at": "2025-10-17T12:00:00"
             }
         }

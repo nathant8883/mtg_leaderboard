@@ -17,6 +17,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const [trackingPlayerPosition, setTrackingPlayerPosition] = useState<number | null>(null);
   const [showWinnerSelect, setShowWinnerSelect] = useState(false);
 
+  // First player selection state
+  const [selectingFirstPlayer, setSelectingFirstPlayer] = useState(!gameState.firstPlayerPosition);
+  const [firstPlayerPosition, setFirstPlayerPosition] = useState<number | null>(gameState.firstPlayerPosition ?? null);
+
   // Track active button presses for visual feedback
   const [activeButton, setActiveButton] = useState<{ position: number; type: 'minus' | 'plus' } | null>(null);
 
@@ -81,6 +85,19 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Handle first player selection
+  const handleSelectFirstPlayer = (position: number) => {
+    setFirstPlayerPosition(position);
+    setSelectingFirstPlayer(false);
+
+    // Update game state with first player position
+    const updatedState = {
+      ...gameState,
+      firstPlayerPosition: position,
+    };
+    onUpdateGameState(updatedState);
   };
 
   const handleLifeChange = (position: number, delta: number) => {
@@ -467,6 +484,25 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Create a map of position -> player for easy lookup
   const playersByPosition = new Map(players.map(p => [p.position, p]));
 
+  // Calculate rotation for first player selection text based on table position
+  // NOTE: CSS counter-rotates children of positions 1-2 (and 1-3 for 5-6 players) by 180°
+  // So we need to add rotation to account for this CSS counter-rotation
+  const getTextRotation = (position: number): number => {
+    // For 3-4 player games (using 4 slots in 2x2 grid)
+    if (playerCount <= 4) {
+      // Positions 1-2: top row - CSS counter-rotates by 180°, so add 180° to flip = 360° = 0° upright...
+      // Wait, we want these FLIPPED, so add 180° on top of the CSS 180° counter-rotation
+      // Positions 3-4: bottom row - no CSS rotation, keep upright (0°)
+      return position <= 2 ? 180 : 0;
+    }
+    // For 5-6 player games (using 6 slots in 3x2 grid)
+    else {
+      // Positions 1-3: top row - CSS counter-rotates by 180°, add 180° to flip
+      // Positions 4-6: bottom row - no CSS rotation, keep upright (0°)
+      return position <= 3 ? 180 : 0;
+    }
+  };
+
   // Determine total grid slots based on player count (to match PlayerAssignment layout)
   // 3 players use 4 slots (2x2), 5 players use 6 slots (3x2), others use exact count
   const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
@@ -539,12 +575,20 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           return (
             <div
               key={player.position}
-              className={`player-card ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${isTrackingPlayer && isShaking ? 'shake' : ''} ${swipeAnimatingPosition === player.position ? 'swipe-transition' : ''}`}
-              onTouchStart={(e) => !commanderDamageMode && handleTouchStart(e, player)}
-              onTouchMove={(e) => !commanderDamageMode && handleTouchMove(e)}
-              onTouchEnd={(e) => !commanderDamageMode && handleTouchEnd(e, player)}
+              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${isTrackingPlayer && isShaking ? 'shake' : ''} ${swipeAnimatingPosition === player.position ? 'swipe-transition' : ''} ${selectingFirstPlayer ? 'cursor-pointer' : ''}`}
+              onTouchStart={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchStart(e, player)}
+              onTouchMove={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchMove(e)}
+              onTouchEnd={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchEnd(e, player)}
+              onClick={() => selectingFirstPlayer && handleSelectFirstPlayer(player.position)}
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
+
+              {/* First Player Badge - Star icon in top-right corner */}
+              {firstPlayerPosition === player.position && !selectingFirstPlayer && (
+                <div className="absolute top-2 right-2 z-[10] w-6 h-6 rounded-full bg-black/70 flex items-center justify-center text-base">
+                  ⭐
+                </div>
+              )}
 
               <div className="absolute top-3 left-20 right-20 z-[2] text-center">
                 <div
@@ -562,8 +606,21 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <div className="text-xs opacity-90 text-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">{player.deckName}</div>
               </div>
 
+              {/* First Player Selection Mode - Show selection overlay */}
+              {selectingFirstPlayer && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-[5]">
+                  <div
+                    className="text-center"
+                    style={{ transform: `rotate(${getTextRotation(player.position)}deg)` }}
+                  >
+                    <div className="text-lg font-bold text-white mb-1">Tap To Choose</div>
+                    <div className="text-base font-semibold text-white">First Player</div>
+                  </div>
+                </div>
+              )}
+
               {/* Normal Life Tracking Mode */}
-              {!commanderDamageMode && (
+              {!commanderDamageMode && !selectingFirstPlayer && (
                 <>
                   {/* Life buttons on sides */}
                   <button
