@@ -43,7 +43,7 @@ createRoot(document.getElementById('root')!).render(
           <Route
             path="/match-tracker"
             element={
-              <RequireAuth allowGuest={false}>
+              <RequireAuth allowGuest={true}>
                 <MatchTracker />
               </RequireAuth>
             }
