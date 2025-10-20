@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { APP_VERSION } from './src/version'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -36,6 +37,7 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cacheId: `pod-pal-v${APP_VERSION}`, // Version-based cache naming
         skipWaiting: false, // Changed: Wait for user action before activating new SW
         clientsClaim: false, // Changed: Don't immediately claim clients
         // Warmup cache with critical API endpoints on SW install

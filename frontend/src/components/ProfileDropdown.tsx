@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/auth';
-import { APP_VERSION, CACHE_VERSION } from '../version';
+import { APP_VERSION } from '../version';
 import './ProfileDropdown.css';
 
 export const ProfileDropdown: React.FC = () => {
@@ -125,8 +125,7 @@ export const ProfileDropdown: React.FC = () => {
           </button>
           <div className="profile-menu-divider"></div>
           <div className="profile-menu-version">
-            <div className="version-line">App: v{APP_VERSION}</div>
-            <div className="version-line">Cache: {CACHE_VERSION}</div>
+            <div className="version-line">Version: {APP_VERSION}</div>
           </div>
         </div>
       )}
