@@ -147,20 +147,24 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const currentDamage = currentState.playerStates[trackingPlayerPosition].commanderDamage?.[fromOpponentPosition] || 0;
     const newDamage = Math.max(0, currentDamage + delta);
 
+    // Commander damage also affects life total (commander damage is still damage!)
+    const currentLife = currentState.playerStates[trackingPlayerPosition].life;
+    const newLife = Math.max(0, currentLife - delta); // Life goes down when commander damage goes up
+
     const updatedState = {
       ...currentState,
       playerStates: {
         ...currentState.playerStates,
         [trackingPlayerPosition]: {
           ...currentState.playerStates[trackingPlayerPosition],
+          life: newLife,
           commanderDamage: {
             ...(currentState.playerStates[trackingPlayerPosition].commanderDamage || {}),
             [fromOpponentPosition]: newDamage,
           },
-          // Check if this player should be eliminated due to commander damage (21+ from single opponent)
+          // Check if this player should be eliminated due to life <= 0 OR commander damage >= 21
           eliminated:
-            currentState.playerStates[trackingPlayerPosition].eliminated ||
-            newDamage >= 21,
+            newLife <= 0 || newDamage >= 21,
         },
       },
     };
