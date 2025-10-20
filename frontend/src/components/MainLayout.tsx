@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Play, User, WifiOff, List } from 'lucide-react';
 import { ProfileDropdown } from './ProfileDropdown';
+import { PageTransition } from './PageTransition';
 import { useAuth } from '../contexts/AuthContext';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import MatchForm from './MatchForm';
@@ -270,7 +271,9 @@ export function MainLayout() {
 
       {/* Main Content - Child routes render here */}
       <div className="px-3 pt-6 pb-24 md:pb-6 w-full flex-1">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </div>
 
       {/* Match Form Modal */}
