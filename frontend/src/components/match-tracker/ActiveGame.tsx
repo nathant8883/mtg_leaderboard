@@ -164,8 +164,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const newDamage = Math.max(0, currentDamage + delta);
 
     // Commander damage also affects life total (commander damage is still damage!)
+    // Only adjust life based on the actual damage change (handles edge case where damage is at 0)
+    const actualDamageDelta = newDamage - currentDamage;
     const currentLife = currentState.playerStates[trackingPlayerPosition].life;
-    const newLife = Math.max(0, currentLife - delta); // Life goes down when commander damage goes up
+    const newLife = Math.max(0, currentLife - actualDamageDelta); // Life goes down when commander damage goes up
 
     const updatedState = {
       ...currentState,
