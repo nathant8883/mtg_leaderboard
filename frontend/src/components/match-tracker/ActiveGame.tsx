@@ -28,11 +28,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
   // Life change delta tracking for visual feedback
   const [lifeChangeDeltaMap, setLifeChangeDeltaMap] = useState<Record<number, number>>({});
-  const lifeChangeDeltaTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
+  const lifeChangeDeltaTimeouts = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   // Commander damage delta tracking for visual feedback
   const [commanderDamageDeltaMap, setCommanderDamageDeltaMap] = useState<Record<number, number>>({});
-  const commanderDamageDeltaTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
+  const commanderDamageDeltaTimeouts = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   // Gesture state tracker for intent-based detection
   const gestureState = useRef<{
