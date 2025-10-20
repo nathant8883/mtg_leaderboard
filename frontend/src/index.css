@@ -214,6 +214,22 @@
     }
   }
 
+  /* Slide down animation for install prompt */
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -100%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.5s ease-out;
+  }
+
   /* Stat Card Color Variables */
   .stat-card-pink {
     --stat-color: #f093fb;

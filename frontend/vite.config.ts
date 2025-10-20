@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // Changed from 'autoUpdate' to require user consent
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
         name: 'Pod Pal - MTG Commander Tracker',
@@ -36,17 +36,31 @@ export default defineConfig({
         ]
       },
       workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
+        skipWaiting: false, // Changed: Wait for user action before activating new SW
+        clientsClaim: false, // Changed: Don't immediately claim clients
+        // Warmup cache with critical API endpoints on SW install
+        // This ensures offline functionality works even on first install
+        cleanupOutdatedCaches: true,
+        // In dev mode, let API requests pass through to Vite's proxy
+        // Runtime caching will work via warmup strategy + direct backend calls
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          // CRITICAL: Auth endpoints must NEVER be cached (OAuth redirects)
           {
-            urlPattern: /^https?:\/\/.*\/api\/players.*/,
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/auth'),
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'auth-bypass', // Not actually used since NetworkOnly
+            }
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/players'),
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-players-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxAgeSeconds: 60 * 60 * 24
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -54,13 +68,13 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https?:\/\/.*\/api\/decks.*/,
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/decks'),
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-decks-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxAgeSeconds: 60 * 60 * 24
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -70,13 +84,27 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: true,
-        type: 'module'
+        enabled: false, // Disabled: SW intercepts Vite proxy in dev mode
+        type: 'module',
+        /* To test PWA/caching features:
+         * 1. npm run build
+         * 2. npm run preview (serves production build on localhost:4173)
+         * 3. Test offline functionality, cache warmup, install prompt, etc.
+         */
       }
     })
   ],
   server: {
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:7777',
+        changeOrigin: true,
+      }
+    }
+  },
+  preview: {
+    port: 5173, // Use same port as dev for consistency
     proxy: {
       '/api': {
         target: 'http://localhost:7777',

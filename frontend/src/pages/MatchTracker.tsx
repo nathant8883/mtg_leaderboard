@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import GameSetup from '../components/match-tracker/GameSetup';
 import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
 import ActiveGame from '../components/match-tracker/ActiveGame';
 import WinnerScreen from '../components/match-tracker/WinnerScreen';
-import { matchApi } from '../services/api';
+import { playerApi, deckApi, Player, Deck } from '../services/api';
+import offlineQueue from '../services/offlineQueue';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
 export type LayoutType = 'table';
 export type StepType = 'setup' | 'assignment' | 'game' | 'winner';
@@ -49,6 +52,9 @@ interface MatchTrackerProps {
 }
 
 function MatchTracker({ onExitToHome }: MatchTrackerProps) {
+  const { isOnline } = useOnlineStatus();
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [matchState, setMatchState] = useState<MatchState>(() => {
     // Try to load from localStorage on mount
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -90,6 +96,25 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(matchState));
     }
   }, [matchState]);
+
+  // Load players and decks - SW cache will serve if available
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        console.log('[MatchTracker] Fetching players and decks...');
+        const [playersData, decksData] = await Promise.all([
+          playerApi.getAll(),
+          deckApi.getAll(),
+        ]);
+        setPlayers(playersData);
+        setDecks(decksData);
+        console.log(`[MatchTracker] ✅ Loaded ${playersData.length} players and ${decksData.length} decks`);
+      } catch (error) {
+        console.error('[MatchTracker] ❌ Failed to load data:', error);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleGameConfig = (playerCount: number, startingLife: number) => {
     // Initialize empty player slots
@@ -156,7 +181,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
     try {
       const winner = matchState.players.find(p => p.position === matchState.winnerPosition);
       if (!winner || !winner.playerId || !winner.deckId) {
-        alert('Winner must be a registered player with a deck (not a guest)');
+        toast.error('Winner must be a registered player with a deck (not a guest)');
         return;
       }
 
@@ -169,7 +194,7 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
         }));
 
       if (playerDeckPairs.length < 3) {
-        alert('At least 3 registered players required to save match (guests cannot be saved)');
+        toast.error('At least 3 registered players required to save match (guests cannot be saved)');
         return;
       }
 
@@ -184,16 +209,55 @@ function MatchTracker({ onExitToHome }: MatchTrackerProps) {
         duration_seconds: matchState.gameState.elapsedSeconds,
       };
 
-      await matchApi.create(matchRequest);
+      // Add to IndexedDB queue (offline-first approach)
+      const queuedMatch = await offlineQueue.addMatch(matchRequest, players, decks);
 
-      // Clear localStorage after successful save
+      if (!queuedMatch) {
+        // Duplicate detected
+        toast.error('This match was already recorded recently', {
+          duration: 4000,
+          position: 'top-center',
+        });
+        return;
+      }
+
+      // Show success message based on online status
+      toast.success(
+        isOnline ? '✅ Match saved! Syncing to server...' : '📴 Match saved offline - will sync when online',
+        {
+          duration: 3000,
+          position: 'top-center',
+        }
+      );
+
+      // Try to sync immediately if online
+      if (isOnline) {
+        await offlineQueue.syncMatch(queuedMatch.id, {
+          onSuccess: () => {
+            console.log('[MatchTracker] Match synced successfully');
+            toast.success('Match synced to server!', {
+              duration: 2000,
+              position: 'top-center',
+            });
+          },
+          onError: (error) => {
+            console.error('[MatchTracker] Failed to sync match:', error);
+            toast.error(`Sync failed: ${error.message}. Match saved in queue.`, {
+              duration: 4000,
+              position: 'top-center',
+            });
+          },
+        });
+      }
+
+      // Clear localStorage after queuing (regardless of sync status)
       localStorage.removeItem(STORAGE_KEY);
 
       // Navigate back to dashboard
       onExitToHome();
     } catch (error) {
       console.error('Failed to save match:', error);
-      alert('Failed to save match. Please try again.');
+      toast.error('Failed to record match. Please try again.');
     }
   };
 

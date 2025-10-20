@@ -33,8 +33,10 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
     try {
       const data = await playerApi.getAll();
       setAvailablePlayers(data);
+      console.log(`[PlayerAssignment] Loaded ${data.length} players`);
     } catch (err) {
-      console.error('Error loading players:', err);
+      console.error('[PlayerAssignment] Error loading players:', err);
+      // Don't show error toast - might just be offline and cache will handle it
     }
   };
 

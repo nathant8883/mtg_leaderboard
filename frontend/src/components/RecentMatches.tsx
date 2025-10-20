@@ -1,10 +1,18 @@
-import { Trophy, Clock } from 'lucide-react';
+import { Trophy, Clock, Loader2 } from 'lucide-react';
 import type { Match } from '../services/api';
+import type { PendingMatch } from '../App';
 import ColorPips from './ColorPips';
 
 interface RecentMatchesProps {
-  matches: Match[];
+  matches: (Match | PendingMatch)[];
   loading?: boolean;
+}
+
+/**
+ * Type guard to check if a match is pending
+ */
+function isPendingMatch(match: Match | PendingMatch): match is PendingMatch {
+  return '_pending' in match && match._pending === true;
 }
 
 function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
@@ -80,13 +88,28 @@ function RecentMatches({ matches, loading = false }: RecentMatchesProps) {
         {matches.map((match) => {
           const winner = getWinner(match);
           const durationText = formatDuration(match.duration_seconds);
+          const isPending = isPendingMatch(match);
 
           return (
             <div
               key={match.id}
-              className="bg-[rgba(37,38,43,0.5)] rounded-[12px] p-4 border border-[#2C2E33] transition-all duration-200 hover:bg-[#25262B] hover:border-[#667eea] cursor-pointer"
-              onClick={() => handleMatchClick(match.id!)}
+              className={`bg-[rgba(37,38,43,0.5)] rounded-[12px] p-4 border transition-all duration-200 cursor-pointer ${
+                isPending
+                  ? 'border-[rgba(255,165,0,0.4)] bg-[rgba(255,165,0,0.05)]'
+                  : 'border-[#2C2E33] hover:bg-[#25262B] hover:border-[#667eea]'
+              }`}
+              onClick={() => !isPending && handleMatchClick(match.id!)}
             >
+              {/* Pending Badge */}
+              {isPending && (
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[rgba(255,165,0,0.2)]">
+                  <Loader2 className="w-4 h-4 text-[#FFA500] animate-spin" />
+                  <span className="text-[#FFA500] text-xs font-semibold">
+                    Syncing to server...
+                  </span>
+                </div>
+              )}
+
               {/* Header Row: Winner + Time Info */}
               <div className="flex justify-between items-center mb-2 gap-3">
                 <div className="flex items-center gap-2">
