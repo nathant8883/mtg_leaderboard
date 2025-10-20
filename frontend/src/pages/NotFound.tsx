@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 /**
  * 404 Not Found page
@@ -6,6 +7,17 @@ import { useNavigate } from 'react-router-dom';
  */
 export function NotFound() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // If user somehow ended up here on an API route, force a full page reload
+  // This ensures API requests aren't caught by React Router
+  useEffect(() => {
+    if (location.pathname.startsWith('/api')) {
+      // Force a full page navigation to the API endpoint
+      // This will bypass React Router and hit the backend
+      window.location.href = location.pathname + location.search;
+    }
+  }, [location]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
