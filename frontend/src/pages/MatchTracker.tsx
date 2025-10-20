@@ -5,6 +5,7 @@ import GameSetup from '../components/match-tracker/GameSetup';
 import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
 import ActiveGame from '../components/match-tracker/ActiveGame';
 import WinnerScreen from '../components/match-tracker/WinnerScreen';
+import LandscapePrompt from '../components/LandscapePrompt';
 import { playerApi, deckApi, Player, Deck } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -301,8 +302,16 @@ function MatchTracker() {
     }
   };
 
+  const onExitToHome = () => {
+    // Exit from setup screen - no confirmation needed since no game started yet
+    navigate('/');
+  };
+
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 min-h-screen max-h-screen bg-gradient-to-br from-[#1a1b1e] to-[#2c2e33] text-white p-0 m-0 overflow-hidden">
+      {/* Landscape orientation prompt - only visible in portrait mode */}
+      <LandscapePrompt />
+
       {showResumeModal && (
         <div className="fixed top-0 left-0 right-0 bottom-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-[1000] p-4">
           <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-6 max-w-[500px] w-full max-h-[90vh] overflow-y-auto">

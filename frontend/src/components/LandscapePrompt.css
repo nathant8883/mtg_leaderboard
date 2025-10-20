@@ -1,0 +1,109 @@
+/**
+ * LandscapePrompt Styles
+ *
+ * Uses @media (orientation: portrait) to show the prompt only when device is in portrait mode.
+ * Hidden automatically in landscape orientation.
+ */
+
+.landscape-prompt {
+  /* Hidden by default (landscape mode) */
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999; /* Above all other content */
+
+  /* Styling */
+  background: linear-gradient(135deg, #141517 0%, #1a1b1e 50%, #2c2e33 100%);
+  color: white;
+
+  /* Center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Show only in portrait mode */
+@media (orientation: portrait) {
+  .landscape-prompt {
+    display: flex;
+  }
+}
+
+/* Hide in landscape mode */
+@media (orientation: landscape) {
+  .landscape-prompt {
+    display: none !important;
+  }
+}
+
+.landscape-prompt-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.landscape-prompt-icon {
+  margin-bottom: 2rem;
+  color: #667eea; /* Purple accent */
+
+  /* Animated rotation */
+  animation: rotate-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rotate-pulse {
+  0%, 100% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: rotate(-15deg);
+    opacity: 0.8;
+  }
+  75% {
+    transform: rotate(15deg);
+    opacity: 0.8;
+  }
+}
+
+.landscape-prompt-icon svg {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: block;
+}
+
+.landscape-prompt-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landscape-prompt-message {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 400px) and (orientation: portrait) {
+  .landscape-prompt-icon svg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .landscape-prompt-title {
+    font-size: 1.25rem;
+  }
+
+  .landscape-prompt-message {
+    font-size: 0.875rem;
+  }
+}
