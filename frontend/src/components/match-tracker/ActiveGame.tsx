@@ -26,6 +26,14 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Track which player position is animating the swipe transition
   const [swipeAnimatingPosition, setSwipeAnimatingPosition] = useState<number | null>(null);
 
+  // Life change delta tracking for visual feedback
+  const [lifeChangeDeltaMap, setLifeChangeDeltaMap] = useState<Record<number, number>>({});
+  const lifeChangeDeltaTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
+
+  // Commander damage delta tracking for visual feedback
+  const [commanderDamageDeltaMap, setCommanderDamageDeltaMap] = useState<Record<number, number>>({});
+  const commanderDamageDeltaTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
+
   // Gesture state tracker for intent-based detection
   const gestureState = useRef<{
     startX: number;
@@ -94,6 +102,27 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     };
 
     onUpdateGameState(updatedState);
+
+    // Update delta tracking for visual feedback
+    setLifeChangeDeltaMap((prev) => ({
+      ...prev,
+      [position]: (prev[position] || 0) + delta,
+    }));
+
+    // Clear existing timeout for this player
+    if (lifeChangeDeltaTimeouts.current[position]) {
+      clearTimeout(lifeChangeDeltaTimeouts.current[position]);
+    }
+
+    // Set new timeout to clear delta after 1 second
+    lifeChangeDeltaTimeouts.current[position] = setTimeout(() => {
+      setLifeChangeDeltaMap((prev) => {
+        const newMap = { ...prev };
+        delete newMap[position];
+        return newMap;
+      });
+      delete lifeChangeDeltaTimeouts.current[position];
+    }, 1000);
 
     // Check if only one player remains
     const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
@@ -181,6 +210,27 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     };
   }, []);
 
+  // Reset deltas when switching between life/commander damage modes
+  useEffect(() => {
+    // Clear all life change deltas
+    setLifeChangeDeltaMap({});
+    Object.values(lifeChangeDeltaTimeouts.current).forEach(clearTimeout);
+    lifeChangeDeltaTimeouts.current = {};
+
+    // Clear all commander damage deltas
+    setCommanderDamageDeltaMap({});
+    Object.values(commanderDamageDeltaTimeouts.current).forEach(clearTimeout);
+    commanderDamageDeltaTimeouts.current = {};
+  }, [commanderDamageMode]);
+
+  // Clean up all delta timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(lifeChangeDeltaTimeouts.current).forEach(clearTimeout);
+      Object.values(commanderDamageDeltaTimeouts.current).forEach(clearTimeout);
+    };
+  }, []);
+
   // Handle commander damage increment/decrement
   const handleCommanderDamageChange = (fromOpponentPosition: number, delta: number) => {
     if (trackingPlayerPosition === null) return;
@@ -219,6 +269,31 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     };
 
     onUpdateGameState(updatedState);
+
+    // Update delta tracking for visual feedback (track delta from opponent's perspective)
+    // Only accumulate the delta if the damage actually changed
+    const actualDelta = newDamage - currentDamage;
+    if (actualDelta !== 0) {
+      setCommanderDamageDeltaMap((prev) => ({
+        ...prev,
+        [fromOpponentPosition]: (prev[fromOpponentPosition] || 0) + actualDelta,
+      }));
+
+      // Clear existing timeout for this opponent
+      if (commanderDamageDeltaTimeouts.current[fromOpponentPosition]) {
+        clearTimeout(commanderDamageDeltaTimeouts.current[fromOpponentPosition]);
+      }
+
+      // Set new timeout to clear delta after 1 second
+      commanderDamageDeltaTimeouts.current[fromOpponentPosition] = setTimeout(() => {
+        setCommanderDamageDeltaMap((prev) => {
+          const newMap = { ...prev };
+          delete newMap[fromOpponentPosition];
+          return newMap;
+        });
+        delete commanderDamageDeltaTimeouts.current[fromOpponentPosition];
+      }, 1000);
+    }
 
     // Check if only one player remains
     const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
@@ -506,7 +581,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     }}
                     disabled={playerState.eliminated}
                   >
-                    −
+                    {lifeChangeDeltaMap[player.position] < 0 ? lifeChangeDeltaMap[player.position] : '−'}
                   </button>
 
                   <button
@@ -524,7 +599,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     }}
                     disabled={playerState.eliminated}
                   >
-                    +
+                    {lifeChangeDeltaMap[player.position] > 0 ? `+${lifeChangeDeltaMap[player.position]}` : '+'}
                   </button>
 
                   <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
@@ -570,7 +645,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                           handleCommanderDamageButtonUp(player.position);
                         }}
                       >
-                        −
+                        {commanderDamageDeltaMap[player.position] < 0 ? commanderDamageDeltaMap[player.position] : '−'}
                       </button>
 
                       <button
@@ -587,7 +662,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                           handleCommanderDamageButtonUp(player.position);
                         }}
                       >
-                        +
+                        {commanderDamageDeltaMap[player.position] > 0 ? `+${commanderDamageDeltaMap[player.position]}` : '+'}
                       </button>
 
                       <div className="absolute inset-0 flex flex-col items-center justify-center px-20">

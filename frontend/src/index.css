@@ -1346,6 +1346,61 @@
     user-select: none;
   }
 
+  /* Life change delta indicator */
+  .life-change-indicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 48px;
+    font-weight: 900;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 5;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .life-change-indicator.fade-in {
+    animation: deltaFadeIn 0.2s ease-out;
+  }
+
+  .life-change-indicator.fade-out {
+    animation: deltaFadeOut 0.3s ease-out forwards;
+  }
+
+  .life-change-positive {
+    color: #30e8a7;
+  }
+
+  .life-change-negative {
+    color: #ef4444;
+  }
+
+  @keyframes deltaFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes deltaFadeOut {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+  }
+
   /* Subtle fade-in for commander damage counters when entering commander mode */
   @keyframes commanderCounterFadeIn {
     0% {
