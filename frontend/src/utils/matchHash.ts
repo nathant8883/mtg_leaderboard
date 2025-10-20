@@ -1,4 +1,4 @@
-import { CreateMatchRequest } from '../services/api';
+import type { CreateMatchRequest } from '../services/api';
 
 /**
  * Generate a deterministic hash for a match to detect duplicates

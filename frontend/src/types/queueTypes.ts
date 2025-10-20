@@ -1,4 +1,4 @@
-import { CreateMatchRequest } from '../services/api';
+import type { CreateMatchRequest } from '../services/api';
 
 /**
  * Status of a queued match in the offline queue
