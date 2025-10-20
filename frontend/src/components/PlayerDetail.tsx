@@ -155,10 +155,10 @@ function PlayerDetail() {
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-8 mb-4 md:mb-5">
             {/* Avatar - prioritize custom_avatar, then picture, then avatar letter */}
             <div className="w-[120px] h-[120px] rounded-full bg-gradient-purple flex items-center justify-center text-[48px] font-bold mx-auto mb-5 border-4 border-[#2C2E33] text-white overflow-hidden">
-              {currentPlayer?.custom_avatar ? (
-                <img src={currentPlayer.custom_avatar} alt={playerDetail.player_name} className="w-full h-full object-cover" />
-              ) : currentPlayer?.picture ? (
-                <img src={currentPlayer.picture} alt={playerDetail.player_name} className="w-full h-full object-cover" />
+              {playerDetail.custom_avatar ? (
+                <img src={playerDetail.custom_avatar} alt={playerDetail.player_name} className="w-full h-full object-cover" />
+              ) : playerDetail.picture ? (
+                <img src={playerDetail.picture} alt={playerDetail.player_name} className="w-full h-full object-cover" />
               ) : (
                 playerDetail.avatar || playerDetail.player_name.charAt(0).toUpperCase()
               )}

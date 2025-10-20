@@ -229,8 +229,8 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
                   onClick={() => handlePlayerSelect(player, modalState.position)}
                 >
                   <div className="w-9 h-9 text-sm rounded-full bg-[linear-gradient(135deg,#667eea_0%,#764ba2_100%)] flex items-center justify-center font-semibold overflow-hidden shrink-0">
-                    {player.picture ? (
-                      <img src={player.picture} alt={player.name} className="w-full h-full object-cover" />
+                    {player.custom_avatar || player.picture ? (
+                      <img src={player.custom_avatar || player.picture} alt={player.name} className="w-full h-full object-cover" />
                     ) : (
                       player.avatar || player.name[0]
                     )}

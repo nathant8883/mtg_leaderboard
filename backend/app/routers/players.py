@@ -22,6 +22,8 @@ async def get_all_players():
             "id": str(player.id),
             "name": player.name,
             "avatar": player.avatar,
+            "picture": player.picture,
+            "custom_avatar": player.custom_avatar,
             "deck_ids": player.deck_ids,
             "created_at": player.created_at
         }
