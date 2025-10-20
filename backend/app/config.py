@@ -24,7 +24,8 @@ class Settings(BaseSettings):
     # JWT settings
     jwt_secret_key: str = "your-secret-key-change-in-production"
     jwt_algorithm: str = "HS256"
-    jwt_expiration_minutes: int = 1440  # 24 hours
+    jwt_expiration_days: int = 90  # 90 days for long-term offline usage
+    jwt_expiration_minutes: int = 1440  # Deprecated: Use jwt_expiration_days instead
 
     # Frontend URL for redirects after OAuth
     frontend_url: str = "http://localhost:5173"

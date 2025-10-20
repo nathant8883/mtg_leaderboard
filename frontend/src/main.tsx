@@ -8,13 +8,14 @@ import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentPlayer, loading } = useAuth();
+  const { currentPlayer, loading, isGuest } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  if (!currentPlayer) {
+  // Allow access if user is logged in OR in guest mode
+  if (!currentPlayer && !isGuest) {
     return <Navigate to="/login" replace />;
   }
 

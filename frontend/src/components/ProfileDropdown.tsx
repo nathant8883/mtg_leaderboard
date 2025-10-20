@@ -6,7 +6,7 @@ import { APP_VERSION } from '../version';
 import './ProfileDropdown.css';
 
 export const ProfileDropdown: React.FC = () => {
-  const { currentPlayer, logout } = useAuth();
+  const { currentPlayer, isGuest, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -31,14 +31,23 @@ export const ProfileDropdown: React.FC = () => {
     setImageError(false);
   }, [currentPlayer?.picture]);
 
-  if (!currentPlayer) {
+  // Don't render if not logged in and not in guest mode
+  if (!currentPlayer && !isGuest) {
     return null;
   }
 
   const handleMyProfile = () => {
     // Dispatch custom event for App.tsx to handle
-    const event = new CustomEvent('viewPlayerDetail', { detail: { playerId: currentPlayer.id } });
-    window.dispatchEvent(event);
+    if (currentPlayer) {
+      const event = new CustomEvent('viewPlayerDetail', { detail: { playerId: currentPlayer.id } });
+      window.dispatchEvent(event);
+      setIsOpen(false);
+    }
+  };
+
+  const handleLogin = () => {
+    logout(); // Clear guest mode before navigating to login
+    navigate('/login');
     setIsOpen(false);
   };
 
@@ -70,12 +79,12 @@ export const ProfileDropdown: React.FC = () => {
     setIsOpen(false);
   };
 
-  const profileImageUrl = currentPlayer.picture || null;
-  const displayName = currentPlayer.name || currentPlayer.email || 'User';
-  const avatarLetter = currentPlayer.avatar || displayName.charAt(0).toUpperCase();
+  const profileImageUrl = isGuest ? null : (currentPlayer?.picture || null);
+  const displayName = isGuest ? 'Guest User' : (currentPlayer?.name || currentPlayer?.email || 'User');
+  const avatarLetter = isGuest ? '👤' : (currentPlayer?.avatar || displayName.charAt(0).toUpperCase());
 
-  // Show avatar if no picture URL, image failed to load, or picture is empty string
-  const shouldShowAvatar = !profileImageUrl || imageError || profileImageUrl.trim() === '';
+  // Show avatar if no picture URL, image failed to load, or picture is empty string, or is guest
+  const shouldShowAvatar = isGuest || !profileImageUrl || imageError || profileImageUrl.trim() === '';
 
   return (
     <div className="profile-dropdown" ref={dropdownRef}>
@@ -100,8 +109,13 @@ export const ProfileDropdown: React.FC = () => {
         <div className="profile-menu">
           <div className="profile-menu-header">
             <div className="profile-menu-name">{displayName}</div>
-            {currentPlayer.email && (
+            {!isGuest && currentPlayer?.email && (
               <div className="profile-menu-email">{currentPlayer.email}</div>
+            )}
+            {isGuest && (
+              <div className="profile-menu-email" style={{ color: '#f59e0b' }}>
+                Login to unlock all features
+              </div>
             )}
           </div>
           <div className="profile-menu-divider"></div>
@@ -111,18 +125,38 @@ export const ProfileDropdown: React.FC = () => {
           <button className="profile-menu-item" onClick={handleViewLeaderboard}>
             🏆 Leaderboard
           </button>
-          {currentPlayer.is_superuser && (
+          {!isGuest && currentPlayer?.is_superuser && (
             <button className="profile-menu-item" onClick={handleViewAdmin}>
               ⚙️ Admin
             </button>
           )}
-          <div className="profile-menu-divider"></div>
-          <button className="profile-menu-item" onClick={handleMyProfile}>
-            My Profile
-          </button>
-          <button className="profile-menu-item" onClick={handleLogout}>
-            Logout
-          </button>
+          {isGuest && (
+            <>
+              <div className="profile-menu-divider"></div>
+              <button
+                className="profile-menu-item"
+                onClick={handleLogin}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontWeight: 600
+                }}
+              >
+                🔐 Login with Google
+              </button>
+            </>
+          )}
+          {!isGuest && (
+            <>
+              <div className="profile-menu-divider"></div>
+              <button className="profile-menu-item" onClick={handleMyProfile}>
+                My Profile
+              </button>
+              <button className="profile-menu-item" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          )}
           <div className="profile-menu-divider"></div>
           <div className="profile-menu-version">
             <div className="version-line">Version: {APP_VERSION}</div>

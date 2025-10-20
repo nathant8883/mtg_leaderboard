@@ -36,7 +36,7 @@ export interface PendingMatch extends Match {
 
 // Main application component
 function App() {
-  const { currentPlayer } = useAuth()
+  const { currentPlayer, isGuest } = useAuth()
   const { isOnline, isMetered, syncNow } = useOnlineStatus()
   const [activeView, setActiveView] = useState<ViewType>('dashboard')
   const [showMatchForm, setShowMatchForm] = useState(false)
@@ -361,6 +361,14 @@ function App() {
         </div>
       )}
 
+      {/* Guest Mode Banner */}
+      {isGuest && (
+        <div className="bg-[rgba(245,158,11,0.15)] border-b border-[rgba(245,158,11,0.3)] px-4 py-2 flex items-center justify-center gap-2 text-[#f59e0b] text-sm font-medium sticky top-0 z-[101]">
+          <span>👤</span>
+          <span>Guest Mode - Login to edit decks and view profiles</span>
+        </div>
+      )}
+
       {/* Header - Hidden only in match tracker */}
       {activeView !== 'match-tracker' && (
         <div className="app-header bg-gradient-card border-b border-[#2C2E33] px-6 py-4 md:px-6 md:py-4 max-md:px-3 max-md:py-[10px] sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
@@ -442,8 +450,8 @@ function App() {
           {activeView === 'leaderboard' && (
             <Leaderboard onPlayerClick={handleViewPlayerDetail} />
           )}
-          {activeView === 'admin' && <AdminPanel />}
-          {activeView === 'player-detail' && selectedPlayerId && (
+          {!isGuest && activeView === 'admin' && <AdminPanel />}
+          {!isGuest && activeView === 'player-detail' && selectedPlayerId && (
             <PlayerDetail
               playerId={selectedPlayerId}
               onBack={handleBackFromPlayerDetail}
@@ -509,21 +517,23 @@ function App() {
             <Play size={24} />
             <span className="text-[11px]">Start Game</span>
           </button>
-          <button
-            className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
-              activeView === 'player-detail'
-                ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
-                : 'bg-transparent text-[#909296] opacity-60'
-            }`}
-            onClick={() => {
-              if (currentPlayer) {
-                handleViewPlayerDetail(currentPlayer.id);
-              }
-            }}
-          >
-            <User size={24} />
-            <span className="text-[11px]">Profile</span>
-          </button>
+          {!isGuest && (
+            <button
+              className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
+                activeView === 'player-detail'
+                  ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
+                  : 'bg-transparent text-[#909296] opacity-60'
+              }`}
+              onClick={() => {
+                if (currentPlayer) {
+                  handleViewPlayerDetail(currentPlayer.id);
+                }
+              }}
+            >
+              <User size={24} />
+              <span className="text-[11px]">Profile</span>
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -17,7 +17,7 @@ def create_access_token(player_id: str) -> str:
     Returns:
         JWT token string
     """
-    expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expiration_minutes)
+    expire = datetime.utcnow() + timedelta(days=settings.jwt_expiration_days)
     to_encode = {
         "sub": player_id,
         "exp": expire,
