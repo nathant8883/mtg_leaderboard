@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 // Service Worker for Pod Pal PWA
 
-const CACHE_NAME = 'pod-pal-v23';
+const CACHE_NAME = 'pod-pal-v24';
 const urlsToCache = [
   '/',
   '/index.html'
