@@ -331,16 +331,16 @@ function App() {
       <UpdatePrompt />
       <InstallPrompt />
 
-      {/* Offline Banner - Only show when offline but NOT in offline mode */}
-      {!isOnline && !isGuest && (
+      {/* Offline Banner - Only show on dashboard when offline but NOT in offline mode */}
+      {activeView === 'dashboard' && !isOnline && !isGuest && (
         <div className="bg-[rgba(255,165,0,0.15)] border-b border-[rgba(255,165,0,0.3)] px-4 py-2 flex items-center justify-center gap-2 text-[#FFA500] text-sm font-medium sticky top-0 z-[101]">
           <WifiOff size={16} />
           <span>You're offline. Matches will sync when connection is restored.</span>
         </div>
       )}
 
-      {/* Mobile Data Warning Banner */}
-      {isOnline && isMetered && pendingCount > 0 && (
+      {/* Mobile Data Warning Banner - Only show on dashboard */}
+      {activeView === 'dashboard' && isOnline && isMetered && pendingCount > 0 && (
         <div className="bg-[rgba(102,126,234,0.15)] border-b border-[rgba(102,126,234,0.3)] px-4 py-2 flex items-center justify-between gap-3 text-[#667eea] text-sm font-medium sticky top-0 z-[101]">
           <div className="flex items-center gap-2 flex-1">
             <WifiOff size={16} />
@@ -361,8 +361,8 @@ function App() {
         </div>
       )}
 
-      {/* Offline Mode Banner */}
-      {isGuest && (
+      {/* Offline Mode Banner - Only show on dashboard */}
+      {activeView === 'dashboard' && isGuest && (
         <div className="bg-[rgba(245,158,11,0.15)] border-b border-[rgba(245,158,11,0.3)] px-4 py-2 flex items-center justify-center gap-2 text-[#f59e0b] text-sm font-medium sticky top-0 z-[101]">
           <span>📴</span>
           <span>Offline Mode - Login to edit decks and view profiles</span>
