@@ -1,11 +1,11 @@
-import Dexie, { Table } from 'dexie';
+import Dexie, { type Table } from 'dexie';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateMatchRequest, Player, Deck, matchApi } from './api';
-import {
+import type { CreateMatchRequest, Player, Deck } from './api';
+import { matchApi } from './api';
+import type {
   QueuedMatch,
   QueueStatus,
   QueueError,
-  QueueMetadata,
   SyncMatchOptions,
   SyncAllOptions,
   ErrorStrategy,
@@ -199,13 +199,15 @@ export const offlineQueue = {
    * @param error - Error information (if status is 'error')
    */
   async updateMatchStatus(id: string, status: QueueStatus, error?: QueueError): Promise<void> {
-    const updates: Partial<QueuedMatch> = {
+    const match = await db.queuedMatches.get(id);
+    if (!match) return;
+
+    const updatedMetadata = { ...match.metadata, submittedAt: Date.now() };
+    await db.queuedMatches.update(id, {
       status,
       lastError: error,
-      'metadata.submittedAt': Date.now(),
-    };
-
-    await db.queuedMatches.update(id, updates);
+      metadata: updatedMetadata,
+    });
   },
 
   /**
@@ -223,6 +225,7 @@ export const offlineQueue = {
    * Sync a single match to the server
    *
    * Features:
+   * - ID-based conflict detection (validates players/decks still exist)
    * - Exponential backoff for retryable errors
    * - Error strategy lookup for different status codes
    * - Automatic retry count tracking
@@ -244,7 +247,71 @@ export const offlineQueue = {
     options?.onProgress?.('syncing');
 
     try {
-      // Attempt to sync with server
+      // Step 1: Conflict Detection - Validate all player IDs and deck IDs still exist
+      const { playerApi, deckApi } = await import('./api');
+      const playerIds = new Set(match.matchData.player_deck_pairs.map(p => p.player_id));
+      const deckIds = new Set(match.matchData.player_deck_pairs.map(p => p.deck_id));
+
+      const missingPlayers: string[] = [];
+      const missingDecks: string[] = [];
+
+      // Check each player ID
+      for (const playerId of playerIds) {
+        try {
+          await playerApi.getById(playerId);
+        } catch (error: any) {
+          if (error.response?.status === 404) {
+            const snapshot = match.metadata.playerSnapshots.find(p => p.id === playerId);
+            missingPlayers.push(snapshot?.name || playerId);
+          }
+          // Other errors (401, 500) will be caught in main catch block
+          else {
+            throw error;
+          }
+        }
+      }
+
+      // Check each deck ID
+      for (const deckId of deckIds) {
+        try {
+          await deckApi.getById(deckId);
+        } catch (error: any) {
+          if (error.response?.status === 404) {
+            const snapshot = match.metadata.deckSnapshots.find(d => d.id === deckId);
+            missingDecks.push(snapshot?.name || deckId);
+          }
+          // Other errors (401, 500) will be caught in main catch block
+          else {
+            throw error;
+          }
+        }
+      }
+
+      // If any IDs are missing, fail with conflict error
+      if (missingPlayers.length > 0 || missingDecks.length > 0) {
+        const errorParts: string[] = [];
+        if (missingPlayers.length > 0) {
+          errorParts.push(`Players deleted: ${missingPlayers.join(', ')}`);
+        }
+        if (missingDecks.length > 0) {
+          errorParts.push(`Decks deleted: ${missingDecks.join(', ')}`);
+        }
+
+        const conflictError: QueueError = {
+          code: 404,
+          message: errorParts.join('. '),
+          timestamp: Date.now(),
+        };
+
+        await this.updateMatchStatus(id, 'error', conflictError);
+        options?.onError?.(conflictError);
+        options?.onProgress?.('error');
+
+        console.warn('[OfflineQueue] Conflict detected for match:', id, conflictError.message);
+        return false;
+      }
+
+      // Step 2: Attempt to sync with server (all IDs validated)
       const response = await matchApi.create(match.matchData);
 
       // Success - mark as synced
