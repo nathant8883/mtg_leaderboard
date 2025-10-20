@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function LoadingScreen() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#141517]">
