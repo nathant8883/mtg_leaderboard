@@ -23,9 +23,29 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Track shake animation for commander damage
   const [isShaking, setIsShaking] = useState(false);
 
-  // Track touch start position for swipe detection
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
+  // Track which player position is animating the swipe transition
+  const [swipeAnimatingPosition, setSwipeAnimatingPosition] = useState<number | null>(null);
+
+  // Gesture state tracker for intent-based detection
+  const gestureState = useRef<{
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+    startTime: number;
+    isIntentDetermined: boolean;
+    intent: 'swipe' | 'tap' | null;
+    playerPosition: number | null;
+  }>({
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0,
+    startTime: 0,
+    isIntentDetermined: false,
+    intent: null,
+    playerPosition: null,
+  });
 
   // Hold button state
   const holdTimerRef = useRef<number | null>(null);
@@ -124,6 +144,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   };
 
   const handleLifeButtonUp = () => {
+    // If swipe intent detected, don't trigger button action
+    if (gestureState.current.intent === 'swipe') {
+      // Clear button state
+      setActiveButton(null);
+      clearHoldTimers();
+      holdStartTime.current = null;
+      holdPosition.current = null;
+      holdDelta.current = null;
+      return;
+    }
+
     // If released before 1 second, do a single increment
     const wasHolding = holdIntervalRef.current !== null;
 
@@ -230,6 +261,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   };
 
   const handleCommanderDamageButtonUp = (opponentPosition: number) => {
+    // If swipe intent detected, don't trigger button action
+    if (gestureState.current.intent === 'swipe') {
+      // Clear button state
+      setActiveButton(null);
+      clearHoldTimers();
+      holdStartTime.current = null;
+      holdPosition.current = null;
+      holdDelta.current = null;
+      return;
+    }
+
     // If released before 1 second, do a single increment
     const wasHolding = holdIntervalRef.current !== null;
 
@@ -255,31 +297,94 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     setTrackingPlayerPosition(null);
   };
 
-  // Swipe gesture handlers - Enter commander damage mode
+  // Swipe gesture handlers - Enter commander damage mode with velocity-based intent detection
   const handleTouchStart = (e: React.TouchEvent, player: PlayerSlot) => {
     if (gameState.playerStates[player.position].eliminated) return;
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+
+    // Only track first touch point
+    const touch = e.touches[0];
+    gestureState.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      currentX: touch.clientX,
+      currentY: touch.clientY,
+      startTime: Date.now(),
+      isIntentDetermined: false,
+      intent: null,
+      playerPosition: player.position,
+    };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const gesture = gestureState.current;
+
+    // If intent already determined or no active gesture, skip
+    if (gesture.isIntentDetermined || gesture.playerPosition === null) return;
+
+    // Only track first touch point
+    const touch = e.touches[0];
+    gesture.currentX = touch.clientX;
+    gesture.currentY = touch.clientY;
+
+    const deltaX = gesture.currentX - gesture.startX;
+    const deltaY = gesture.currentY - gesture.startY;
+    const totalMovement = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // Direction locking: Determine intent early at 5-10px of movement
+    if (totalMovement > 8) {
+      const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * 1.5;
+
+      if (isHorizontal) {
+        // Calculate velocity (px/ms)
+        const elapsed = Date.now() - gesture.startTime;
+        const velocity = totalMovement / elapsed;
+
+        // Intent detection: Check if velocity indicates a swipe (0.3-0.5 px/ms)
+        if (velocity > 0.3) {
+          gesture.intent = 'swipe';
+          gesture.isIntentDetermined = true;
+
+          // Immediately clear button hold timers and active states
+          clearHoldTimers();
+          setActiveButton(null);
+        }
+      }
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent, player: PlayerSlot) => {
-    if (gameState.playerStates[player.position].eliminated) return;
-    if (touchStartX.current === null || touchStartY.current === null) return;
+    const gesture = gestureState.current;
 
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const deltaX = touchEndX - touchStartX.current;
-    const deltaY = touchEndY - touchStartY.current;
+    if (gameState.playerStates[player.position].eliminated || gesture.playerPosition === null) {
+      // Reset gesture state
+      gesture.intent = null;
+      gesture.isIntentDetermined = false;
+      gesture.playerPosition = null;
+      return;
+    }
 
-    // Detect horizontal swipe (threshold: 30px, must be more horizontal than vertical)
-    if (Math.abs(deltaX) > 30 && Math.abs(deltaX) > Math.abs(deltaY)) {
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - gesture.startX;
+    const deltaY = touch.clientY - gesture.startY;
+    const totalDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // Swipe completion: Check if intent is swipe AND distance exceeds completion threshold (60px)
+    if (gesture.intent === 'swipe' && totalDistance > 60) {
+      // Trigger swipe animation for this specific player card
+      setSwipeAnimatingPosition(player.position);
+      setTimeout(() => setSwipeAnimatingPosition(null), 450); // Match animation duration
+
       // Enter commander damage mode from this player's perspective
       setCommanderDamageMode(true);
       setTrackingPlayerPosition(player.position);
     }
+    // Hysteresis: If no intent determined and minimal movement, allow button tap to proceed
+    // (button handlers will check gesture intent separately)
 
-    touchStartX.current = null;
-    touchStartY.current = null;
+    // Reset gesture state
+    gesture.intent = null;
+    gesture.isIntentDetermined = false;
+    gesture.playerPosition = null;
   };
 
   const playerCount = players.length;
@@ -343,8 +448,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           return (
             <div
               key={player.position}
-              className={`player-card ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${isTrackingPlayer && isShaking ? 'shake' : ''}`}
+              className={`player-card ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${isTrackingPlayer && isShaking ? 'shake' : ''} ${swipeAnimatingPosition === player.position ? 'swipe-transition' : ''}`}
               onTouchStart={(e) => !commanderDamageMode && handleTouchStart(e, player)}
+              onTouchMove={(e) => !commanderDamageMode && handleTouchMove(e)}
               onTouchEnd={(e) => !commanderDamageMode && handleTouchEnd(e, player)}
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
@@ -376,12 +482,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     onMouseLeave={handleLifeButtonUp}
                     onTouchStart={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
                       handleLifeButtonDown(player.position, -1);
                     }}
                     onTouchEnd={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
                       handleLifeButtonUp();
                     }}
                     disabled={playerState.eliminated}
@@ -396,12 +500,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     onMouseLeave={handleLifeButtonUp}
                     onTouchStart={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
                       handleLifeButtonDown(player.position, 1);
                     }}
                     onTouchEnd={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
                       handleLifeButtonUp();
                     }}
                     disabled={playerState.eliminated}
@@ -445,12 +547,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                         onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
                         onTouchStart={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
                           handleCommanderDamageButtonDown(player.position, -1);
                         }}
                         onTouchEnd={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
                           handleCommanderDamageButtonUp(player.position);
                         }}
                       >
@@ -464,12 +564,10 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                         onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
                         onTouchStart={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
                           handleCommanderDamageButtonDown(player.position, 1);
                         }}
                         onTouchEnd={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
                           handleCommanderDamageButtonUp(player.position);
                         }}
                       >

@@ -1183,6 +1183,26 @@
     animation: shake 0.3s ease-in-out;
   }
 
+  /* PowerPoint-style slide and roll transition for commander damage mode */
+  @keyframes swipeTransition {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%) rotateY(-90deg);
+    }
+    60% {
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) rotateY(0deg);
+    }
+  }
+
+  .player-card.swipe-transition {
+    animation: swipeTransition 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transform-style: preserve-3d;
+  }
+
   /* Player Card Rotations - 3 players */
   .players-grid.layout-table.players-3 .player-card:nth-child(1),
   .players-grid.layout-table.players-3 .player-card:nth-child(2) {
