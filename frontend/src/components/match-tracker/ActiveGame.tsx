@@ -460,10 +460,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
     // Swipe completion: Check if intent is swipe AND distance exceeds completion threshold (60px)
     if (gesture.intent === 'swipe' && totalDistance > 60) {
-      // Trigger swipe animation for this specific player card
-      setSwipeAnimatingPosition(player.position);
-      setTimeout(() => setSwipeAnimatingPosition(null), 450); // Match animation duration
-
       // Enter commander damage mode from this player's perspective
       setCommanderDamageMode(true);
       setTrackingPlayerPosition(player.position);
