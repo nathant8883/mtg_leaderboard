@@ -9,6 +9,7 @@ import LandscapePrompt from '../components/LandscapePrompt';
 import { playerApi, deckApi, Player, Deck } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 export type LayoutType = 'table';
 export type StepType = 'setup' | 'assignment' | 'game' | 'winner';
@@ -53,6 +54,10 @@ const STORAGE_KEY = 'mtg_active_match';
 function MatchTracker() {
   const navigate = useNavigate();
   const { isOnline } = useOnlineStatus();
+
+  // Prevent screen timeout during match play
+  useWakeLock();
+
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [matchState, setMatchState] = useState<MatchState>(() => {

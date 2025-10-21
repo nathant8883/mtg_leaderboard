@@ -5,6 +5,7 @@ import { ProfileDropdown } from './ProfileDropdown';
 import { PageTransition } from './PageTransition';
 import { useAuth } from '../contexts/AuthContext';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { useWakeLock } from '../hooks/useWakeLock';
 import MatchForm from './MatchForm';
 import SyncQueue from './SyncQueue';
 import UpdatePrompt from './UpdatePrompt';
@@ -24,6 +25,9 @@ export function MainLayout() {
   const navigate = useNavigate();
   const { currentPlayer, isGuest } = useAuth();
   const { isOnline, isMetered, syncNow } = useOnlineStatus();
+
+  // Prevent screen timeout while app is open
+  useWakeLock();
 
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [showSyncQueue, setShowSyncQueue] = useState(false);
