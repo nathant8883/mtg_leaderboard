@@ -504,6 +504,35 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     }
   };
 
+  // Calculate badge position classes to avoid center hexagon overlap
+  // Badges are positioned on outer edges based on grid layout
+  const getBadgePositionClasses = (position: number): string => {
+    // For 3-4 player games (2x2 grid)
+    if (playerCount <= 4) {
+      // Top row (positions 1-2): rotated 180°, use bottom edge
+      // Bottom row (positions 3-4): use top edge
+      // Left column (positions 1, 3): use left edge
+      // Right column (positions 2, 4): use right edge
+      if (position === 1) return 'bottom-2 left-2'; // top-left card
+      if (position === 2) return 'bottom-2 right-2'; // top-right card
+      if (position === 3) return 'top-2 left-2'; // bottom-left card
+      if (position === 4) return 'top-2 right-2'; // bottom-right card
+    }
+    // For 5-6 player games (3x2 grid)
+    else {
+      // Top row (positions 1-3): rotated 180°, use bottom edge
+      // Bottom row (positions 4-6): use top edge
+      if (position === 1) return 'bottom-2 left-2'; // top-left card
+      if (position === 2) return 'bottom-2 left-2'; // top-center card (left side)
+      if (position === 3) return 'bottom-2 right-2'; // top-right card
+      if (position === 4) return 'top-2 left-2'; // bottom-left card
+      if (position === 5) return 'top-2 right-2'; // bottom-center card (right side)
+      if (position === 6) return 'top-2 right-2'; // bottom-right card
+    }
+    // Fallback for any unexpected position
+    return 'top-2 right-2';
+  };
+
   // Determine total grid slots based on player count (to match PlayerAssignment layout)
   // 3 players use 4 slots (2x2), 5 players use 6 slots (3x2), others use exact count
   const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
@@ -584,9 +613,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             >
               {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
 
-              {/* First Player Badge - Crown icon in top-right corner */}
+              {/* First Player Badge - Crown icon positioned on outer edge */}
               {firstPlayerPosition === player.position && !selectingFirstPlayer && (
-                <div className="absolute top-2 right-2 z-[10] w-7 h-7 rounded-full bg-black/70 flex items-center justify-center">
+                <div className={`absolute ${getBadgePositionClasses(player.position)} z-[10] w-7 h-7 rounded-full bg-black/70 flex items-center justify-center`}>
                   <Crown className="w-4 h-4 text-yellow-400" />
                 </div>
               )}
