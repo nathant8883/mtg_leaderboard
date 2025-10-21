@@ -605,7 +605,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           return (
             <div
               key={player.position}
-              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${swipeAnimatingPosition === player.position ? 'swipe-transition' : ''} ${selectingFirstPlayer ? 'cursor-pointer' : ''}`}
+              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${selectingFirstPlayer ? 'cursor-pointer' : ''}`}
               onTouchStart={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchStart(e, player)}
               onTouchMove={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchMove(e)}
               onTouchEnd={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchEnd(e, player)}
@@ -701,7 +701,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
               {commanderDamageMode && (
                 <>
                   {isTrackingPlayer ? (
-                    // This is the tracking player's card - show indicator with shake animation
+                    // This is the tracking player's card - show indicator with shake animation (swipe auto-plays via CSS)
                     <div className={`commander-damage-indicator ${isShaking ? 'shake' : ''}`}>
                       <div className="commander-indicator-title">COMMANDER</div>
                       <div className="commander-indicator-title">DAMAGE</div>

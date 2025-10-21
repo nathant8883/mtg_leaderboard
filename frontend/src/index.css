@@ -1220,6 +1220,21 @@
     }
   }
 
+  /* Variant for rotated (top-row) cards - maintains 180° rotation throughout */
+  @keyframes swipeTransitionRotated {
+    0% {
+      opacity: 0;
+      transform: translateX(-100%) rotateY(-90deg) rotate(180deg);
+    }
+    60% {
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) rotateY(0deg) rotate(180deg);
+    }
+  }
+
   .player-card.swipe-transition {
     animation: swipeTransition 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
     transform-style: preserve-3d;
@@ -1470,6 +1485,27 @@
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
     border-radius: 16px;
+    /* Auto-play swipe animation when element appears */
+    animation: swipeTransition 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transform-style: preserve-3d;
+  }
+
+  /* Use rotated animation for top-row positions (3-4 player games) */
+  .players-grid.layout-table.players-3 .player-card:nth-child(1) .commander-damage-indicator,
+  .players-grid.layout-table.players-3 .player-card:nth-child(2) .commander-damage-indicator,
+  .players-grid.layout-table.players-4 .player-card:nth-child(1) .commander-damage-indicator,
+  .players-grid.layout-table.players-4 .player-card:nth-child(2) .commander-damage-indicator {
+    animation: swipeTransitionRotated 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  /* Use rotated animation for top-row positions (5-6 player games) */
+  .players-grid.layout-table.players-5 .player-card:nth-child(1) .commander-damage-indicator,
+  .players-grid.layout-table.players-5 .player-card:nth-child(2) .commander-damage-indicator,
+  .players-grid.layout-table.players-5 .player-card:nth-child(3) .commander-damage-indicator,
+  .players-grid.layout-table.players-6 .player-card:nth-child(1) .commander-damage-indicator,
+  .players-grid.layout-table.players-6 .player-card:nth-child(2) .commander-damage-indicator,
+  .players-grid.layout-table.players-6 .player-card:nth-child(3) .commander-damage-indicator {
+    animation: swipeTransitionRotated 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
   .commander-indicator-title {
