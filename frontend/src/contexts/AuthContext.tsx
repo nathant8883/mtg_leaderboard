@@ -28,35 +28,49 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_KEY = 'mtg_auth_token';
 const GUEST_MODE_KEY = 'mtg_guest_mode';
 
+type AuthCheckResult = {
+  player: Player | null;
+  isAuthFailure: boolean; // true if 401, false if network error
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
 
-  const fetchCurrentPlayer = async (token: string): Promise<Player | null> => {
+  const fetchCurrentPlayer = async (token: string, retryCount = 0): Promise<AuthCheckResult> => {
     try {
-      // Add 5-second timeout to prevent long hangs when offline
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
       const response = await fetch('/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-        signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
-        throw new Error('Failed to fetch current player');
+        // 401 means token is actually invalid/expired
+        if (response.status === 401) {
+          console.log('Token is invalid or expired (401)');
+          return { player: null, isAuthFailure: true };
+        }
+        // Other errors (500, 503, etc.) are server issues, not auth failures
+        throw new Error(`Server error: ${response.status}`);
       }
 
       const player = await response.json();
-      return player;
+      return { player, isAuthFailure: false };
     } catch (error) {
       console.error('Error fetching current player:', error);
-      return null;
+
+      // Retry logic with exponential backoff (max 2 retries)
+      if (retryCount < 2) {
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s
+        console.log(`Retrying auth check in ${delay}ms (attempt ${retryCount + 1}/2)...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchCurrentPlayer(token, retryCount + 1);
+      }
+
+      // After retries exhausted, treat as network error (not auth failure)
+      return { player: null, isAuthFailure: false };
     }
   };
 
@@ -64,7 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.removeItem(GUEST_MODE_KEY); // Clear guest mode on login
     setIsGuest(false);
-    const player = await fetchCurrentPlayer(token);
+    const { player } = await fetchCurrentPlayer(token);
     setCurrentPlayer(player);
   };
 
@@ -85,7 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const refreshPlayer = async () => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (token && !isGuest) {
-      const player = await fetchCurrentPlayer(token);
+      const { player } = await fetchCurrentPlayer(token);
       setCurrentPlayer(player);
     }
   };
@@ -108,13 +122,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsGuest(true);
         setCurrentPlayer(null);
       } else if (token) {
-        // User has a valid token and is online
-        const player = await fetchCurrentPlayer(token);
+        // User has a token and is online - verify it
+        const { player, isAuthFailure } = await fetchCurrentPlayer(token);
         if (player) {
           setCurrentPlayer(player);
-        } else {
-          // Token is invalid/expired or fetch failed, switch to guest mode gracefully
+        } else if (isAuthFailure) {
+          // Token is actually invalid/expired (401) - clear it and switch to guest mode
+          console.log('Token expired or invalid - clearing and switching to guest mode');
           localStorage.removeItem(TOKEN_KEY);
+          localStorage.setItem(GUEST_MODE_KEY, 'true');
+          setIsGuest(true);
+        } else {
+          // Network error - keep token but switch to guest mode temporarily
+          console.log('Network error during auth check - keeping token and enabling guest mode temporarily');
           localStorage.setItem(GUEST_MODE_KEY, 'true');
           setIsGuest(true);
         }
