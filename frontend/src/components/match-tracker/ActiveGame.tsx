@@ -28,9 +28,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Track shake animation for commander damage
   const [isShaking, setIsShaking] = useState(false);
 
-  // Track which player position is animating the swipe transition
-  const [swipeAnimatingPosition, setSwipeAnimatingPosition] = useState<number | null>(null);
-
   // Life change delta tracking for visual feedback
   const [lifeChangeDeltaMap, setLifeChangeDeltaMap] = useState<Record<number, number>>({});
   const lifeChangeDeltaTimeouts = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
