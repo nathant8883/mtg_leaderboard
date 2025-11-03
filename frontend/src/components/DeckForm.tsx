@@ -77,6 +77,7 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
   return (
     <div className="fixed inset-0 bg-black/70 flex items-start md:items-center justify-center z-[1000] p-3 md:p-6" onClick={onCancel}>
       <div className="bg-gradient-card rounded-[16px] md:rounded-[12px] p-0 md:p-8 w-full max-w-full md:max-w-[500px] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-h-[calc(100vh-24px)] md:min-h-0 max-h-[calc(100vh-24px)] md:max-h-none flex flex-col md:block overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Sticky Header */}
         <div className="mb-0 md:mb-6 flex items-center justify-between sticky md:static top-0 bg-gradient-card border-b border-[#2C2E33] md:border-b-0 p-4 px-5 md:p-0 z-10 flex-shrink-0">
           <h2 className="text-white m-0 text-xl md:text-2xl font-semibold flex-1">{isEdit ? 'Edit Deck' : 'Add New Deck'}</h2>
           <button
@@ -89,7 +90,8 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto md:overflow-y-visible p-5 md:p-0 pb-10 md:pb-0 flex flex-col md:block">
+        {/* Scrollable Form Content */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto md:overflow-y-visible p-5 md:p-0 pb-3 md:pb-0 flex flex-col md:block">
           <div className="mb-5">
             <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="deckName">
               Deck Name *
@@ -194,8 +196,11 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
               {error}
             </div>
           )}
+        </form>
 
-          <div className="flex gap-2 md:gap-3 justify-end mt-auto md:mt-6 pt-5 md:pt-0 flex-shrink-0">
+        {/* Sticky Action Buttons (Mobile) / Regular Buttons (Desktop) */}
+        <div className="sticky md:static bottom-0 bg-gradient-card border-t border-[#2C2E33] md:border-t-0 p-4 px-5 md:p-0 z-10 flex-shrink-0 md:mt-6">
+          <div className="flex gap-2 md:gap-3 justify-end">
             <button
               type="button"
               className="py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] bg-transparent border border-[#2C2E33] text-[#C1C2C5] cursor-pointer font-medium text-sm transition-all hover:bg-[#25262B] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -206,6 +211,7 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
             </button>
             <button
               type="submit"
+              onClick={handleSubmit}
               className={`py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] border-none text-white font-semibold text-sm transition-all ${
                 isSubmitting
                   ? 'bg-[#2C2E33] cursor-not-allowed opacity-50'
@@ -216,7 +222,7 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
               {isSubmitting ? 'Saving...' : (isEdit ? 'Update Deck' : 'Create Deck')}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

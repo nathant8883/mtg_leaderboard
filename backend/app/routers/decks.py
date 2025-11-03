@@ -10,12 +10,13 @@ router = APIRouter()
 
 
 class CreateDeckRequest(BaseModel):
-    """Request model for creating a deck (no player_id needed, uses authenticated user)"""
+    """Request model for creating a deck"""
     name: str
     commander: str
     commander_image_url: str | None = None
     colors: list[str] = []
     disabled: bool = False
+    player_id: str | None = None  # Optional - only used by superusers to create decks for other players
 
 
 @router.get("/")
@@ -64,10 +65,30 @@ async def create_deck(
     """
     Create a new deck with Scryfall integration.
 
-    Requires authentication. Deck will be created for the authenticated user.
+    Requires authentication. Deck will be created for the authenticated user,
+    unless a player_id is provided and the current user is a superuser.
     Validates that the commander is a legendary creature and fetches
     commander image and color identity from Scryfall if not provided.
     """
+    # Determine which player the deck should be created for
+    target_player_id = str(current_player.id)  # Default to authenticated user
+
+    # If player_id is provided and user is superuser, use that instead
+    if deck_request.player_id:
+        if not current_player.is_superuser:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only superusers can create decks for other players"
+            )
+        # Verify the target player exists
+        target_player = await Player.get(PydanticObjectId(deck_request.player_id))
+        if not target_player:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Player with ID '{deck_request.player_id}' not found"
+            )
+        target_player_id = deck_request.player_id
+
     # Verify commander exists and is a legendary creature via Scryfall
     commander_details = await scryfall_service.get_commander_details(deck_request.commander)
     if not commander_details:
@@ -85,10 +106,10 @@ async def create_deck(
     if not colors:
         colors = commander_details.get("color_identity", [])
 
-    # Create deck for the authenticated user
+    # Create deck for the target player
     deck = Deck(
         name=deck_request.name,
-        player_id=str(current_player.id),
+        player_id=target_player_id,
         commander=deck_request.commander,
         commander_image_url=commander_image_url,
         colors=colors,
