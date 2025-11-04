@@ -478,34 +478,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Create a map of position -> player for easy lookup
   const playersByPosition = new Map(players.map(p => [p.position, p]));
 
-  // Calculate rotation for first player selection text based on table position
-  // NOTE: CSS counter-rotates children of positions 1-2 (and 1-3 for 5-6 players) by 180°
-  // So we need to add rotation to account for this CSS counter-rotation
-  const getTextRotation = (position: number): number => {
-    // For 3-4 player games (using 4 slots in 2x2 grid)
-    if (playerCount <= 4) {
-      // Positions 1-2: top row - CSS counter-rotates by 180°, so add 180° to flip = 360° = 0° upright...
-      // Wait, we want these FLIPPED, so add 180° on top of the CSS 180° counter-rotation
-      // Positions 3-4: bottom row - no CSS rotation, keep upright (0°)
-      return position <= 2 ? 180 : 0;
-    }
-    // For 5-6 player games (using 6 slots in 3x2 grid)
-    else {
-      // Positions 1-3: top row - CSS counter-rotates by 180°, add 180° to flip
-      // Positions 4-6: bottom row - no CSS rotation, keep upright (0°)
-      return position <= 3 ? 180 : 0;
-    }
-  };
-
-  // Helper to determine if a position is in the rotated top row
-  const isRotatedPosition = (position: number): boolean => {
-    if (playerCount <= 4) {
-      return position <= 2; // Positions 1-2 are top row
-    } else {
-      return position <= 3; // Positions 1-3 are top row
-    }
-  };
-
   // Calculate badge position classes to avoid center hexagon overlap
   // Badges are positioned on outer edges based on grid layout
   const getBadgePositionClasses = (position: number): string => {
