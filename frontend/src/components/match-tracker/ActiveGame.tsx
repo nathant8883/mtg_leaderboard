@@ -497,6 +497,15 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     }
   };
 
+  // Helper to determine if a position is in the rotated top row
+  const isRotatedPosition = (position: number): boolean => {
+    if (playerCount <= 4) {
+      return position <= 2; // Positions 1-2 are top row
+    } else {
+      return position <= 3; // Positions 1-3 are top row
+    }
+  };
+
   // Calculate badge position classes to avoid center hexagon overlap
   // Badges are positioned on outer edges based on grid layout
   const getBadgePositionClasses = (position: number): string => {
@@ -613,7 +622,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 </div>
               )}
 
-              <div className="absolute top-3 left-20 right-20 z-[2] text-center">
+              <div className="absolute top-3 left-20 right-20 z-[2] text-center flex flex-col vertical-stack">
                 <div
                   className="text-lg font-bold text-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   onClick={() => {
@@ -631,15 +640,13 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
               {/* First Player Selection Mode - Show selection overlay */}
               {selectingFirstPlayer && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-[5]">
-                  <div
-                    className="text-center"
-                    style={{ transform: `rotate(${getTextRotation(player.position)}deg)` }}
-                  >
+                <>
+                  <div className="absolute inset-0 bg-black/50 z-[5]" />
+                  <div className="absolute top-1/2 left-0 right-0 z-[6] -translate-y-1/2 text-center pointer-events-none flex flex-col vertical-stack">
                     <div className="text-lg font-bold text-white mb-1">Tap To Choose</div>
                     <div className="text-base font-semibold text-white">First Player</div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Normal Life Tracking Mode */}
@@ -695,16 +702,18 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <>
                   {isTrackingPlayer ? (
                     // This is the tracking player's card - show indicator with shake animation (swipe auto-plays via CSS)
-                    <div className={`commander-damage-indicator ${isShaking ? 'shake' : ''}`}>
-                      <div className="commander-indicator-title">COMMANDER</div>
-                      <div className="commander-indicator-title">DAMAGE</div>
-                      <div className="commander-indicator-subtitle">YOU'VE RECEIVED</div>
-                      <div
-                        className="commander-indicator-return"
-                        onClick={exitCommanderDamageMode}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        RETURN TO GAME
+                    <div className="commander-damage-indicator">
+                      <div className={`commander-indicator-content vertical-stack ${isShaking ? 'shake' : ''}`}>
+                        <div className="commander-indicator-title">COMMANDER</div>
+                        <div className="commander-indicator-title">DAMAGE</div>
+                        <div className="commander-indicator-subtitle">YOU'VE RECEIVED</div>
+                        <div
+                          className="commander-indicator-return"
+                          onClick={exitCommanderDamageMode}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          RETURN TO GAME
+                        </div>
                       </div>
                     </div>
                   ) : (
