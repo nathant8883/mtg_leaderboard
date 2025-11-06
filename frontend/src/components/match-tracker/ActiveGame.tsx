@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Crown, Sword, Menu } from 'lucide-react';
+import { Crown, Sword, Menu, Heart, Skull } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
 
 interface ActiveGameProps {
@@ -102,7 +102,13 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     // Read from ref to get the latest state
     const currentState = gameStateRef.current;
     const currentLife = currentState.playerStates[position].life;
-    const newLife = Math.max(0, currentLife + delta);
+    const playerState = currentState.playerStates[position];
+
+    // Allow negative life if player is revived, otherwise minimum is 0
+    const newLife = playerState.revived ? currentLife + delta : Math.max(0, currentLife + delta);
+
+    // Only auto-eliminate if not revived and life reaches 0
+    const shouldEliminate = !playerState.revived && newLife <= 0;
 
     const updatedState = {
       ...currentState,
@@ -111,7 +117,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         [position]: {
           ...currentState.playerStates[position],
           life: newLife,
-          eliminated: newLife <= 0,
+          eliminated: shouldEliminate,
         },
       },
     };
@@ -176,15 +182,15 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     holdPosition.current = position;
     holdDelta.current = delta;
 
-    // After 1 second, start incrementing by 10
+    // After 0.5 seconds, start incrementing by 10
     holdTimerRef.current = setTimeout(() => {
       // First increment immediately
       handleLifeChange(position, delta * 10);
-      // Then continue every 1 second
+      // Then continue every 0.5 seconds
       holdIntervalRef.current = setInterval(() => {
         handleLifeChange(position, delta * 10);
-      }, 1000);
-    }, 1000);
+      }, 500);
+    }, 500);
   };
 
   const handleLifeButtonUp = () => {
@@ -199,12 +205,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       return;
     }
 
-    // If released before 1 second, do a single increment
+    // If released before 0.5 seconds, do a single increment
     const wasHolding = holdIntervalRef.current !== null;
 
     if (!wasHolding && holdStartTime.current !== null && holdPosition.current !== null && holdDelta.current !== null) {
       const elapsed = Date.now() - holdStartTime.current;
-      if (elapsed < 1000) {
+      if (elapsed < 500) {
         handleLifeChange(holdPosition.current, holdDelta.current);
       }
     }
@@ -263,7 +269,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     // Only adjust life based on the actual damage change (handles edge case where damage is at 0)
     const actualDamageDelta = newDamage - currentDamage;
     const currentLife = currentState.playerStates[trackingPlayerPosition].life;
-    const newLife = Math.max(0, currentLife - actualDamageDelta); // Life goes down when commander damage goes up
+    const playerState = currentState.playerStates[trackingPlayerPosition];
+
+    // Allow negative life if player is revived, otherwise minimum is 0
+    const newLife = playerState.revived
+      ? currentLife - actualDamageDelta
+      : Math.max(0, currentLife - actualDamageDelta);
+
+    // Check if this player should be eliminated:
+    // - Commander damage >= 21 always eliminates (even if revived)
+    // - Life <= 0 only eliminates if not revived
+    const shouldEliminate = newDamage >= 21 || (!playerState.revived && newLife <= 0);
 
     const updatedState = {
       ...currentState,
@@ -276,9 +292,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             ...(currentState.playerStates[trackingPlayerPosition].commanderDamage || {}),
             [fromOpponentPosition]: newDamage,
           },
-          // Check if this player should be eliminated due to life <= 0 OR commander damage >= 21
-          eliminated:
-            newLife <= 0 || newDamage >= 21,
+          eliminated: shouldEliminate,
         },
       },
     };
@@ -385,6 +399,65 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const exitCommanderDamageMode = () => {
     setCommanderDamageMode(false);
     setTrackingPlayerPosition(null);
+  };
+
+  // Revive a player
+  const handleRevive = (position: number) => {
+    const currentState = gameStateRef.current;
+    const playerState = currentState.playerStates[position];
+
+    // Can't revive if force eliminated
+    if (playerState.forceEliminated) return;
+
+    const updatedState = {
+      ...currentState,
+      playerStates: {
+        ...currentState.playerStates,
+        [position]: {
+          ...currentState.playerStates[position],
+          eliminated: false,
+          revived: true,
+          // Keep current life value (0 or whatever it was)
+        },
+      },
+    };
+
+    onUpdateGameState(updatedState);
+  };
+
+  // Force eliminate a player (with confirmation)
+  const [confirmEliminatePosition, setConfirmEliminatePosition] = useState<number | null>(null);
+
+  const handleForceEliminate = (position: number) => {
+    const currentState = gameStateRef.current;
+
+    const updatedState = {
+      ...currentState,
+      playerStates: {
+        ...currentState.playerStates,
+        [position]: {
+          ...currentState.playerStates[position],
+          eliminated: true,
+          forceEliminated: true,
+        },
+      },
+    };
+
+    onUpdateGameState(updatedState);
+    setConfirmEliminatePosition(null); // Close confirmation modal
+
+    // Check if only one player remains
+    const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
+    if (remainingPlayers.length === 1) {
+      const winnerPosition = Object.keys(updatedState.playerStates).find(
+        (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
+      );
+      if (winnerPosition) {
+        // Save timer value to gameState before completing
+        const finalState = { ...updatedState, elapsedSeconds: timer };
+        onGameComplete(parseInt(winnerPosition), finalState);
+      }
+    }
   };
 
   // Swipe gesture handlers - Enter commander damage mode with velocity-based intent detection
@@ -585,11 +658,28 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
               onTouchEnd={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchEnd(e, player)}
               onClick={() => selectingFirstPlayer && handleSelectFirstPlayer(player.position)}
             >
-              {playerState.eliminated && <div className="eliminated-overlay">Eliminated</div>}
+              {playerState.eliminated && (
+                <div className="eliminated-overlay">
+                  Eliminated
+                  {/* Revive button - only show if not force eliminated */}
+                  {!playerState.forceEliminated && (
+                    <button
+                      className="revive-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRevive(player.position);
+                      }}
+                      title="Revive Player"
+                    >
+                      <Heart className="w-5 h-5" strokeWidth={2} absoluteStrokeWidth />
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* First Player Badge - Crown icon positioned on outer edge */}
               {firstPlayerPosition === player.position && !selectingFirstPlayer && (
-                <div className={`absolute ${getBadgePositionClasses(player.position)} z-[10] w-7 h-7 rounded-full bg-black/70 flex items-center justify-center`}>
+                <div className={`crown-badge absolute ${getBadgePositionClasses(player.position)} z-[10] w-7 h-7 rounded-full bg-black/70 flex items-center justify-center`}>
                   <Crown className="w-4 h-4 text-yellow-400" />
                 </div>
               )}
@@ -687,6 +777,18 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                           RETURN TO GAME
                         </div>
                       </div>
+                      {/* Force eliminate button - positioned like revive button */}
+                      <button
+                        className="revive-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmEliminatePosition(player.position);
+                        }}
+                        title="Force Eliminate Player"
+                        style={{ background: 'rgba(239, 68, 68, 0.9)', borderColor: '#ef4444' }}
+                      >
+                        <Skull className="w-5 h-5" strokeWidth={2} absoluteStrokeWidth />
+                      </button>
                     </div>
                   ) : (
                     // This is an opponent's card - show damage tracking with same layout as life
@@ -784,6 +886,34 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             <button className="bg-[#2c2e33] text-white border border-[#3c3e43] rounded-[8px] py-3 px-6 text-sm font-semibold cursor-pointer transition-all duration-200 w-full hover:bg-[#3c3e43]" onClick={() => setShowWinnerSelect(false)}>
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Force Eliminate Confirmation Modal */}
+      {confirmEliminatePosition !== null && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4" onClick={() => setConfirmEliminatePosition(null)}>
+          <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-6 max-w-[400px] w-full" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-semibold mb-2 text-center text-[#ef4444]">Force Eliminate Player</h2>
+            <p className="text-sm text-center mb-6 text-[#9ca3af]">
+              Are you sure you want to eliminate <span className="font-semibold text-white">{players.find(p => p.position === confirmEliminatePosition)?.playerName}</span>?
+              <br />
+              <span className="text-xs">This action cannot be undone (player cannot be revived).</span>
+            </p>
+            <div className="flex gap-3">
+              <button
+                className="flex-1 bg-[#2c2e33] text-white border border-[#3c3e43] rounded-[8px] py-3 px-6 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#3c3e43]"
+                onClick={() => setConfirmEliminatePosition(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 bg-[#ef4444] text-white rounded-[8px] py-3 px-6 text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#dc2626]"
+                onClick={() => handleForceEliminate(confirmEliminatePosition)}
+              >
+                Eliminate
+              </button>
+            </div>
           </div>
         </div>
       )}
