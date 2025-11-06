@@ -921,6 +921,13 @@
     transform: rotate(180deg);
   }
 
+  /* Override SVG rotation - keep SVGs aligned with their container (not doubly rotated) */
+  /* Exclude .crown-badge svgs since the badge itself is already not rotated */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) svg:not(.crown-badge svg),
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) svg:not(.crown-badge svg) {
+    transform: rotate(0deg) !important;
+  }
+
   /* Table Layout Rotations - 4 players */
   .players-grid.layout-table.players-4 .player-slot:nth-child(1),
   .players-grid.layout-table.players-4 .player-slot:nth-child(2) {
@@ -930,6 +937,13 @@
   .players-grid.layout-table.players-4 .player-slot:nth-child(1) *,
   .players-grid.layout-table.players-4 .player-slot:nth-child(2) * {
     transform: rotate(180deg);
+  }
+
+  /* Override SVG rotation - keep SVGs aligned with their container (not doubly rotated) */
+  /* Exclude .crown-badge svgs since the badge itself is already not rotated */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) svg:not(.crown-badge svg),
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) svg:not(.crown-badge svg) {
+    transform: rotate(0deg) !important;
   }
 
   /* Table Layout Rotations - 5 players */
@@ -945,6 +959,14 @@
     transform: rotate(180deg);
   }
 
+  /* Override SVG rotation - keep SVGs aligned with their container (not doubly rotated) */
+  /* Exclude .crown-badge svgs since the badge itself is already not rotated */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) svg:not(.crown-badge svg),
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) svg:not(.crown-badge svg),
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) svg:not(.crown-badge svg) {
+    transform: rotate(0deg) !important;
+  }
+
   /* Table Layout Rotations - 6 players */
   .players-grid.layout-table.players-6 .player-slot:nth-child(1),
   .players-grid.layout-table.players-6 .player-slot:nth-child(2),
@@ -956,6 +978,14 @@
   .players-grid.layout-table.players-6 .player-slot:nth-child(2) *,
   .players-grid.layout-table.players-6 .player-slot:nth-child(3) * {
     transform: rotate(180deg);
+  }
+
+  /* Override SVG rotation - keep SVGs aligned with their container (not doubly rotated) */
+  /* Exclude .crown-badge svgs since the badge itself is already not rotated */
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) svg:not(.crown-badge svg),
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) svg:not(.crown-badge svg),
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) svg:not(.crown-badge svg) {
+    transform: rotate(0deg) !important;
   }
 
   /* Fix vertical order for rotated content - reverse flex direction */
@@ -1351,6 +1381,185 @@
     border-radius: 16px;
   }
 
+  /* Eliminated Overlay Rotations - Override the universal * rotation to keep overlay with parent rotation */
+  /* 3 players */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .eliminated-overlay,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .eliminated-overlay {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 4 players */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .eliminated-overlay,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .eliminated-overlay {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 5 players */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .eliminated-overlay,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .eliminated-overlay,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .eliminated-overlay {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 6 players */
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .eliminated-overlay,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .eliminated-overlay,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .eliminated-overlay {
+    transform: rotate(0deg) !important;
+  }
+
+  /* Crown Badge Rotations - Override the universal * rotation to keep badge with parent rotation */
+  /* 3 players */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .crown-badge,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .crown-badge {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 4 players */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .crown-badge,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .crown-badge {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 5 players */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .crown-badge,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .crown-badge,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .crown-badge {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 6 players */
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .crown-badge,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .crown-badge,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .crown-badge {
+    transform: rotate(0deg) !important;
+  }
+
+  /* Crown Badge SVG Rotations - Keep SVGs inside crown-badge aligned properly */
+  /* Since crown-badge itself is at 0deg, but the universal * selector would rotate children to 180deg, we need to explicitly keep SVGs at 0deg */
+  /* Also use transform-box: fill-box to ensure rotation happens around the SVG's own painted area, not the viewport */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .crown-badge svg,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .crown-badge svg {
+    transform: rotate(0deg) !important;
+    transform-box: fill-box;
+  }
+
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .crown-badge svg,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .crown-badge svg {
+    transform: rotate(0deg) !important;
+    transform-box: fill-box;
+  }
+
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .crown-badge svg,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .crown-badge svg,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .crown-badge svg {
+    transform: rotate(0deg) !important;
+    transform-box: fill-box;
+  }
+
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .crown-badge svg,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .crown-badge svg,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .crown-badge svg {
+    transform: rotate(0deg) !important;
+    transform-box: fill-box;
+  }
+
+  /* Revive button in eliminated overlay */
+  .revive-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    background: rgba(34, 197, 94, 0.9); /* Green background */
+    border: 2px solid #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 11;
+    color: white;
+    padding: 0;
+  }
+
+  /* Ensure SVG icons inside buttons are visible */
+  .revive-btn svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    fill: none;
+    color: inherit;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: none;
+    /* Prevent double rotation - button is already rotated, don't rotate SVG again */
+    transform: none !important;
+  }
+
+  .revive-btn:hover {
+    background: rgba(34, 197, 94, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.6);
+  }
+
+  .revive-btn:active {
+    transform: scale(0.95);
+  }
+
+
+  /* For rotated cards (top quadrants), adjust button positioning to compensate for rotation */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .revive-btn,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .revive-btn,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .revive-btn,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .revive-btn,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .revive-btn,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .revive-btn,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .revive-btn,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .revive-btn,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .revive-btn,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .revive-btn {
+    /* When card is rotated 180deg, top-right becomes bottom-left, so we flip the positioning */
+    top: auto;
+    right: auto;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  /* Force eliminate button in commander damage mode */
+  .force-eliminate-btn {
+    background: rgba(239, 68, 68, 0.2); /* Red background with transparency */
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    border-radius: 8px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+
+  .force-eliminate-btn:hover {
+    background: rgba(239, 68, 68, 0.4);
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  }
+
+  .force-eliminate-btn:active {
+    transform: translateY(0);
+  }
+
   /* Life buttons */
   .life-btn-side {
     position: absolute;
@@ -1392,6 +1601,33 @@
   .life-btn-side:disabled {
     opacity: 0.15;
     cursor: not-allowed;
+  }
+
+  /* Life Button Rotations - Override the universal * rotation to keep buttons with parent rotation */
+  /* 3 players */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .life-btn-side,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .life-btn-side {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 4 players */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .life-btn-side,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .life-btn-side {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 5 players */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .life-btn-side,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .life-btn-side,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .life-btn-side {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 6 players */
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .life-btn-side,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .life-btn-side,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .life-btn-side {
+    transform: rotate(0deg) !important;
   }
 
   /* Life total */

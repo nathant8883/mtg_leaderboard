@@ -351,6 +351,69 @@ app.include_router(new_router.router, prefix="/api/endpoint", tags=["tag"])
 2. Winner must be one of the participating players
 3. Each player in a match needs both player_id and deck_id
 
+### Player Position Rotation System
+
+**Critical for Match Tracker UI:** The app is designed for landscape orientation with the phone in the center of the table. Players sit on opposite sides, so the UI rotates elements 180° for players on the opposite side to view their cards right-side up.
+
+**Layout System** (`frontend/src/index.css`):
+- Uses CSS grid with class pattern: `players-grid layout-{layout} players-{playerCount}`
+- Grid layouts:
+  - **3 players**: 2x2 grid (4 slots, one blank)
+  - **4 players**: 2x2 grid (2 top rotated, 2 bottom)
+  - **5 players**: 3x2 grid (3 top rotated, 2 bottom)
+  - **6 players**: 3x2 grid (3 top rotated, 3 bottom)
+
+**Rotation Implementation:**
+
+1. **CSS-based Auto-rotation** (lines 913-959 in `index.css`):
+   - Top-row players automatically rotated 180° via nth-child selectors
+   - Example for 4 players:
+     ```css
+     .players-grid.layout-table.players-4 .player-slot:nth-child(1),
+     .players-grid.layout-table.players-4 .player-slot:nth-child(2) {
+       transform: rotate(180deg);
+     }
+     ```
+
+2. **Double Rotation Pattern**:
+   - Parent element (`.player-slot` or `.player-card`) rotated 180°
+   - All children (`*`) also rotated 180° to appear upright to opposite players
+   - This preserves readability for players on the opposite side
+
+3. **Position-based Logic** (Components):
+   - `PlayerAssignment.tsx:180-184` and `ActiveGame.tsx:570-581` calculate which positions are top row
+   - For 3-4 players: positions 1-2 are top row (rotated)
+   - For 5-6 players: positions 1-3 are top row (rotated)
+   - Components apply inline styles: `style={{ transform: 'rotate(180deg)' }}`
+
+4. **Animation Preservation**:
+   - Special `@keyframes` variants maintain rotation during animations
+   - `shakeRotated` keyframes (lines 1218-1222): Includes `rotate(180deg)` in all transform states
+   - `swipeTransitionRotated` keyframes (lines 1259-1271): For commander damage mode transitions
+   - Applied via CSS selectors targeting specific player positions
+
+5. **Button Positioning Compensation** (lines 1401-1417):
+   - Buttons in rotated cards have flipped positioning
+   - Example: Revive button moves from `top-right` to `bottom-left` for rotated positions
+   - Ensures buttons appear in correct visual corner for opposite-side players
+
+6. **Flex-direction Reversal** (lines 961-973, 1651-1663):
+   - Vertical stacks (`vertical-stack` class) use `flex-direction: column-reverse` for rotated positions
+   - Prevents content from appearing upside-down within rotated containers
+
+**Important for New Features:**
+- When adding interactive elements (buttons, indicators) to player cards, always account for rotation
+- Use position-based CSS selectors to adjust positioning for rotated cards
+- Test with 3, 4, 5, and 6 player layouts to ensure rotation works correctly
+- For animations that modify `transform`, create separate `*Rotated` keyframes variants
+- Remember: rotation is position-based (top vs bottom row), not player-based
+
+**Files to Reference:**
+- CSS: `frontend/src/index.css` (lines 880-1663)
+- Components:
+  - `frontend/src/components/match-tracker/PlayerAssignment.tsx` (lines 175-213)
+  - `frontend/src/components/match-tracker/ActiveGame.tsx` (lines 570-660)
+
 ### API Response Formats
 
 **Note:** FastAPI endpoints without trailing slashes will return 307 redirects. Always include trailing slashes in route definitions or client requests.

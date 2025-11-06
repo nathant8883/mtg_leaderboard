@@ -28,6 +28,8 @@ export interface PlayerSlot {
 export interface PlayerGameState {
   life: number;
   eliminated: boolean;
+  revived: boolean; // player has been revived after hitting 0 life
+  forceEliminated: boolean; // player was manually eliminated (cannot be revived)
   eliminatedBy?: string; // player position who eliminated them
   commanderDamage: Record<string, number>; // damage from each opponent position
 }
@@ -164,6 +166,8 @@ function MatchTracker() {
       gameState.playerStates[player.position] = {
         life: matchState.startingLife,
         eliminated: false,
+        revived: false,
+        forceEliminated: false,
         commanderDamage: {},
       };
     });
