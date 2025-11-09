@@ -17,7 +17,7 @@ export function LoadingScreen() {
           {/* Trophy logo */}
           <div className="relative flex items-center justify-center w-[140px] h-[140px] animate-pulse">
             <img
-              src="/icon.svg"
+              src="/icon.png"
               alt="Pod Pal Logo"
               className="w-24 h-24 object-contain"
               style={{ animation: 'logoFadeIn 0.6s ease-out' }}

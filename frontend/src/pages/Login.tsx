@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/auth';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -82,7 +81,7 @@ export const Login: React.FC = () => {
         {/* Mana Energy Logo */}
         <div className="logo-container">
           <div className="mana-circle">
-            <Zap className="mana-icon" />
+            <img src="/logo.png" alt="Pod Pal Logo" className="mana-icon" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.15)' }} />
           </div>
           <div className="mana-symbols">
             {manaColors.map((color) => (

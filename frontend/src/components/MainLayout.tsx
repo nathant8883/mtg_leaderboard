@@ -228,7 +228,9 @@ export function MainLayout() {
         <div className="app-header bg-gradient-card border-b border-[#2C2E33] px-6 py-4 md:px-6 md:py-4 max-md:px-3 max-md:py-[10px] sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
           <div className="w-full flex justify-between items-center">
             <div className="flex items-center gap-4 max-md:gap-3">
-              <div className="w-10 h-10 max-md:w-9 max-md:h-9 bg-gradient-purple rounded-[8px] flex items-center justify-center text-xl max-md:text-lg cursor-pointer" onClick={() => navigate('/')}>🏆</div>
+              <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-gradient-purple rounded-[8px] flex items-center justify-center cursor-pointer overflow-hidden" onClick={() => navigate('/')}>
+                <img src="/logo.png" alt="Pod Pal Logo" className="w-full h-full object-contain scale-[1.40]" />
+              </div>
               <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Pod Pal</h1>
             </div>
             <div className="flex gap-3 max-md:gap-[6px]">
