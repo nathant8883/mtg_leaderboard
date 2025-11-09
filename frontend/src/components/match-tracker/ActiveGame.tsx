@@ -556,24 +556,23 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const getBadgePositionClasses = (position: number): string => {
     // For 3-4 player games (2x2 grid)
     if (playerCount <= 4) {
-      // Top row (positions 1-2): rotated 180°, use bottom edge
-      // Bottom row (positions 3-4): use top edge
-      // Left column (positions 1, 3): use left edge
-      // Right column (positions 2, 4): use right edge
-      if (position === 1) return 'bottom-2 left-2'; // top-left card
-      if (position === 2) return 'bottom-2 right-2'; // top-right card
+      // Top row (positions 1-2): cards rotated 180°, badge at rotate(0) via CSS
+      // Since badge doesn't rotate, we use top/right for visual top-left corner
+      // Bottom row (positions 3-4): cards not rotated, normal positioning
+      if (position === 1) return 'top-2 right-2'; // top-left card (visual top-left = top-right in rotated card space)
+      if (position === 2) return 'top-2 left-2'; // top-right card (visual top-right = top-left in rotated card space)
       if (position === 3) return 'top-2 left-2'; // bottom-left card
       if (position === 4) return 'top-2 right-2'; // bottom-right card
     }
     // For 5-6 player games (3x2 grid)
     else {
-      // Top row (positions 1-3): rotated 180°, use bottom edge
-      // Bottom row (positions 4-6): use top edge
-      if (position === 1) return 'bottom-2 left-2'; // top-left card
-      if (position === 2) return 'bottom-2 left-2'; // top-center card (left side)
-      if (position === 3) return 'bottom-2 right-2'; // top-right card
+      // Top row (positions 1-3): cards rotated 180°, badge doesn't rotate
+      // Bottom row (positions 4-6): cards not rotated
+      if (position === 1) return 'top-2 right-2'; // top-left card
+      if (position === 2) return 'top-2 right-2'; // top-center card (right side for visual left)
+      if (position === 3) return 'top-2 left-2'; // top-right card
       if (position === 4) return 'top-2 left-2'; // bottom-left card
-      if (position === 5) return 'top-2 right-2'; // bottom-center card (right side)
+      if (position === 5) return 'top-2 right-2'; // bottom-center card
       if (position === 6) return 'top-2 right-2'; // bottom-right card
     }
     // Fallback for any unexpected position

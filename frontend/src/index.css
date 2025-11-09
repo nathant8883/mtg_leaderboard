@@ -1408,60 +1408,36 @@
     transform: rotate(0deg) !important;
   }
 
-  /* Crown Badge Rotations - Override the universal * rotation to keep badge with parent rotation */
-  /* 3 players */
+  /* Crown Badge - Prevent rotation and fix positioning for rotated cards */
+  /* The badge should stay upright (rotate 0deg) even though the card is rotated 180deg */
+  /* Since bottom-2 left-2 positioning is designed for rotated context, we need to flip it */
   .players-grid.layout-table.players-3 .player-slot:nth-child(1) .crown-badge,
-  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .crown-badge {
-    transform: rotate(0deg) !important;
-  }
-
-  /* 4 players */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .crown-badge,
   .players-grid.layout-table.players-4 .player-slot:nth-child(1) .crown-badge,
-  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .crown-badge {
-    transform: rotate(0deg) !important;
-  }
-
-  /* 5 players */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .crown-badge,
   .players-grid.layout-table.players-5 .player-slot:nth-child(1) .crown-badge,
   .players-grid.layout-table.players-5 .player-slot:nth-child(2) .crown-badge,
-  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .crown-badge {
-    transform: rotate(0deg) !important;
-  }
-
-  /* 6 players */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .crown-badge,
   .players-grid.layout-table.players-6 .player-slot:nth-child(1) .crown-badge,
   .players-grid.layout-table.players-6 .player-slot:nth-child(2) .crown-badge,
   .players-grid.layout-table.players-6 .player-slot:nth-child(3) .crown-badge {
     transform: rotate(0deg) !important;
   }
 
-  /* Crown Badge SVG Rotations - Keep SVGs inside crown-badge aligned properly */
-  /* Since crown-badge itself is at 0deg, but the universal * selector would rotate children to 180deg, we need to explicitly keep SVGs at 0deg */
-  /* Also use transform-box: fill-box to ensure rotation happens around the SVG's own painted area, not the viewport */
+  /* Crown Badge SVG - Needs to rotate 180deg to stay upright within the 0deg badge */
+  /* Remove absolute positioning and let flex handle centering, apply rotation only */
   .players-grid.layout-table.players-3 .player-slot:nth-child(1) .crown-badge svg,
-  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .crown-badge svg {
-    transform: rotate(0deg) !important;
-    transform-box: fill-box;
-  }
-
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .crown-badge svg,
   .players-grid.layout-table.players-4 .player-slot:nth-child(1) .crown-badge svg,
-  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .crown-badge svg {
-    transform: rotate(0deg) !important;
-    transform-box: fill-box;
-  }
-
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .crown-badge svg,
   .players-grid.layout-table.players-5 .player-slot:nth-child(1) .crown-badge svg,
   .players-grid.layout-table.players-5 .player-slot:nth-child(2) .crown-badge svg,
-  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .crown-badge svg {
-    transform: rotate(0deg) !important;
-    transform-box: fill-box;
-  }
-
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .crown-badge svg,
   .players-grid.layout-table.players-6 .player-slot:nth-child(1) .crown-badge svg,
   .players-grid.layout-table.players-6 .player-slot:nth-child(2) .crown-badge svg,
   .players-grid.layout-table.players-6 .player-slot:nth-child(3) .crown-badge svg {
-    transform: rotate(0deg) !important;
-    transform-box: fill-box;
+    transform: rotate(180deg) !important;
+    overflow: visible !important;
   }
 
   /* Revive button in eliminated overlay */
