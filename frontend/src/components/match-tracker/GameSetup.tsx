@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface GameSetupProps {
   initialPlayerCount: number;
@@ -9,6 +11,8 @@ interface GameSetupProps {
 }
 
 function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit, isQuickPlay }: GameSetupProps) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [playerCount, setPlayerCount] = useState<number>(initialPlayerCount);
   const [startingLife, setStartingLife] = useState<number>(initialStartingLife);
 
@@ -28,15 +32,22 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
   return (
     <div className="min-h-screen max-h-screen p-4 pb-20 overflow-y-hidden box-border flex flex-col">
       <div className="text-center mb-6 relative">
-        {!isQuickPlay && (
-          <button
-            className="absolute left-0 top-0 w-11 h-11 bg-[rgba(255,255,255,0.1)] border-2 border-[rgba(255,255,255,0.2)] rounded-[8px] text-white text-2xl cursor-pointer transition-all flex items-center justify-center p-0 hover:bg-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] hover:scale-105"
-            onClick={onExit}
-            title="Exit to Home"
-          >
-            ✕
-          </button>
-        )}
+        <button
+          className="absolute left-0 top-0 w-11 h-11 bg-[rgba(255,255,255,0.1)] border-2 border-[rgba(255,255,255,0.2)] rounded-[8px] text-white text-2xl cursor-pointer transition-all flex items-center justify-center p-0 hover:bg-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] hover:scale-105"
+          onClick={() => {
+            if (isQuickPlay) {
+              // In quick play mode, logout (clear guest mode) and go back to login
+              logout();
+              navigate('/login');
+            } else {
+              // In normal mode, exit to home (dashboard)
+              onExit();
+            }
+          }}
+          title={isQuickPlay ? "Back to Login" : "Exit to Home"}
+        >
+          ✕
+        </button>
         <h1 className="text-[28px] font-semibold m-0 bg-gradient-purple bg-clip-text text-transparent">
           {isQuickPlay ? 'Quick Play Setup' : 'Match Setup'}
         </h1>
