@@ -6,9 +6,10 @@ interface WinnerScreenProps {
   winnerPosition?: number;
   onSave: () => void;
   onDiscard: () => void;
+  onPlayAgain: () => void;
 }
 
-function WinnerScreen({ players, gameState, winnerPosition, onSave, onDiscard }: WinnerScreenProps) {
+function WinnerScreen({ players, gameState, winnerPosition, onSave, onDiscard, onPlayAgain }: WinnerScreenProps) {
   // Find winner by position
   const winner = winnerPosition
     ? players.find((p) => p.position === winnerPosition)
@@ -65,6 +66,15 @@ function WinnerScreen({ players, gameState, winnerPosition, onSave, onDiscard }:
             <div className="text-[16px] font-bold text-[#667eea]">{players.length}</div>
           </div>
         </div>
+
+        {/* Play Again - Primary Action */}
+        <button
+          className="w-full py-[16px] px-4 border-none rounded-[12px] text-[16px] font-black cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap mb-3 bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-[#141517] shadow-[0_6px_20px_rgba(255,215,0,0.5)] hover:shadow-[0_8px_24px_rgba(255,215,0,0.7)] hover:scale-[1.02] active:scale-[0.98]"
+          onClick={onPlayAgain}
+        >
+          <span className="text-[20px]">🔄</span>
+          <span>Play Again</span>
+        </button>
 
         <div className="flex gap-2">
           <button className="flex-1 py-[10px] px-3 border-none rounded-[8px] text-[12px] font-bold cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap bg-[rgba(255,255,255,0.1)] text-white border border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.15)] active:scale-[0.98]" onClick={onDiscard}>

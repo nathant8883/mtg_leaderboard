@@ -289,6 +289,94 @@ function MatchTracker() {
     }
   };
 
+  const handlePlayAgain = async () => {
+    // Save the current match, then return to assignment with same players
+    if (!matchState.gameState || !matchState.winnerPosition) {
+      console.error('Cannot save match: missing game state or winner');
+      return;
+    }
+
+    try {
+      const winner = matchState.players.find(p => p.position === matchState.winnerPosition);
+      if (!winner || !winner.playerId || !winner.deckId) {
+        toast.error('Winner must be a registered player with a deck (not a guest)');
+        return;
+      }
+
+      // Filter out guest players and prepare player-deck pairs
+      const playerDeckPairs = matchState.players
+        .filter(p => p.playerId && p.deckId) // Only registered players
+        .map(p => ({
+          player_id: p.playerId!,
+          deck_id: p.deckId!,
+        }));
+
+      if (playerDeckPairs.length < 3) {
+        toast.error('At least 3 registered players required to save match (guests cannot be saved)');
+        return;
+      }
+
+      // Use the game start time as match date (format as YYYY-MM-DD)
+      const matchDate = matchState.gameState.startTime.toISOString().split('T')[0];
+
+      // Map first player position to index in playerDeckPairs array
+      let firstPlayerPosition: number | undefined;
+      if (matchState.gameState.firstPlayerPosition !== undefined) {
+        const firstPlayer = matchState.players.find(p => p.position === matchState.gameState!.firstPlayerPosition);
+        if (firstPlayer && firstPlayer.playerId) {
+          firstPlayerPosition = playerDeckPairs.findIndex(p => p.player_id === firstPlayer.playerId);
+        }
+      }
+
+      const matchRequest = {
+        player_deck_pairs: playerDeckPairs,
+        winner_player_id: winner.playerId,
+        winner_deck_id: winner.deckId,
+        match_date: matchDate,
+        duration_seconds: matchState.gameState.elapsedSeconds,
+        first_player_position: firstPlayerPosition,
+      };
+
+      // Add to IndexedDB queue (offline-first approach)
+      const queuedMatch = await offlineQueue.addMatch(matchRequest, players, decks);
+
+      if (!queuedMatch) {
+        // Duplicate detected
+        toast.error('This match was already recorded recently', {
+          duration: 4000,
+          position: 'top-center',
+        });
+        return;
+      }
+
+      // Show success message
+      toast.success('Match saved! Setting up next game...', {
+        duration: 2000,
+        position: 'top-center',
+      });
+
+      // Try to sync immediately if online (don't block on this)
+      if (isOnline) {
+        offlineQueue.syncMatch(queuedMatch.id, {
+          onSuccess: () => console.log('[MatchTracker] Match synced successfully'),
+          onError: (error) => console.error('[MatchTracker] Failed to sync match:', error),
+        });
+      }
+
+      // Return to assignment screen with same players/positions
+      // Don't clear localStorage - will be updated by useEffect with new state
+      setMatchState({
+        ...matchState,
+        currentStep: 'assignment',
+        gameState: undefined,
+        winnerPosition: undefined,
+      });
+    } catch (error) {
+      console.error('Failed to save match:', error);
+      toast.error('Failed to record match. Please try again.');
+    }
+  };
+
   const handleMatchDiscard = () => {
     localStorage.removeItem(STORAGE_KEY);
     setMatchState({
@@ -395,6 +483,7 @@ function MatchTracker() {
           winnerPosition={matchState.winnerPosition}
           onSave={handleMatchSave}
           onDiscard={handleMatchDiscard}
+          onPlayAgain={handlePlayAgain}
         />
       )}
     </div>
