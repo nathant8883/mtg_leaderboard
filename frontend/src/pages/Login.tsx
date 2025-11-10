@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/auth';
@@ -10,6 +10,7 @@ export const Login: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { login, loginAsGuest, currentPlayer, isGuest, loading } = useAuth();
   const { isOnline } = useOnlineStatus();
+  const [skipRedirect, setSkipRedirect] = useState(false);
 
   useEffect(() => {
     // Handle OAuth callback with token
@@ -31,10 +32,11 @@ export const Login: React.FC = () => {
   useEffect(() => {
     // Only redirect after auth has been initialized (loading complete)
     // and user is already logged in or in guest mode
-    if (!loading && (currentPlayer || isGuest)) {
+    // Skip redirect if we're manually navigating elsewhere (e.g., quick play)
+    if (!loading && (currentPlayer || isGuest) && !skipRedirect) {
       navigate('/', { replace: true });
     }
-  }, [loading, currentPlayer, isGuest, navigate]);
+  }, [loading, currentPlayer, isGuest, navigate, skipRedirect]);
 
   const handleGoogleLogin = () => {
     authService.initiateGoogleLogin();
@@ -144,6 +146,29 @@ export const Login: React.FC = () => {
               Continue Offline
             </button>
           )}
+
+          {/* Quick Play option - always visible */}
+          <div style={{ margin: '16px 0', color: '#6b7280', fontSize: '14px', textAlign: 'center' }}>
+            or
+          </div>
+
+          <button
+            className="google-login-btn"
+            onClick={() => {
+              // Set flag to prevent automatic redirect
+              setSkipRedirect(true);
+              // Enable guest mode
+              loginAsGuest();
+              // Navigate to quick play
+              navigate('/match-tracker?mode=quick', { replace: true });
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              border: '2px solid #10b981'
+            }}
+          >
+            🎮 Play Now (Quick Match)
+          </button>
         </div>
       </div>
     </div>

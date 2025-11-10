@@ -5,9 +5,10 @@ interface GameSetupProps {
   initialStartingLife: number;
   onComplete: (playerCount: number, startingLife: number) => void;
   onExit: () => void;
+  isQuickPlay?: boolean;
 }
 
-function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit }: GameSetupProps) {
+function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit, isQuickPlay }: GameSetupProps) {
   const [playerCount, setPlayerCount] = useState<number>(initialPlayerCount);
   const [startingLife, setStartingLife] = useState<number>(initialStartingLife);
 
@@ -27,14 +28,18 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
   return (
     <div className="min-h-screen max-h-screen p-4 pb-20 overflow-y-hidden box-border flex flex-col">
       <div className="text-center mb-6 relative">
-        <button
-          className="absolute left-0 top-0 w-11 h-11 bg-[rgba(255,255,255,0.1)] border-2 border-[rgba(255,255,255,0.2)] rounded-[8px] text-white text-2xl cursor-pointer transition-all flex items-center justify-center p-0 hover:bg-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] hover:scale-105"
-          onClick={onExit}
-          title="Exit to Home"
-        >
-          ✕
-        </button>
-        <h1 className="text-[28px] font-semibold m-0 bg-gradient-purple bg-clip-text text-transparent">Match Setup</h1>
+        {!isQuickPlay && (
+          <button
+            className="absolute left-0 top-0 w-11 h-11 bg-[rgba(255,255,255,0.1)] border-2 border-[rgba(255,255,255,0.2)] rounded-[8px] text-white text-2xl cursor-pointer transition-all flex items-center justify-center p-0 hover:bg-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] hover:scale-105"
+            onClick={onExit}
+            title="Exit to Home"
+          >
+            ✕
+          </button>
+        )}
+        <h1 className="text-[28px] font-semibold m-0 bg-gradient-purple bg-clip-text text-transparent">
+          {isQuickPlay ? 'Quick Play Setup' : 'Match Setup'}
+        </h1>
       </div>
 
       {/* Player Count Selector */}
@@ -97,7 +102,7 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
         className="w-full py-4 px-8 bg-gradient-to-br from-[#10b981] to-[#059669] border-none rounded-[8px] text-white text-base font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.4)]"
         onClick={handleNext}
       >
-        Next
+        {isQuickPlay ? '🎮 Start Game' : 'Next'}
       </button>
     </div>
   );

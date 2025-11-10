@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import GameSetup from '../components/match-tracker/GameSetup';
 import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
@@ -49,16 +49,21 @@ export interface MatchState {
   currentStep: StepType;
   gameState?: ActiveGameState;
   winnerPosition?: number;
+  isQuickPlay?: boolean; // Quick play mode - skip assignment, no save
 }
 
 const STORAGE_KEY = 'mtg_active_match';
 
 function MatchTracker() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isOnline } = useOnlineStatus();
 
   // Prevent screen timeout during match play
   useWakeLock();
+
+  // Detect quick play mode from URL
+  const isQuickPlayMode = searchParams.get('mode') === 'quick';
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -84,6 +89,7 @@ function MatchTracker() {
       layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
+      isQuickPlay: isQuickPlayMode,
     };
   });
 
@@ -124,31 +130,73 @@ function MatchTracker() {
   }, []);
 
   const handleGameConfig = (playerCount: number, startingLife: number) => {
-    // Initialize empty player slots
-    // For odd player counts (3, 5), create extra slots so players can choose their positions
-    // 3 players -> create 4 slots (2x2 grid)
-    // 5 players -> create 6 slots (3x2 grid)
-    const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
+    // In quick play mode, skip assignment and auto-generate players
+    if (matchState.isQuickPlay) {
+      // Create guest players with numbered names
+      const quickPlayers: PlayerSlot[] = Array.from({ length: playerCount }, (_, i) => ({
+        position: i + 1,
+        playerId: null,
+        playerName: `Player ${i + 1}`,
+        deckId: null,
+        deckName: 'Deck',
+        commanderName: 'Commander',
+        commanderImageUrl: '',
+        isGuest: true,
+      }));
 
-    const emptyPlayers: PlayerSlot[] = Array.from({ length: totalSlots }, (_, i) => ({
-      position: i + 1,
-      playerId: null,
-      playerName: '',
-      deckId: null,
-      deckName: '',
-      commanderName: '',
-      commanderImageUrl: '',
-      isGuest: false,
-    }));
+      // Initialize game state and jump directly to game
+      const gameState: ActiveGameState = {
+        startTime: new Date(),
+        elapsedSeconds: 0,
+        playerStates: {},
+      };
 
-    setMatchState({
-      ...matchState,
-      playerCount,
-      players: emptyPlayers,
-      layout: 'table',
-      startingLife,
-      currentStep: 'assignment',
-    });
+      quickPlayers.forEach((player) => {
+        gameState.playerStates[player.position] = {
+          life: startingLife,
+          eliminated: false,
+          revived: false,
+          forceEliminated: false,
+          commanderDamage: {},
+        };
+      });
+
+      setMatchState({
+        ...matchState,
+        playerCount,
+        players: quickPlayers,
+        startingLife,
+        currentStep: 'game',
+        gameState,
+      });
+    } else {
+      // Normal mode - go to player assignment
+      // Initialize empty player slots
+      // For odd player counts (3, 5), create extra slots so players can choose their positions
+      // 3 players -> create 4 slots (2x2 grid)
+      // 5 players -> create 6 slots (3x2 grid)
+      const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
+
+      const emptyPlayers: PlayerSlot[] = Array.from({ length: totalSlots }, (_, i) => ({
+        position: i + 1,
+        playerId: null,
+        playerName: '',
+        deckId: null,
+        deckName: '',
+        commanderName: '',
+        commanderImageUrl: '',
+        isGuest: false,
+      }));
+
+      setMatchState({
+        ...matchState,
+        playerCount,
+        players: emptyPlayers,
+        layout: 'table',
+        startingLife,
+        currentStep: 'assignment',
+      });
+    }
   };
 
   const handlePlayerAssignment = (players: PlayerSlot[]) => {
@@ -385,6 +433,7 @@ function MatchTracker() {
       layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
+      isQuickPlay: matchState.isQuickPlay, // Preserve quick play mode
     });
   };
 
@@ -402,6 +451,7 @@ function MatchTracker() {
       layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
+      isQuickPlay: false, // Reset quick play when starting fresh
     });
   };
 
@@ -450,6 +500,7 @@ function MatchTracker() {
           initialStartingLife={matchState.startingLife}
           onComplete={handleGameConfig}
           onExit={onExitToHome}
+          isQuickPlay={matchState.isQuickPlay}
         />
       )}
 
@@ -473,6 +524,8 @@ function MatchTracker() {
           onUpdateGameState={(newGameState) =>
             setMatchState({ ...matchState, gameState: newGameState })
           }
+          isQuickPlay={matchState.isQuickPlay}
+          onReset={handleMatchDiscard}
         />
       )}
 

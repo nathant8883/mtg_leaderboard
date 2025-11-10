@@ -9,14 +9,17 @@ interface ActiveGameProps {
   onGameComplete: (winnerPosition: number, finalGameState?: ActiveGameState) => void;
   onExit: () => void;
   onUpdateGameState: (gameState: ActiveGameState) => void;
+  isQuickPlay?: boolean;
+  onReset?: () => void;
 }
 
-function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState }: ActiveGameProps) {
+function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState, isQuickPlay, onReset }: ActiveGameProps) {
   const [timer, setTimer] = useState(gameState.elapsedSeconds || 0);
   const [showMenu, setShowMenu] = useState(false);
   const [commanderDamageMode, setCommanderDamageMode] = useState(false);
   const [trackingPlayerPosition, setTrackingPlayerPosition] = useState<number | null>(null);
   const [showWinnerSelect, setShowWinnerSelect] = useState(false);
+  const [quickPlayWinner, setQuickPlayWinner] = useState<PlayerSlot | null>(null);
 
   // First player selection state
   const [selectingFirstPlayer, setSelectingFirstPlayer] = useState(!gameState.firstPlayerPosition);
@@ -78,6 +81,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
     return () => clearInterval(interval);
   }, []);
+
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -152,9 +156,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
       );
       if (winnerPosition) {
-        // Save timer value to gameState before completing
-        const finalState = { ...updatedState, elapsedSeconds: timer };
-        onGameComplete(parseInt(winnerPosition), finalState);
+        // Find the winner player object
+        const winner = players.find(p => p.position === parseInt(winnerPosition));
+
+        // In quick play mode, show winner modal then auto-reset
+        if (isQuickPlay && winner) {
+          setQuickPlayWinner(winner);
+        } else {
+          // Normal mode: save match and go to winner screen
+          const finalState = { ...updatedState, elapsedSeconds: timer };
+          onGameComplete(parseInt(winnerPosition), finalState);
+        }
       }
     }
   };
@@ -331,9 +343,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
       );
       if (winnerPosition) {
-        // Save timer value to gameState before completing
-        const finalState = { ...updatedState, elapsedSeconds: timer };
-        onGameComplete(parseInt(winnerPosition), finalState);
+        // Find the winner player object
+        const winner = players.find(p => p.position === parseInt(winnerPosition));
+
+        // In quick play mode, show winner modal then auto-reset
+        if (isQuickPlay && winner) {
+          setQuickPlayWinner(winner);
+        } else {
+          // Normal mode: save match and go to winner screen
+          const finalState = { ...updatedState, elapsedSeconds: timer };
+          onGameComplete(parseInt(winnerPosition), finalState);
+        }
       }
     }
   };
@@ -453,9 +473,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
       );
       if (winnerPosition) {
-        // Save timer value to gameState before completing
-        const finalState = { ...updatedState, elapsedSeconds: timer };
-        onGameComplete(parseInt(winnerPosition), finalState);
+        // Find the winner player object
+        const winner = players.find(p => p.position === parseInt(winnerPosition));
+
+        // In quick play mode, show winner modal then auto-reset
+        if (isQuickPlay && winner) {
+          setQuickPlayWinner(winner);
+        } else {
+          // Normal mode: save match and go to winner screen
+          const finalState = { ...updatedState, elapsedSeconds: timer };
+          onGameComplete(parseInt(winnerPosition), finalState);
+        }
       }
     }
   };
@@ -860,9 +888,14 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     className="relative flex flex-col items-center gap-1.5 p-3 px-2 bg-[#2c2e33] border-2 border-[#3c3e43] rounded-[10px] text-white cursor-pointer transition-all duration-200 min-h-0 hover:bg-[#3c3e43] hover:border-[#667eea] hover:-translate-y-0.5 active:translate-y-0"
                     onClick={() => {
                       setShowWinnerSelect(false);
-                      // Save timer value to gameState before completing
-                      const finalState = { ...gameState, elapsedSeconds: timer };
-                      onGameComplete(player.position, finalState);
+                      // In quick play mode, show winner modal then auto-reset
+                      if (isQuickPlay) {
+                        setQuickPlayWinner(player);
+                      } else {
+                        // Normal mode: save match and go to winner screen
+                        const finalState = { ...gameState, elapsedSeconds: timer };
+                        onGameComplete(player.position, finalState);
+                      }
                     }}
                     style={{
                       opacity: playerState.eliminated ? 0.6 : 1,
@@ -913,6 +946,40 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 Eliminate
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Play Winner Modal */}
+      {quickPlayWinner && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2c2e33] border-2 border-[#667eea] rounded-[20px] p-8 max-w-[500px] w-full text-center animate-[scaleIn_0.3s_ease-out]">
+            {/* Crown Icon */}
+            <div className="mb-6 flex justify-center">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+                <Crown size={48} className="text-[#FFD700]" />
+              </div>
+            </div>
+
+            {/* Winner Text */}
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">
+              {quickPlayWinner.playerName} Wins!
+            </h1>
+            <p className="text-[#9ca3af] text-lg mb-6">
+              Congratulations! 🎉
+            </p>
+
+            {/* Play Again Button */}
+            <button
+              className="w-full py-4 px-8 bg-gradient-to-br from-[#10b981] to-[#059669] border-none rounded-[8px] text-white text-base font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.4)]"
+              onClick={() => {
+                if (onReset) {
+                  onReset();
+                }
+              }}
+            >
+              Play Again
+            </button>
           </div>
         </div>
       )}
