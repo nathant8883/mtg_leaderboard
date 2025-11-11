@@ -133,19 +133,13 @@ export const PodProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const acceptInvite = async (inviteId: string) => {
     try {
-      const result = await podApi.acceptInvite(inviteId);
+      await podApi.acceptInvite(inviteId);
 
       // Remove from pending invites
       setPendingInvites(prev => prev.filter(inv => inv.id !== inviteId));
 
       // Refresh pods to include newly joined pod
       await refreshPods();
-
-      // Optionally switch to the newly joined pod
-      // Uncomment if you want to auto-switch:
-      // await switchPod(result.pod_id);
-
-      return result;
     } catch (error) {
       console.error('Error accepting invite:', error);
       throw error;

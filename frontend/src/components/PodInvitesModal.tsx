@@ -10,7 +10,6 @@ interface PodInvitesModalProps {
 
 export const PodInvitesModal: React.FC<PodInvitesModalProps> = ({ onClose }) => {
   const { pendingInvites, acceptInvite, declineInvite, refreshInvites } = usePod();
-  const { currentPlayer } = useAuth();
   const [processingInvite, setProcessingInvite] = useState<string | null>(null);
 
   const handleAccept = async (inviteId: string) => {

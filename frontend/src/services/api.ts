@@ -34,6 +34,7 @@ export interface Player {
   pod_ids?: string[];
   current_pod_id?: string;
   is_superuser?: boolean;
+  is_guest?: boolean;
   created_at?: string;
 }
 
