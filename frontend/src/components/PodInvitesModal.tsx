@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { usePod } from '../contexts/PodContext';
-import { useAuth } from '../contexts/AuthContext';
 import './PodInvitesModal.css';
 import toast from 'react-hot-toast';
 

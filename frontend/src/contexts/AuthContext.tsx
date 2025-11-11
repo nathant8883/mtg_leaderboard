@@ -9,7 +9,10 @@ interface Player {
   picture?: string;
   custom_avatar?: string;
   deck_ids: string[];
+  pod_ids?: string[];
+  current_pod_id?: string;
   is_superuser: boolean;
+  is_guest?: boolean;
   created_at: string;
 }
 
