@@ -345,22 +345,22 @@
     will-change: transform;
   }
 
-  /* iOS PWA Safe Area Support - Only applies to iOS devices in standalone mode */
-  /* This is applied via JavaScript detection to avoid affecting Android */
-  .ios-pwa .app-header {
-    padding-top: max(16px, env(safe-area-inset-top, 16px));
+  /* PWA Safe Area Support - env() returns 0px on devices without safe areas (Android) */
+  /* So this won't affect Android but will add proper spacing on iOS */
+  .app-header {
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
   }
 
-  /* Mobile header gets smaller padding */
+  /* Mobile header gets smaller base padding */
   @media (max-width: 767px) {
-    .ios-pwa .app-header {
-      padding-top: max(10px, env(safe-area-inset-top, 10px));
+    .app-header {
+      padding-top: calc(10px + env(safe-area-inset-top, 0px));
     }
   }
 
-  /* iOS PWA bottom navigation safe area */
-  .ios-pwa .mobile-bottom-nav {
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+  /* Bottom navigation safe area */
+  .mobile-bottom-nav {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Navbar and mobile action bar styles */

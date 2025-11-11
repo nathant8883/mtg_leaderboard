@@ -16,7 +16,6 @@ import AdminPanel from './components/AdminPanel.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
 import { Toaster } from 'react-hot-toast'
-import { useIOSDetection } from './hooks/useIOSDetection'
 
 // Protected route wrapper - allows both authenticated users and guest mode
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -34,53 +33,44 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// App wrapper with iOS detection
-const App = () => {
-  useIOSDetection();
-
-  return (
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <PodProvider>
           <Toaster />
           <Routes>
-          <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
 
-          {/* Match Tracker - Standalone full-screen route (no MainLayout) */}
-          <Route
-            path="/match-tracker"
-            element={
-              <RequireAuth allowGuest={true}>
-                <MatchTracker />
-              </RequireAuth>
-            }
-          />
+            {/* Match Tracker - Standalone full-screen route (no MainLayout) */}
+            <Route
+              path="/match-tracker"
+              element={
+                <RequireAuth allowGuest={true}>
+                  <MatchTracker />
+                </RequireAuth>
+              }
+            />
 
-          {/* Main app routes with shared layout */}
-          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route index element={<Dashboard />} />
-            <Route path="leaderboard" element={<Leaderboard />} />
-            <Route path="players/:playerId" element={<PlayerDetail />} />
-            <Route path="matches/:matchId" element={<MatchDetail />} />
+            {/* Main app routes with shared layout */}
+            <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="players/:playerId" element={<PlayerDetail />} />
+              <Route path="matches/:matchId" element={<MatchDetail />} />
 
-            {/* Protected routes - require auth, no guest mode */}
-            <Route element={<RequireAuth allowGuest={false}><Outlet /></RequireAuth>}>
-              <Route path="admin" element={<AdminPanel />} />
+              {/* Protected routes - require auth, no guest mode */}
+              <Route element={<RequireAuth allowGuest={false}><Outlet /></RequireAuth>}>
+                <Route path="admin" element={<AdminPanel />} />
+              </Route>
+
+              {/* 404 catch-all */}
+              <Route path="*" element={<NotFound />} />
             </Route>
-
-            {/* 404 catch-all */}
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+          </Routes>
         </PodProvider>
       </AuthProvider>
     </BrowserRouter>
-  );
-};
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
   </StrictMode>,
 )
 
