@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, UserPlus, Mail, Shield, Users } from 'lucide-react';
+import { X, UserPlus, Mail, Shield, Users, Edit2, Check, XCircle } from 'lucide-react';
 import { podApi, playerApi, type Pod, type Player } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
@@ -25,6 +25,10 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
   const [removingMember, setRemovingMember] = useState<{ id: string; name: string } | null>(null);
+  const [isEditingHeader, setIsEditingHeader] = useState(false);
+  const [editedName, setEditedName] = useState(pod.name);
+  const [editedDescription, setEditedDescription] = useState(pod.description || '');
+  const [saving, setSaving] = useState(false);
 
   const isAdmin = pod.is_admin || pod.admin_ids?.includes(String(currentPlayer?.id)) || currentPlayer?.is_superuser;
 
@@ -170,6 +174,44 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
     }
   };
 
+  const handleStartEdit = () => {
+    setEditedName(pod.name);
+    setEditedDescription(pod.description || '');
+    setIsEditingHeader(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedName(pod.name);
+    setEditedDescription(pod.description || '');
+    setIsEditingHeader(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editedName.trim()) {
+      toast.error('Pod name cannot be empty');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const updated = await podApi.update(
+        pod.id!,
+        editedName,
+        editedDescription || undefined
+      );
+      setPod(updated);
+      setIsEditingHeader(false);
+      toast.success('Pod updated successfully');
+      await refreshPods();
+      onUpdate();
+    } catch (error: any) {
+      console.error('Error updating pod:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update pod');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="pod-management-modal-overlay" onClick={onClose}>
       <div className="pod-management-modal" onClick={(e) => e.stopPropagation()}>
@@ -177,12 +219,77 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
         <div className="pod-management-header">
           <div className="pod-management-header-content">
             <img src="/logo.png" alt={pod.name} className="pod-management-logo" />
-            <div>
-              <h2 className="pod-management-title">{pod.name}</h2>
-              {pod.description && (
-                <p className="pod-management-description">{pod.description}</p>
-              )}
-            </div>
+            {!isEditingHeader ? (
+              <div className="pod-header-view">
+                <div className="pod-header-title-row">
+                  <h2 className="pod-management-title">{pod.name}</h2>
+                  {isAdmin && (
+                    <button
+                      className="pod-edit-button"
+                      onClick={handleStartEdit}
+                      title="Edit pod details"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                </div>
+                {pod.description && (
+                  <p className="pod-management-description">{pod.description}</p>
+                )}
+              </div>
+            ) : (
+              <div className="pod-header-edit-form">
+                <div className="pod-edit-field">
+                  <label className="pod-edit-label">Pod Name</label>
+                  <input
+                    type="text"
+                    className="pod-name-input"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    placeholder="Enter pod name"
+                    disabled={saving}
+                  />
+                </div>
+                <div className="pod-edit-field">
+                  <label className="pod-edit-label">Description (optional)</label>
+                  <textarea
+                    className="pod-description-textarea"
+                    value={editedDescription}
+                    onChange={(e) => setEditedDescription(e.target.value)}
+                    placeholder="Enter pod description"
+                    rows={2}
+                    disabled={saving}
+                  />
+                </div>
+                <div className="edit-actions">
+                  <button
+                    className="edit-cancel-button"
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                  >
+                    <XCircle size={16} />
+                    Cancel
+                  </button>
+                  <button
+                    className="edit-save-button"
+                    onClick={handleSaveEdit}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <>
+                        <div className="button-spinner"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Check size={16} />
+                        Save
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <button className="pod-management-close" onClick={onClose}>
             <X size={24} />

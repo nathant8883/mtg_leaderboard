@@ -38,7 +38,7 @@
 
 .pod-management-header-content {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   flex: 1;
 }
@@ -50,18 +50,174 @@
   flex-shrink: 0;
 }
 
-.pod-management-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-  margin: 0 0 4px 0;
-}
-
 .pod-management-description {
   font-size: 14px;
   color: #9ca3af;
   margin: 0;
   line-height: 1.4;
+}
+
+/* Header View Mode */
+.pod-header-view {
+  flex: 1;
+}
+
+.pod-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pod-management-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1;
+}
+
+.pod-edit-button {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pod-edit-button:hover {
+  color: #667eea;
+  transform: scale(1.1);
+}
+
+/* Header Edit Mode */
+.pod-header-edit-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pod-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pod-edit-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pod-name-input,
+.pod-description-textarea {
+  width: 100%;
+  background: rgba(44, 46, 51, 0.5);
+  border: 1px solid #2c2e33;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: white;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.pod-name-input:focus,
+.pod-description-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(44, 46, 51, 0.8);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.pod-name-input:disabled,
+.pod-description-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pod-name-input::placeholder,
+.pod-description-textarea::placeholder {
+  color: #6b7280;
+}
+
+.pod-description-textarea {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.edit-cancel-button,
+.edit-save-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  white-space: nowrap;
+}
+
+.edit-cancel-button {
+  background: transparent;
+  border: 1px solid #6b7280;
+  color: #9ca3af;
+}
+
+.edit-cancel-button:hover:not(:disabled) {
+  background: rgba(107, 114, 128, 0.1);
+  color: white;
+  border-color: #9ca3af;
+}
+
+.edit-save-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.edit-save-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.edit-cancel-button:disabled,
+.edit-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .pod-management-close {
@@ -192,6 +348,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: calc(85vh - 300px);
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .pod-member-item {
@@ -489,6 +648,10 @@
 
   .pod-management-section {
     padding: 16px 20px;
+  }
+
+  .pod-members-list {
+    max-height: calc(90vh - 350px);
   }
 
   .pod-invite-form {
