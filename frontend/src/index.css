@@ -345,20 +345,31 @@
     will-change: transform;
   }
 
-  /* PWA Safe Area Support - Only applied on iOS devices */
+  /* Base header padding for all devices */
+  .app-header {
+    padding-top: 16px;
+  }
+
+  /* Mobile header gets smaller base padding */
+  @media (max-width: 767px) {
+    .app-header {
+      padding-top: 10px;
+    }
+  }
+
+  /* PWA Safe Area Support - Additional padding only on iOS devices */
   /* iOS detection via .ios-device class added in main.tsx */
   .ios-device .app-header {
     padding-top: calc(16px + env(safe-area-inset-top, 0px));
   }
 
-  /* Mobile header gets smaller base padding */
   @media (max-width: 767px) {
     .ios-device .app-header {
       padding-top: calc(10px + env(safe-area-inset-top, 0px));
     }
   }
 
-  /* Bottom navigation safe area */
+  /* Bottom navigation safe area - iOS only */
   .ios-device .mobile-bottom-nav {
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
