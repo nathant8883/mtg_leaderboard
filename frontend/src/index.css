@@ -29,10 +29,6 @@
     inset: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    /* iOS Safe Area Support - prevents overlap with notch/status bar and home indicator */
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
 }
 
@@ -339,7 +335,7 @@
     }
   }
 
-  /* App Header - Sticky positioning for mobile with iOS safe area support */
+  /* App Header - Sticky positioning for mobile */
   .app-header {
     position: -webkit-sticky; /* Safari */
     position: sticky;
@@ -347,15 +343,6 @@
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     will-change: transform;
-    /* Ensure header has safe padding for iOS notch/Dynamic Island - uses max of design padding (16px) or safe area */
-    padding-top: max(16px, env(safe-area-inset-top, 16px));
-  }
-
-  /* Mobile header gets smaller padding */
-  @media (max-width: 767px) {
-    .app-header {
-      padding-top: max(10px, env(safe-area-inset-top, 10px));
-    }
   }
 
   /* Navbar and mobile action bar styles */
