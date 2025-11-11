@@ -16,6 +16,7 @@ import AdminPanel from './components/AdminPanel.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
 import { Toaster } from 'react-hot-toast'
+import { useIOSDetection } from './hooks/useIOSDetection'
 
 // Protected route wrapper - allows both authenticated users and guest mode
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -33,8 +34,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+// App wrapper with iOS detection
+const App = () => {
+  useIOSDetection();
+
+  return (
     <BrowserRouter>
       <AuthProvider>
         <PodProvider>
@@ -71,6 +75,12 @@ createRoot(document.getElementById('root')!).render(
         </PodProvider>
       </AuthProvider>
     </BrowserRouter>
+  );
+};
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
   </StrictMode>,
 )
 

@@ -345,6 +345,24 @@
     will-change: transform;
   }
 
+  /* iOS PWA Safe Area Support - Only applies to iOS devices in standalone mode */
+  /* This is applied via JavaScript detection to avoid affecting Android */
+  .ios-pwa .app-header {
+    padding-top: max(16px, env(safe-area-inset-top, 16px));
+  }
+
+  /* Mobile header gets smaller padding */
+  @media (max-width: 767px) {
+    .ios-pwa .app-header {
+      padding-top: max(10px, env(safe-area-inset-top, 10px));
+    }
+  }
+
+  /* iOS PWA bottom navigation safe area */
+  .ios-pwa .mobile-bottom-nav {
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+  }
+
   /* Navbar and mobile action bar styles */
   .nav-btn-hover:hover {
     background: rgba(102, 126, 234, 0.2);

@@ -381,7 +381,7 @@ export function MainLayout() {
 
       {/* Mobile Bottom Action Bar */}
       {!isMatchTracker && (
-        <div className="hidden max-md:flex fixed bottom-0 left-0 right-0 bg-[rgba(26,27,30,0.95)] backdrop-blur-[10px] border-t border-[#2C2E33] px-3 py-2 pb-[calc(8px+env(safe-area-inset-bottom))] z-[900] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] gap-2">
+        <div className="hidden max-md:flex fixed bottom-0 left-0 right-0 bg-[rgba(26,27,30,0.95)] backdrop-blur-[10px] border-t border-[#2C2E33] px-3 py-2 mobile-bottom-nav z-[900] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] gap-2">
           <button
             className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
               location.pathname === '/'
