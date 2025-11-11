@@ -1,21 +1,59 @@
-from fastapi import APIRouter
-from typing import Dict, Any
+from fastapi import APIRouter, Depends
+from beanie import PydanticObjectId
+from typing import Dict, Any, Optional
 from collections import Counter
+import logging
 
 from app.models.match import Match
 from app.models.player import Player, Deck
+from app.models.pod import Pod
+from app.middleware.auth import get_optional_player
 from app.utils.color_identity import get_color_identity_name
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/players")
-async def get_player_leaderboard() -> list[Dict[str, Any]]:
-    """Get leaderboard by player (excluding guests)"""
-    players = await Player.find(
-        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-    ).to_list()
-    matches = await Match.find_all().to_list()
+async def get_player_leaderboard(
+    current_player: Optional[Player] = Depends(get_optional_player)
+) -> list[Dict[str, Any]]:
+    """Get leaderboard by player from current pod (or all non-guests if no pod context)"""
+    # Get players and matches, filtered by pod if available
+    if not current_player or not current_player.current_pod_id:
+        # No pod context - return all non-guest players (backward compatibility)
+        players = await Player.find(
+            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+        ).to_list()
+        matches = await Match.find_all().to_list()
+    else:
+        # Pod context - filter to current pod
+        try:
+            pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
+            if pod:
+                # Get players in the current pod (excluding guests)
+                players = await Player.find(
+                    {
+                        "$and": [
+                            {"_id": {"$in": [PydanticObjectId(mid) for mid in pod.member_ids]}},
+                            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+                        ]
+                    }
+                ).to_list()
+                # Get matches from the current pod
+                matches = await Match.find(Match.pod_id == current_player.current_pod_id).to_list()
+            else:
+                # Fallback if pod not found
+                players = await Player.find(
+                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+                ).to_list()
+                matches = await Match.find_all().to_list()
+        except Exception:
+            # Fallback on error
+            players = await Player.find(
+                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+            ).to_list()
+            matches = await Match.find_all().to_list()
 
     leaderboard = []
 
@@ -56,13 +94,57 @@ async def get_player_leaderboard() -> list[Dict[str, Any]]:
 
 
 @router.get("/decks")
-async def get_deck_leaderboard() -> list[Dict[str, Any]]:
-    """Get leaderboard by deck (excluding guest-owned decks and disabled decks)"""
-    decks = await Deck.find(Deck.disabled != True).to_list()
-    matches = await Match.find_all().to_list()
-    players = await Player.find(
-        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-    ).to_list()
+async def get_deck_leaderboard(
+    current_player: Optional[Player] = Depends(get_optional_player)
+) -> list[Dict[str, Any]]:
+    """Get leaderboard by deck from current pod (or all enabled decks if no pod context)"""
+    # Get decks, matches, and players filtered by pod if available
+    if not current_player or not current_player.current_pod_id:
+        # No pod context - return all enabled decks (backward compatibility)
+        decks = await Deck.find(Deck.disabled != True).to_list()
+        matches = await Match.find_all().to_list()
+        players = await Player.find(
+            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+        ).to_list()
+    else:
+        # Pod context - filter to current pod
+        try:
+            pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
+            if pod:
+                # Get players in the pod
+                players = await Player.find(
+                    {
+                        "$and": [
+                            {"_id": {"$in": [PydanticObjectId(mid) for mid in pod.member_ids]}},
+                            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+                        ]
+                    }
+                ).to_list()
+                # Get decks owned by pod members (and not disabled)
+                decks = await Deck.find(
+                    {
+                        "$and": [
+                            {"player_id": {"$in": pod.member_ids}},
+                            {"$or": [{"disabled": False}, {"disabled": {"$exists": False}}]}
+                        ]
+                    }
+                ).to_list()
+                # Get matches from the current pod
+                matches = await Match.find(Match.pod_id == current_player.current_pod_id).to_list()
+            else:
+                # Fallback if pod not found
+                decks = await Deck.find(Deck.disabled != True).to_list()
+                matches = await Match.find_all().to_list()
+                players = await Player.find(
+                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+                ).to_list()
+        except Exception:
+            # Fallback on error
+            decks = await Deck.find(Deck.disabled != True).to_list()
+            matches = await Match.find_all().to_list()
+            players = await Player.find(
+                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+            ).to_list()
 
     # Create player lookup (excludes guests) - include avatar info
     player_lookup = {
@@ -117,13 +199,50 @@ async def get_deck_leaderboard() -> list[Dict[str, Any]]:
 
 
 @router.get("/stats")
-async def get_dashboard_stats() -> Dict[str, Any]:
-    """Get overall statistics for the dashboard (excluding guests)"""
-    players = await Player.find(
-        {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-    ).to_list()
-    matches = await Match.find_all().to_list()
-    decks = await Deck.find_all().to_list()
+async def get_dashboard_stats(
+    current_player: Optional[Player] = Depends(get_optional_player)
+) -> Dict[str, Any]:
+    """Get overall statistics for the dashboard from current pod (or all stats if no pod context)"""
+    # Get players, matches, and decks filtered by pod if available
+    if not current_player or not current_player.current_pod_id:
+        # No pod context - return all stats (backward compatibility)
+        players = await Player.find(
+            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+        ).to_list()
+        matches = await Match.find_all().to_list()
+        decks = await Deck.find_all().to_list()
+    else:
+        # Pod context - filter to current pod
+        try:
+            pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
+            if pod:
+                # Get players in the pod
+                players = await Player.find(
+                    {
+                        "$and": [
+                            {"_id": {"$in": [PydanticObjectId(mid) for mid in pod.member_ids]}},
+                            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+                        ]
+                    }
+                ).to_list()
+                # Get decks owned by pod members
+                decks = await Deck.find({"player_id": {"$in": pod.member_ids}}).to_list()
+                # Get matches from the current pod
+                matches = await Match.find(Match.pod_id == current_player.current_pod_id).to_list()
+            else:
+                # Fallback if pod not found
+                players = await Player.find(
+                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+                ).to_list()
+                matches = await Match.find_all().to_list()
+                decks = await Deck.find_all().to_list()
+        except Exception:
+            # Fallback on error
+            players = await Player.find(
+                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+            ).to_list()
+            matches = await Match.find_all().to_list()
+            decks = await Deck.find_all().to_list()
 
     # Filter out disabled decks for stats
     enabled_decks = [deck for deck in decks if not deck.disabled]
@@ -139,7 +258,7 @@ async def get_dashboard_stats() -> Dict[str, Any]:
         avg_pod_size = round(total_players_in_games / total_games, 1)
 
     # Get current leader
-    player_leaderboard = await get_player_leaderboard()
+    player_leaderboard = await get_player_leaderboard(current_player=current_player)
     current_leader = player_leaderboard[0] if player_leaderboard else None
 
     # Get last game date

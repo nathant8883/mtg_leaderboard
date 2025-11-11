@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Play, User, WifiOff, List } from 'lucide-react';
 import { ProfileDropdown } from './ProfileDropdown';
+import { PodDrawer } from './PodDrawer';
+import { CreatePodModal } from './CreatePodModal';
+import { PodInvitesModal } from './PodInvitesModal';
+import { PodManagementModal } from './PodManagementModal';
 import { PageTransition } from './PageTransition';
 import { useAuth } from '../contexts/AuthContext';
+import { usePod } from '../contexts/PodContext';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useWakeLock } from '../hooks/useWakeLock';
 import MatchForm from './MatchForm';
@@ -24,6 +29,7 @@ export function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentPlayer, isGuest } = useAuth();
+  const { currentPod, pendingInvites } = usePod();
   const { isOnline, isMetered, syncNow } = useOnlineStatus();
 
   // Prevent screen timeout while app is open
@@ -31,6 +37,10 @@ export function MainLayout() {
 
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [showSyncQueue, setShowSyncQueue] = useState(false);
+  const [showPodDrawer, setShowPodDrawer] = useState(false);
+  const [showCreatePodModal, setShowCreatePodModal] = useState(false);
+  const [showPodInvitesModal, setShowPodInvitesModal] = useState(false);
+  const [showPodManagementModal, setShowPodManagementModal] = useState(false);
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -227,11 +237,32 @@ export function MainLayout() {
       {!isMatchTracker && (
         <div className="app-header bg-gradient-card border-b border-[#2C2E33] px-6 py-4 md:px-6 md:py-4 max-md:px-3 max-md:py-[10px] sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
           <div className="w-full flex justify-between items-center">
-            <div className="flex items-center gap-4 max-md:gap-3">
-              <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-gradient-purple rounded-[8px] flex items-center justify-center cursor-pointer overflow-hidden" onClick={() => navigate('/')}>
-                <img src="/logo.png" alt="Pod Pal Logo" className="w-full h-full object-contain scale-[1.40]" />
-              </div>
-              <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Pod Pal</h1>
+            <div className="flex items-center gap-3 max-md:gap-2">
+              <button
+                className="flex items-center gap-3 max-md:gap-2 bg-transparent border-none p-0 cursor-pointer relative"
+                onClick={() => setShowPodDrawer(true)}
+              >
+                <div className="relative">
+                  <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-gradient-purple rounded-[8px] flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity">
+                    <img src="/logo.png" alt="Pod Pal Logo" className="w-full h-full object-contain scale-[1.40]" />
+                  </div>
+                  {!isGuest && currentPlayer && !currentPlayer.is_guest && pendingInvites && pendingInvites.length > 0 && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#ef4444] rounded-full shadow-[0_2px_8px_rgba(239,68,68,0.5)] ring-[1.5px] ring-[#1a1b1e] animate-[subtlePulse_2s_ease-in-out_infinite]" />
+                  )}
+                </div>
+                {!isGuest && currentPod && (
+                  <div className="flex flex-col items-start">
+                    <h1 className="text-white m-0 text-base font-bold leading-tight">Pod Pal</h1>
+                    <div className="text-[#9ca3af] text-xs font-medium leading-tight">{currentPod.name}</div>
+                  </div>
+                )}
+                {!isGuest && !currentPod && (
+                  <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Pod Pal</h1>
+                )}
+                {isGuest && (
+                  <h1 className="text-white m-0 text-xl font-bold max-md:hidden">Pod Pal</h1>
+                )}
+              </button>
             </div>
             <div className="flex gap-3 max-md:gap-[6px]">
               <button
@@ -308,6 +339,42 @@ export function MainLayout() {
           }}
         />
       )}
+
+      {/* Create Pod Modal */}
+      {showCreatePodModal && (
+        <CreatePodModal onClose={() => setShowCreatePodModal(false)} />
+      )}
+
+      {/* Pod Invites Modal */}
+      {showPodInvitesModal && (
+        <PodInvitesModal onClose={() => setShowPodInvitesModal(false)} />
+      )}
+
+      {/* Pod Management Modal */}
+      {showPodManagementModal && currentPod && (
+        <PodManagementModal
+          pod={currentPod}
+          onClose={() => setShowPodManagementModal(false)}
+          onUpdate={() => {
+            // Refresh pod data after updates
+            window.dispatchEvent(new Event('podSwitched'));
+          }}
+        />
+      )}
+
+      {/* Pod Drawer */}
+      <PodDrawer
+        isOpen={showPodDrawer}
+        onClose={() => setShowPodDrawer(false)}
+        onCreatePod={() => {
+          setShowPodDrawer(false);
+          setShowCreatePodModal(true);
+        }}
+        onManagePods={() => {
+          setShowPodDrawer(false);
+          setShowPodManagementModal(true);
+        }}
+      />
 
       {/* Mobile Bottom Action Bar */}
       {!isMatchTracker && (

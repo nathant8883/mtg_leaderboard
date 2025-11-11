@@ -13,6 +13,16 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
 
   useEffect(() => {
     loadTopDecks();
+
+    // Listen for pod switch events to refresh data
+    const handlePodSwitch = () => {
+      loadTopDecks();
+    };
+
+    window.addEventListener('podSwitched', handlePodSwitch);
+    return () => {
+      window.removeEventListener('podSwitched', handlePodSwitch);
+    };
   }, []);
 
   const loadTopDecks = async () => {

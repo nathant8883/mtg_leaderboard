@@ -24,6 +24,18 @@ function PlayerDetail() {
     if (playerId) {
       loadPlayerDetail();
     }
+
+    // Listen for pod switch events to refresh player stats
+    const handlePodSwitch = () => {
+      if (playerId) {
+        loadPlayerDetail();
+      }
+    };
+
+    window.addEventListener('podSwitched', handlePodSwitch);
+    return () => {
+      window.removeEventListener('podSwitched', handlePodSwitch);
+    };
   }, [playerId]);
 
   const loadPlayerDetail = async () => {

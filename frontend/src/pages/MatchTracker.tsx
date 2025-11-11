@@ -311,10 +311,7 @@ function MatchTracker() {
         await offlineQueue.syncMatch(queuedMatch.id, {
           onSuccess: () => {
             console.log('[MatchTracker] Match synced successfully');
-            toast.success('Match synced to server!', {
-              duration: 2000,
-              position: 'top-center',
-            });
+            // Toast already shown above - no need for redundant message
           },
           onError: (error) => {
             console.error('[MatchTracker] Failed to sync match:', error);

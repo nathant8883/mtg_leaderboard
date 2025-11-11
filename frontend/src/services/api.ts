@@ -31,6 +31,9 @@ export interface Player {
   google_id?: string;
   picture?: string;
   custom_avatar?: string;
+  pod_ids?: string[];
+  current_pod_id?: string;
+  is_superuser?: boolean;
   created_at?: string;
 }
 
@@ -323,6 +326,138 @@ export const leaderboardApi = {
 
   getStats: async (): Promise<DashboardStats> => {
     const response = await api.get('/leaderboard/stats');
+    return response.data;
+  },
+};
+
+// Pod Types
+export interface Pod {
+  id?: string;
+  name: string;
+  description?: string;
+  creator_id: string;
+  admin_ids: string[];
+  member_ids: string[];
+  member_count?: number;
+  is_admin?: boolean;
+  is_creator?: boolean;
+  created_at?: string;
+}
+
+export interface PodInvite {
+  id?: string;
+  pod_id: string;
+  pod_name?: string;
+  pod_description?: string;
+  inviter_id: string;
+  inviter_name?: string;
+  invitee_email: string;
+  invitee_player_id?: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at?: string;
+  responded_at?: string;
+}
+
+export interface PodMember {
+  player_id: string;
+  player_name: string;
+  avatar?: string;
+  picture?: string;
+  custom_avatar?: string;
+  is_creator: boolean;
+  is_admin: boolean;
+  is_superuser: boolean;
+}
+
+// Pod API Functions
+export const podApi = {
+  getAll: async (): Promise<Pod[]> => {
+    const response = await api.get('/pods/');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Pod> => {
+    const response = await api.get(`/pods/${id}`);
+    return response.data;
+  },
+
+  create: async (name: string, description?: string): Promise<Pod> => {
+    const response = await api.post('/pods/', null, {
+      params: { name, description }
+    });
+    return response.data;
+  },
+
+  update: async (id: string, name?: string, description?: string): Promise<Pod> => {
+    const response = await api.put(`/pods/${id}`, null, {
+      params: { name, description }
+    });
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/pods/${id}`);
+  },
+
+  leave: async (id: string): Promise<{ message: string }> => {
+    const response = await api.post(`/pods/${id}/leave`);
+    return response.data;
+  },
+
+  getMembers: async (id: string): Promise<PodMember[]> => {
+    const response = await api.get(`/pods/${id}/members`);
+    return response.data;
+  },
+
+  removeMember: async (podId: string, playerId: string): Promise<{ message: string }> => {
+    const response = await api.delete(`/pods/${podId}/members/${playerId}`);
+    return response.data;
+  },
+
+  promoteToAdmin: async (podId: string, playerId: string): Promise<{ message: string }> => {
+    const response = await api.post(`/pods/${podId}/members/${playerId}/promote`);
+    return response.data;
+  },
+
+  demoteFromAdmin: async (podId: string, playerId: string): Promise<{ message: string }> => {
+    const response = await api.post(`/pods/${podId}/members/${playerId}/demote`);
+    return response.data;
+  },
+
+  invite: async (podId: string, email: string): Promise<PodInvite> => {
+    const response = await api.post(`/pods/${podId}/invite`, null, {
+      params: { invitee_email: email }
+    });
+    return response.data;
+  },
+
+  getPendingInvites: async (): Promise<PodInvite[]> => {
+    const response = await api.get('/pods/invites/');
+    return response.data;
+  },
+
+  acceptInvite: async (inviteId: string): Promise<{ message: string; pod_id: string; pod_name: string }> => {
+    const response = await api.post(`/pods/invites/${inviteId}/accept`);
+    return response.data;
+  },
+
+  declineInvite: async (inviteId: string): Promise<{ message: string }> => {
+    const response = await api.post(`/pods/invites/${inviteId}/decline`);
+    return response.data;
+  },
+};
+
+// Auth API Functions
+export const authApi = {
+  switchPod: async (podId: string): Promise<{ message: string; current_pod_id: string; pod_name: string }> => {
+    const response = await api.post('/auth/switch-pod', null, {
+      params: { pod_id: podId }
+    });
+    return response.data;
+  },
+
+  getMe: async (): Promise<Player & { pod_ids: string[]; current_pod_id?: string; is_superuser: boolean }> => {
+    const response = await api.get('/auth/me');
     return response.data;
   },
 };

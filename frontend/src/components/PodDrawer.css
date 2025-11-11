@@ -1,0 +1,350 @@
+.pod-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pod-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 85vw;
+  background: #1a1b1e;
+  border-right: 1px solid #2c2e33;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pod-drawer.open {
+  transform: translateX(0);
+}
+
+.pod-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px;
+  border-bottom: 1px solid #2c2e33;
+  background: rgba(26, 27, 30, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.pod-drawer-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+}
+
+.pod-drawer-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.pod-drawer-close:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pod-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.pod-drawer-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pod-drawer-content::-webkit-scrollbar-track {
+  background: #1a1b1e;
+}
+
+.pod-drawer-content::-webkit-scrollbar-thumb {
+  background: #2c2e33;
+  border-radius: 3px;
+}
+
+.pod-drawer-content::-webkit-scrollbar-thumb:hover {
+  background: #3c3e43;
+}
+
+.pod-drawer-list {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.pod-drawer-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pod-drawer-item:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.pod-drawer-item.active {
+  background: rgba(102, 126, 234, 0.15);
+  border-left-color: #667eea;
+}
+
+.pod-drawer-item.active:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.pod-drawer-item-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pod-drawer-item-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.pod-drawer-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pod-drawer-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pod-drawer-item-check {
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pod-drawer-item-meta {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pod-drawer-item-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pod-drawer-divider {
+  height: 1px;
+  background: #2c2e33;
+  margin: 8px 0;
+}
+
+/* Pending Invites Section */
+.pod-drawer-pending-section {
+  padding: 12px 0;
+}
+
+.pod-drawer-pending-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  padding: 8px 20px;
+  margin-bottom: 4px;
+}
+
+.pod-drawer-invite-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.pod-drawer-invite-item::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, rgba(255, 193, 7, 0.5) 0%, rgba(251, 140, 0, 0.5) 100%);
+  border-radius: 0 2px 2px 0;
+}
+
+.pod-drawer-invite-item:hover {
+  opacity: 0.8;
+  background: rgba(255, 193, 7, 0.05);
+}
+
+.pod-drawer-invite-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pod-drawer-invite-accept,
+.pod-drawer-invite-decline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pod-drawer-invite-accept {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.pod-drawer-invite-accept:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.25);
+  transform: scale(1.05);
+}
+
+.pod-drawer-invite-decline {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.pod-drawer-invite-decline:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  transform: scale(1.05);
+}
+
+.pod-drawer-invite-accept:disabled,
+.pod-drawer-invite-decline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pod-drawer-actions {
+  padding: 12px 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pod-drawer-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pod-drawer-action-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.pod-drawer-action-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .pod-drawer {
+    width: 280px;
+  }
+
+  .pod-drawer-header {
+    padding: 16px;
+  }
+
+  .pod-drawer-title {
+    font-size: 28px;
+  }
+
+  .pod-drawer-item {
+    padding: 10px 16px;
+  }
+
+  .pod-drawer-action-btn {
+    padding: 10px 16px;
+  }
+}

@@ -17,6 +17,17 @@ function Leaderboard() {
   useEffect(() => {
     loadPlayerLeaderboard();
     loadDeckLeaderboard();
+
+    // Listen for pod switch events to refresh leaderboards
+    const handlePodSwitch = () => {
+      loadPlayerLeaderboard();
+      loadDeckLeaderboard();
+    };
+
+    window.addEventListener('podSwitched', handlePodSwitch);
+    return () => {
+      window.removeEventListener('podSwitched', handlePodSwitch);
+    };
   }, []);
 
   const loadPlayerLeaderboard = async () => {

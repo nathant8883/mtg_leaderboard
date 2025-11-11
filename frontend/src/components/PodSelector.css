@@ -1,0 +1,207 @@
+.pod-selector {
+  position: relative;
+  margin-right: 16px;
+}
+
+.pod-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #1a1b1e;
+  border: 1px solid #2c2e33;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+
+.pod-selector-button:hover:not(:disabled) {
+  background: #2c2e33;
+  border-color: #667eea;
+}
+
+.pod-selector-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pod-selector-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pod-selector-info {
+  flex: 1;
+  text-align: left;
+  min-width: 0;
+}
+
+.pod-selector-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pod-selector-meta {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.pod-selector-chevron {
+  font-size: 10px;
+  color: #9ca3af;
+  transition: transform 0.2s ease;
+}
+
+.pod-selector-chevron.open {
+  transform: rotate(180deg);
+}
+
+.pod-selector-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #1a1b1e;
+  border: 1px solid #2c2e33;
+  border-radius: 8px;
+  min-width: 280px;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.pod-selector-menu-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #2c2e33;
+}
+
+.pod-selector-menu-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.pod-selector-menu-subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.pod-selector-menu-divider {
+  height: 1px;
+  background: #2c2e33;
+}
+
+.pod-selector-pods-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.pod-selector-pods-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pod-selector-pods-list::-webkit-scrollbar-track {
+  background: #1a1b1e;
+}
+
+.pod-selector-pods-list::-webkit-scrollbar-thumb {
+  background: #2c2e33;
+  border-radius: 3px;
+}
+
+.pod-selector-pods-list::-webkit-scrollbar-thumb:hover {
+  background: #3c3e43;
+}
+
+.pod-selector-pod-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: block;
+  border-left: 3px solid transparent;
+}
+
+.pod-selector-pod-item:hover {
+  background: #2c2e33;
+}
+
+.pod-selector-pod-item.active {
+  background: rgba(102, 126, 234, 0.1);
+  border-left-color: #667eea;
+}
+
+.pod-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pod-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pod-item-checkmark {
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.pod-item-meta {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pod-item-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pod-selector-menu-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: block;
+}
+
+.pod-selector-menu-item:hover {
+  background: #2c2e33;
+}
+
+.pod-selector-menu-item:active {
+  background: #3c3e43;
+}

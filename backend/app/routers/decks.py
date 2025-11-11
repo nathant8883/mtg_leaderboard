@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from beanie import PydanticObjectId
 from pydantic import BaseModel
+from typing import Optional
 
 from app.models.player import Deck, Player
+from app.models.pod import Pod
 from app.services.scryfall import scryfall_service
-from app.middleware.auth import get_current_player
+from app.middleware.auth import get_current_player, get_optional_player
 
 router = APIRouter()
 
@@ -20,9 +22,32 @@ class CreateDeckRequest(BaseModel):
 
 
 @router.get("/")
-async def get_all_decks():
-    """Get all enabled decks (excludes disabled decks)"""
-    decks = await Deck.find(Deck.disabled != True).to_list()
+async def get_all_decks(current_player: Optional[Player] = Depends(get_optional_player)):
+    """Get all enabled decks from current pod (or all enabled decks if no pod context)"""
+    # If no current player or no current pod, return all enabled decks (backward compatibility)
+    if not current_player or not current_player.current_pod_id:
+        decks = await Deck.find(Deck.disabled != True).to_list()
+    else:
+        # Two-step filtering: get pod members, then get their decks
+        try:
+            pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
+            if pod:
+                # Get decks owned by pod members (and not disabled)
+                decks = await Deck.find(
+                    {
+                        "$and": [
+                            {"player_id": {"$in": pod.member_ids}},
+                            {"$or": [{"disabled": False}, {"disabled": {"$exists": False}}]}
+                        ]
+                    }
+                ).to_list()
+            else:
+                # Fallback to all enabled decks if pod not found
+                decks = await Deck.find(Deck.disabled != True).to_list()
+        except Exception:
+            # Fallback to all enabled decks on error
+            decks = await Deck.find(Deck.disabled != True).to_list()
+
     # Convert _id to id for frontend compatibility
     return [
         {

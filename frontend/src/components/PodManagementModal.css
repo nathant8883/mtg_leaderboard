@@ -1,0 +1,524 @@
+.pod-management-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.pod-management-modal {
+  background: #1a1b1e;
+  border: 1px solid #2c2e33;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideInUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+.pod-management-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid #2c2e33;
+  background: rgba(26, 27, 30, 0.95);
+}
+
+.pod-management-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+}
+
+.pod-management-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.pod-management-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 4px 0;
+}
+
+.pod-management-description {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pod-management-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.pod-management-close:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pod-management-section {
+  padding: 20px 24px;
+  border-bottom: 1px solid #2c2e33;
+}
+
+.pod-management-section:last-of-type {
+  border-bottom: none;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.pod-management-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.pod-management-section-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pod-invite-form {
+  display: flex;
+  gap: 12px;
+}
+
+.pod-invite-input-group {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pod-invite-icon {
+  position: absolute;
+  left: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.pod-invite-input {
+  width: 100%;
+  background: rgba(44, 46, 51, 0.5);
+  border: 1px solid #2c2e33;
+  border-radius: 8px;
+  padding: 10px 12px 10px 40px;
+  font-size: 14px;
+  color: white;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.pod-invite-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: rgba(44, 46, 51, 0.8);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.pod-invite-input::placeholder {
+  color: #6b7280;
+}
+
+.pod-invite-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pod-invite-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.pod-invite-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pod-members-loading,
+.pod-members-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9ca3af;
+}
+
+.pod-members-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.pod-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pod-member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: rgba(44, 46, 51, 0.3);
+  border: 1px solid #2c2e33;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.pod-member-item:hover {
+  background: rgba(44, 46, 51, 0.5);
+  border-color: #3c3e43;
+}
+
+.pod-member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pod-member-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.pod-member-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pod-member-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pod-member-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.pod-member-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pod-member-you {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.pod-member-roles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pod-member-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pod-role-creator {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.pod-role-admin {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.pod-member-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pod-member-promote {
+  background: transparent;
+  border: 1px solid #667eea;
+  color: #667eea;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pod-member-promote:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #5568d3;
+}
+
+.pod-member-demote {
+  background: transparent;
+  border: 1px solid #f59e0b;
+  color: #f59e0b;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pod-member-demote:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #d97706;
+}
+
+.pod-member-remove {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pod-member-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #dc2626;
+}
+
+.pod-management-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #2c2e33;
+  background: rgba(26, 27, 30, 0.95);
+}
+
+.pod-leave-button {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pod-leave-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #dc2626;
+}
+
+.pod-done-button {
+  background: rgba(102, 126, 234, 0.15);
+  border: 1px solid #667eea;
+  color: #667eea;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pod-done-button:hover {
+  background: rgba(102, 126, 234, 0.25);
+  border-color: #5568d3;
+}
+
+/* Confirmation Dialog */
+.pod-confirm-dialog {
+  background: #1a1b1e;
+  border: 1px solid #2c2e33;
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideInUp 0.2s ease-out;
+}
+
+.pod-confirm-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 12px 0;
+}
+
+.pod-confirm-message {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.pod-confirm-message strong {
+  color: white;
+  font-weight: 600;
+}
+
+.pod-confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.pod-confirm-cancel,
+.pod-confirm-remove {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  min-width: 100px;
+}
+
+.pod-confirm-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  border: 1px solid #2c2e33;
+}
+
+.pod-confirm-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.pod-confirm-remove {
+  background: #ef4444;
+  color: white;
+}
+
+.pod-confirm-remove:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .pod-management-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .pod-management-header {
+    padding: 20px;
+  }
+
+  .pod-management-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pod-management-title {
+    font-size: 20px;
+  }
+
+  .pod-management-section {
+    padding: 16px 20px;
+  }
+
+  .pod-invite-form {
+    flex-direction: column;
+  }
+
+  .pod-invite-button {
+    width: 100%;
+  }
+
+  .pod-management-footer {
+    padding: 12px 20px;
+    flex-direction: column-reverse;
+  }
+
+  .pod-leave-button,
+  .pod-done-button {
+    width: 100%;
+  }
+
+  .pod-confirm-dialog {
+    padding: 20px;
+  }
+
+  .pod-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pod-confirm-cancel,
+  .pod-confirm-remove {
+    width: 100%;
+  }
+}

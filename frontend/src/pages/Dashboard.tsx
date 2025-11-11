@@ -28,9 +28,19 @@ export function Dashboard() {
       loadPendingMatches();
     };
 
+    // Listen for pod switch events - refresh all data when switching pods
+    const handlePodSwitch = () => {
+      loadMatches();
+      loadPendingMatches();
+      // Trigger a full page refresh for child components
+      window.dispatchEvent(new Event('podSwitched-refresh'));
+    };
+
     window.addEventListener('refreshMatches', handleRefreshMatches);
+    window.addEventListener('podSwitched', handlePodSwitch);
     return () => {
       window.removeEventListener('refreshMatches', handleRefreshMatches);
+      window.removeEventListener('podSwitched', handlePodSwitch);
     };
   }, []);
 

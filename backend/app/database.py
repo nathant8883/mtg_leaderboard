@@ -4,6 +4,7 @@ from beanie import init_beanie
 from app.config import settings
 from app.models.player import Player, Deck
 from app.models.match import Match
+from app.models.pod import Pod, PodInvite
 
 
 async def init_db():
@@ -14,7 +15,7 @@ async def init_db():
     # Initialize Beanie with all document models
     await init_beanie(
         database=database,
-        document_models=[Player, Deck, Match]
+        document_models=[Player, Deck, Match, Pod, PodInvite]
     )
 
     print(f"Connected to MongoDB: {settings.database_name}")

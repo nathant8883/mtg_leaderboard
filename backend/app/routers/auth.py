@@ -9,8 +9,10 @@ import re
 
 from app.config import settings
 from app.models.player import Player
+from app.models.pod import Pod
 from app.utils.jwt import create_access_token
 from app.middleware.auth import get_current_player
+from beanie import PydanticObjectId
 
 router = APIRouter()
 
@@ -169,6 +171,8 @@ async def get_me(current_player: Player = Depends(get_current_player)):
         "custom_avatar": current_player.custom_avatar,
         "deck_ids": current_player.deck_ids,
         "is_superuser": current_player.is_superuser,
+        "pod_ids": current_player.pod_ids,
+        "current_pod_id": current_player.current_pod_id,
         "created_at": current_player.created_at
     }
 
@@ -256,4 +260,43 @@ async def dev_login():
             "avatar": player.avatar,
             "picture": player.picture
         }
+    }
+
+
+@router.post("/switch-pod")
+async def switch_pod(
+    pod_id: str,
+    current_player: Player = Depends(get_current_player)
+):
+    """Switch current player's active pod"""
+    # Verify pod exists
+    try:
+        pod = await Pod.get(PydanticObjectId(pod_id))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pod not found"
+        )
+
+    if not pod:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pod not found"
+        )
+
+    # Check if player is member or superuser
+    player_id_str = str(current_player.id)
+    if player_id_str not in pod.member_ids and not current_player.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must be a member of this pod to switch to it"
+        )
+
+    # Update current pod
+    await current_player.set({Player.current_pod_id: pod_id})
+
+    return {
+        "message": "Switched pod successfully",
+        "current_pod_id": pod_id,
+        "pod_name": pod.name
     }

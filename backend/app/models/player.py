@@ -43,6 +43,10 @@ class Player(Document):
     is_superuser: bool = False  # Can access admin panel and manage all data
     is_guest: bool = False  # Guest players for one-time match tracking
 
+    # Pod membership
+    pod_ids: list[str] = Field(default_factory=list)  # IDs of pods this player belongs to
+    current_pod_id: Optional[str] = None  # Currently active pod for this player
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:

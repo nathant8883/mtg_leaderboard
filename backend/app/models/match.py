@@ -20,6 +20,7 @@ class Match(Document):
     players: list[MatchPlayer] = Field(min_length=3, max_length=6)
     winner_player_id: str
     winner_deck_id: str
+    pod_id: Optional[str] = None  # Pod where match was played (snapshot)
     match_date: date = Field(default_factory=date.today)
     duration_seconds: Optional[int] = None  # Game duration in seconds
     first_player_position: Optional[int] = None  # Index of player who went first (0-based position in players list)

@@ -14,6 +14,7 @@ import MatchDetail from './components/MatchDetail.tsx'
 import Leaderboard from './components/Leaderboard.tsx'
 import AdminPanel from './components/AdminPanel.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
+import { PodProvider } from './contexts/PodContext.tsx'
 import { Toaster } from 'react-hot-toast'
 
 // Protected route wrapper - allows both authenticated users and guest mode
@@ -36,8 +37,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <Toaster />
-        <Routes>
+        <PodProvider>
+          <Toaster />
+          <Routes>
           <Route path="/login" element={<Login />} />
 
           {/* Match Tracker - Standalone full-screen route (no MainLayout) */}
@@ -66,6 +68,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
+        </PodProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

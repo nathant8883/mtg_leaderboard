@@ -23,6 +23,16 @@ function StatsCards() {
 
   useEffect(() => {
     loadStats();
+
+    // Listen for pod switch events to refresh stats
+    const handlePodSwitch = () => {
+      loadStats();
+    };
+
+    window.addEventListener('podSwitched', handlePodSwitch);
+    return () => {
+      window.removeEventListener('podSwitched', handlePodSwitch);
+    };
   }, []);
 
   const loadStats = async () => {

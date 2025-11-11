@@ -13,6 +13,16 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
 
   useEffect(() => {
     loadTopPlayers();
+
+    // Listen for pod switch events to refresh data
+    const handlePodSwitch = () => {
+      loadTopPlayers();
+    };
+
+    window.addEventListener('podSwitched', handlePodSwitch);
+    return () => {
+      window.removeEventListener('podSwitched', handlePodSwitch);
+    };
   }, []);
 
   const loadTopPlayers = async () => {

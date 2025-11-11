@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from beanie import PydanticObjectId
 from pydantic import BaseModel
 from datetime import date
+from typing import Optional
 
 from app.models.match import Match, MatchPlayer
 from app.models.player import Player, Deck
+from app.models.pod import Pod
+from app.middleware.auth import get_optional_player
 
 router = APIRouter()
 
@@ -49,6 +52,7 @@ def serialize_match(match: Match) -> dict:
         ],
         "winner_player_id": match.winner_player_id,
         "winner_deck_id": match.winner_deck_id,
+        "pod_id": match.pod_id,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
         "first_player_position": match.first_player_position,
@@ -57,16 +61,39 @@ def serialize_match(match: Match) -> dict:
 
 
 @router.get("/")
-async def get_all_matches(limit: int = 50, skip: int = 0):
-    """Get all matches with pagination"""
-    matches = await Match.find_all().skip(skip).limit(limit).sort(-Match.match_date).to_list()
+async def get_all_matches(
+    limit: int = 50,
+    skip: int = 0,
+    current_player: Optional[Player] = Depends(get_optional_player)
+):
+    """Get all matches from current pod (or all matches if no pod context)"""
+    # If no current player or no current pod, return all matches (backward compatibility)
+    if not current_player or not current_player.current_pod_id:
+        matches = await Match.find_all().skip(skip).limit(limit).sort(-Match.match_date).to_list()
+    else:
+        # Filter matches by current pod
+        matches = await Match.find(
+            Match.pod_id == current_player.current_pod_id
+        ).skip(skip).limit(limit).sort(-Match.match_date).to_list()
+
     return [serialize_match(match) for match in matches]
 
 
 @router.get("/recent")
-async def get_recent_matches(limit: int = 10):
-    """Get recent matches"""
-    matches = await Match.find_all().limit(limit).sort(-Match.match_date).to_list()
+async def get_recent_matches(
+    limit: int = 10,
+    current_player: Optional[Player] = Depends(get_optional_player)
+):
+    """Get recent matches from current pod (or all recent if no pod context)"""
+    # If no current player or no current pod, return all recent matches (backward compatibility)
+    if not current_player or not current_player.current_pod_id:
+        matches = await Match.find_all().limit(limit).sort(-Match.match_date).to_list()
+    else:
+        # Filter matches by current pod
+        matches = await Match.find(
+            Match.pod_id == current_player.current_pod_id
+        ).limit(limit).sort(-Match.match_date).to_list()
+
     return [serialize_match(match) for match in matches]
 
 
@@ -80,12 +107,16 @@ async def get_match(match_id: PydanticObjectId):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_match(request: CreateMatchRequest):
+async def create_match(
+    request: CreateMatchRequest,
+    current_player: Optional[Player] = Depends(get_optional_player)
+):
     """
     Create a new match with player and deck data.
 
     Fetches player names and deck names from the database to store
-    as snapshots in the match record.
+    as snapshots in the match record. If authenticated, validates all
+    players are in the same pod and assigns match to that pod.
     """
     # Validate player count
     if len(request.player_deck_pairs) < 3:
@@ -143,11 +174,32 @@ async def create_match(request: CreateMatchRequest):
             detail="Winner must be one of the players in the match"
         )
 
+    # Pod validation and assignment
+    match_pod_id = None
+    if current_player and current_player.current_pod_id:
+        # Validate all players are in the same pod
+        try:
+            pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
+            if pod:
+                # Check if all players are members of the current pod
+                for player_id in player_ids:
+                    if player_id not in pod.member_ids:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"All players must be members of the current pod"
+                        )
+                match_pod_id = current_player.current_pod_id
+        except HTTPException:
+            raise  # Re-raise validation errors
+        except Exception:
+            pass  # Silently fail pod validation if pod doesn't exist
+
     # Create and save match
     match = Match(
         players=match_players,
         winner_player_id=request.winner_player_id,
         winner_deck_id=request.winner_deck_id,
+        pod_id=match_pod_id,
         match_date=request.match_date,
         duration_seconds=request.duration_seconds,
         first_player_position=request.first_player_position
@@ -172,6 +224,7 @@ async def create_match(request: CreateMatchRequest):
         ],
         "winner_player_id": match.winner_player_id,
         "winner_deck_id": match.winner_deck_id,
+        "pod_id": match.pod_id,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
         "first_player_position": match.first_player_position,

@@ -1,0 +1,93 @@
+.pod-invite-banner {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  animation: slideInDown 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pod-invite-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pod-invite-banner-icon {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pod-invite-banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pod-invite-banner-message {
+  font-size: 15px;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.pod-invite-banner-button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.pod-invite-banner-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.pod-invite-banner-button:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .pod-invite-banner {
+    padding: 12px 16px;
+  }
+
+  .pod-invite-banner-content {
+    gap: 12px;
+  }
+
+  .pod-invite-banner-icon {
+    font-size: 24px;
+  }
+
+  .pod-invite-banner-message {
+    font-size: 14px;
+  }
+
+  .pod-invite-banner-button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
