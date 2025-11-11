@@ -1,5 +1,13 @@
 import './LandscapePrompt.css';
 
+interface LandscapePromptProps {
+  /**
+   * Whether the orientation is successfully locked via Screen Orientation API.
+   * When true, hides the prompt completely as the device is already locked to landscape.
+   */
+  isOrientationLocked?: boolean;
+}
+
 /**
  * LandscapePrompt Component
  *
@@ -9,8 +17,14 @@ import './LandscapePrompt.css';
  * Uses CSS media queries for instant orientation detection - no JavaScript overhead.
  * Works cross-platform (iOS & Android) as a graceful fallback when native orientation
  * locking is not supported.
+ *
+ * @param isOrientationLocked - If true, hides the prompt (orientation is locked via API)
  */
-function LandscapePrompt() {
+function LandscapePrompt({ isOrientationLocked = false }: LandscapePromptProps) {
+  // If orientation is locked via API, don't show the prompt at all
+  if (isOrientationLocked) {
+    return null;
+  }
   return (
     <div className="landscape-prompt">
       <div className="landscape-prompt-content">

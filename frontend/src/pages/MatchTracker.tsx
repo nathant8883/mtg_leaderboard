@@ -10,6 +10,7 @@ import { playerApi, deckApi, Player, Deck } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useWakeLock } from '../hooks/useWakeLock';
+import { useOrientationLock } from '../hooks/useOrientationLock';
 
 export type LayoutType = 'table';
 export type StepType = 'setup' | 'assignment' | 'game' | 'winner';
@@ -61,6 +62,9 @@ function MatchTracker() {
 
   // Prevent screen timeout during match play
   useWakeLock();
+
+  // Lock screen orientation to landscape
+  const orientationLockStatus = useOrientationLock();
 
   // Detect quick play mode from URL
   const isQuickPlayMode = searchParams.get('mode') === 'quick';
@@ -466,7 +470,7 @@ function MatchTracker() {
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 min-h-screen max-h-screen bg-gradient-to-br from-[#1a1b1e] to-[#2c2e33] text-white p-0 m-0 overflow-hidden">
       {/* Landscape orientation prompt - only visible in portrait mode */}
-      <LandscapePrompt />
+      <LandscapePrompt isOrientationLocked={orientationLockStatus === 'locked'} />
 
       {showResumeModal && (
         <div className="fixed top-0 left-0 right-0 bottom-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-[1000] p-4">
