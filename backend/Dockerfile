@@ -16,6 +16,9 @@ RUN uv sync --frozen
 # Copy application code
 COPY ./app ./app
 
+# Copy scripts directory
+COPY ./scripts ./scripts
+
 # Expose port
 EXPOSE 7777
 
