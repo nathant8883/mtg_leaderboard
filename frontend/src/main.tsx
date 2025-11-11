@@ -17,6 +17,12 @@ import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
 import { Toaster } from 'react-hot-toast'
 
+// Detect iOS and add class for iOS-specific styling (safe areas)
+const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+if (isIOSDevice) {
+  document.documentElement.classList.add('ios-device');
+}
+
 // Protected route wrapper - allows both authenticated users and guest mode
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { currentPlayer, loading, isGuest } = useAuth();
