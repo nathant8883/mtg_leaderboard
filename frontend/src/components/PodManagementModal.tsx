@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, UserPlus, Mail, Shield, Users, Edit2, Check, XCircle } from 'lucide-react';
 import { podApi, playerApi, type Pod, type Player } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,7 +28,10 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
   const [isEditingHeader, setIsEditingHeader] = useState(false);
   const [editedName, setEditedName] = useState(pod.name);
   const [editedDescription, setEditedDescription] = useState(pod.description || '');
+  const [editedCustomImage, setEditedCustomImage] = useState(pod.custom_image || '');
+  const [previewImage, setPreviewImage] = useState<string | null>(pod.custom_image || null);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isAdmin = pod.is_admin || pod.admin_ids?.includes(String(currentPlayer?.id)) || currentPlayer?.is_superuser;
 
@@ -186,6 +189,43 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
     setIsEditingHeader(false);
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      toast.error('Please select a valid image file (JPG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64String = event.target?.result as string;
+      setEditedCustomImage(base64String);
+      setPreviewImage(base64String);
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read image file');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCustomImage = () => {
+    setEditedCustomImage('');
+    setPreviewImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (!editedName.trim()) {
       toast.error('Pod name cannot be empty');
@@ -197,7 +237,8 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
       const updated = await podApi.update(
         pod.id!,
         editedName,
-        editedDescription || undefined
+        editedDescription || undefined,
+        editedCustomImage || undefined
       );
       setPod(updated);
       setIsEditingHeader(false);
@@ -218,7 +259,6 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
         {/* Header */}
         <div className="pod-management-header">
           <div className="pod-management-header-content">
-            <img src="/logo.png" alt={pod.name} className="pod-management-logo" />
             {!isEditingHeader ? (
               <div className="pod-header-view">
                 <div className="pod-header-title-row">
@@ -261,6 +301,114 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
                     disabled={saving}
                   />
                 </div>
+
+                <div className="pod-edit-field">
+                  <label className="pod-edit-label">Pod Image (optional)</label>
+
+                  {/* Image Preview - Clickable */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px',
+                    background: '#25262B',
+                    borderRadius: '8px',
+                    border: '1px solid #2C2E33',
+                    position: 'relative'
+                  }}>
+                    <div
+                      onClick={() => !saving && fileInputRef.current?.click()}
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid #2C2E33',
+                        flexShrink: 0,
+                        cursor: saving ? 'default' : 'pointer',
+                        transition: 'transform 0.1s ease, border-color 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!saving) {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.borderColor = '#667eea';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.borderColor = '#2C2E33';
+                      }}
+                    >
+                      <img
+                        src={previewImage || '/logo.png'}
+                        alt="Pod preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ color: '#C1C2C5', fontSize: '13px', fontWeight: 500, margin: 0 }}>
+                        {previewImage ? 'Click image to change' : 'Click to upload pod image'}
+                      </p>
+                      <p style={{ color: '#909296', fontSize: '12px', margin: '4px 0 0 0' }}>
+                        JPG, PNG, GIF, or WebP (max 2MB)
+                      </p>
+                    </div>
+
+                    {previewImage && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveCustomImage();
+                        }}
+                        disabled={saving}
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          background: 'rgba(0, 0, 0, 0.6)',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: saving ? 'default' : 'pointer',
+                          padding: 0,
+                          transition: 'all 0.2s ease',
+                          backdropFilter: 'blur(4px)'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!saving) {
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.8)';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <X size={12} color="#E5E7EB" strokeWidth={2.5} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Hidden File Input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+
                 <div className="edit-actions">
                   <button
                     className="edit-cancel-button"

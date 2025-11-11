@@ -34,6 +34,7 @@
   padding: 24px;
   border-bottom: 1px solid #2c2e33;
   background: rgba(26, 27, 30, 0.95);
+  position: relative;
 }
 
 .pod-management-header-content {
@@ -41,6 +42,7 @@
   align-items: center;
   gap: 16px;
   flex: 1;
+  padding-bottom: 24px;
 }
 
 .pod-management-logo {
@@ -101,6 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 8px;
 }
 
 .pod-edit-field {
@@ -231,6 +234,9 @@
   justify-content: center;
   transition: all 0.2s ease;
   border-radius: 4px;
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .pod-management-close:hover {

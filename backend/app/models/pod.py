@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional, Any
 from beanie import Document
-from pydantic import Field
+from pydantic import Field, field_validator
+import re
+import base64
 
 
 class Pod(Document):
@@ -11,7 +13,36 @@ class Pod(Document):
     creator_id: str  # Player ID who created the pod
     admin_ids: list[str] = Field(default_factory=list)  # Player IDs with admin access
     member_ids: list[str] = Field(default_factory=list)  # All player IDs in the pod
+    custom_image: Optional[str] = None  # Base64-encoded custom pod image
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @field_validator('custom_image')
+    @classmethod
+    def validate_custom_image(cls, v: str | None) -> str | None:
+        """Validate custom_image is valid base64 or None"""
+        if v is None or v == "":
+            return None
+
+        # Check if it's a data URI (data:image/png;base64,...)
+        data_uri_pattern = r'^data:image/(jpeg|jpg|png|gif|webp);base64,(.+)$'
+        match = re.match(data_uri_pattern, v)
+
+        if match:
+            base64_data = match.group(2)
+        else:
+            base64_data = v
+
+        try:
+            # Verify it's valid base64
+            decoded = base64.b64decode(base64_data, validate=True)
+
+            # Check decoded size (max ~2MB)
+            if len(decoded) > 2 * 1024 * 1024:
+                raise ValueError("Image size too large (max 2MB)")
+
+            return v  # Return original value (with data URI)
+        except Exception:
+            raise ValueError("Invalid base64 image data")
 
     class Settings:
         name = "pods"

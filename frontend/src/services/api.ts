@@ -336,6 +336,7 @@ export interface Pod {
   id?: string;
   name: string;
   description?: string;
+  custom_image?: string;
   creator_id: string;
   admin_ids: string[];
   member_ids: string[];
@@ -389,9 +390,9 @@ export const podApi = {
     return response.data;
   },
 
-  update: async (id: string, name?: string, description?: string): Promise<Pod> => {
+  update: async (id: string, name?: string, description?: string, custom_image?: string): Promise<Pod> => {
     const response = await api.put(`/pods/${id}`, null, {
-      params: { name, description }
+      params: { name, description, custom_image }
     });
     return response.data;
   },

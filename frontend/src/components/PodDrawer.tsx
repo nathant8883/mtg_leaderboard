@@ -3,6 +3,7 @@ import { Plus, Settings, Check, X } from 'lucide-react';
 import { usePod } from '../contexts/PodContext';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import PodAvatar from './PodAvatar';
 import './PodDrawer.css';
 
 interface PodDrawerProps {
@@ -106,7 +107,7 @@ export const PodDrawer: React.FC<PodDrawerProps> = ({
                 onClick={() => handleSwitchPod(pod.id!)}
               >
                 <div className="pod-drawer-item-icon">
-                  <img src="/logo.png" alt={pod.name} className="pod-drawer-item-logo" />
+                  <PodAvatar podName={pod.name} customImage={pod.custom_image} size="medium" />
                 </div>
                 <div className="pod-drawer-item-info">
                   <div className="pod-drawer-item-name">
@@ -135,7 +136,7 @@ export const PodDrawer: React.FC<PodDrawerProps> = ({
                 {pendingInvites.map((invite) => (
                   <div key={invite.id} className="pod-drawer-invite-item">
                     <div className="pod-drawer-item-icon">
-                      <img src="/logo.png" alt={invite.pod_name} className="pod-drawer-item-logo" />
+                      <PodAvatar podName={invite.pod_name || 'Pod'} customImage={null} size="medium" />
                     </div>
                     <div className="pod-drawer-item-info">
                       <div className="pod-drawer-item-name">

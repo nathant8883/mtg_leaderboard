@@ -15,6 +15,7 @@ import MatchForm from './MatchForm';
 import SyncQueue from './SyncQueue';
 import UpdatePrompt from './UpdatePrompt';
 import InstallPrompt from './InstallPrompt';
+import PodAvatar from './PodAvatar';
 import type { Player, Deck, CreateMatchRequest } from '../services/api';
 import { playerApi, deckApi } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
@@ -242,10 +243,12 @@ export function MainLayout() {
                 className="flex items-center gap-3 max-md:gap-2 bg-transparent border-none p-0 cursor-pointer relative"
                 onClick={() => setShowPodDrawer(true)}
               >
-                <div className="relative">
-                  <div className="w-12 h-12 max-md:w-10 max-md:h-10 bg-gradient-purple rounded-[8px] flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity">
-                    <img src="/logo.png" alt="Pod Pal Logo" className="w-full h-full object-contain scale-[1.40]" />
-                  </div>
+                <div className="relative hover:opacity-80 transition-opacity">
+                  <PodAvatar
+                    podName={currentPod?.name || 'Pod Pal'}
+                    customImage={currentPod?.custom_image}
+                    size="medium"
+                  />
                   {!isGuest && currentPlayer && !currentPlayer.is_guest && pendingInvites && pendingInvites.length > 0 && (
                     <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#ef4444] rounded-full shadow-[0_2px_8px_rgba(239,68,68,0.5)] ring-[1.5px] ring-[#1a1b1e] animate-[subtlePulse_2s_ease-in-out_infinite]" />
                   )}

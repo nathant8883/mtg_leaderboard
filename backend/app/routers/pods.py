@@ -26,6 +26,7 @@ async def get_user_pods(current_player: Player = Depends(get_current_player)):
             "id": str(pod.id),
             "name": pod.name,
             "description": pod.description,
+            "custom_image": pod.custom_image,
             "creator_id": pod.creator_id,
             "member_count": len(pod.member_ids),
             "is_admin": player_id_str in pod.admin_ids or current_player.is_superuser,
@@ -65,6 +66,7 @@ async def create_pod(
         "id": str(pod.id),
         "name": pod.name,
         "description": pod.description,
+        "custom_image": pod.custom_image,
         "creator_id": pod.creator_id,
         "admin_ids": pod.admin_ids,
         "member_ids": pod.member_ids,
@@ -108,6 +110,7 @@ async def update_pod(
     pod_id: PydanticObjectId,
     name: str = None,
     description: str = None,
+    custom_image: str = None,
     current_player: Player = Depends(get_current_player)
 ):
     """Update pod details (admins only)"""
@@ -130,6 +133,9 @@ async def update_pod(
         update_data[Pod.name] = name
     if description is not None:
         update_data[Pod.description] = description
+    if custom_image is not None:
+        # Empty string means remove image
+        update_data[Pod.custom_image] = custom_image if custom_image != "" else None
 
     if update_data:
         await pod.set(update_data)
@@ -138,6 +144,7 @@ async def update_pod(
         "id": str(pod.id),
         "name": pod.name,
         "description": pod.description,
+        "custom_image": pod.custom_image,
         "creator_id": pod.creator_id,
         "admin_ids": pod.admin_ids,
         "member_ids": pod.member_ids,
