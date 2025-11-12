@@ -12,9 +12,16 @@ router = APIRouter()
 
 @router.get("/")
 async def get_all_players(current_player: Optional[Player] = Depends(get_optional_player)):
-    """Get all players in current pod (or all non-guest players if no pod context)"""
+    """Get all players in current pod (or all non-guest players if no pod context)
+    Superusers always see all players regardless of pod membership."""
+
+    # Superusers always see all non-guest players
+    if current_player and current_player.is_superuser:
+        players = await Player.find(
+            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+        ).to_list()
     # If no current player or no current pod, return all non-guest players (backward compatibility)
-    if not current_player or not current_player.current_pod_id:
+    elif not current_player or not current_player.current_pod_id:
         players = await Player.find(
             {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
         ).to_list()
