@@ -393,9 +393,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(85vh - 300px);
-  overflow-y: auto;
-  padding-right: 4px;
 }
 
 .pod-member-item {
@@ -693,10 +690,6 @@
 
   .pod-management-section {
     padding: 16px 20px;
-  }
-
-  .pod-members-list {
-    max-height: calc(90vh - 350px);
   }
 
   .pod-invite-form {
