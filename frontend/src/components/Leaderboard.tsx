@@ -2,17 +2,28 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlayerLeaderboard from './PlayerLeaderboard';
 import DeckLeaderboard from './DeckLeaderboard';
+import { useAuth } from '../contexts/AuthContext';
+import { usePod } from '../contexts/PodContext';
 import { leaderboardApi, type PlayerLeaderboardEntry, type DeckLeaderboardEntry } from '../services/api';
 
 type LeaderboardTab = 'players' | 'decks';
 
 function Leaderboard() {
   const navigate = useNavigate();
+  const { currentPlayer, isGuest } = useAuth();
+  const { currentPod, loading: podLoading } = usePod();
   const [activeTab, setActiveTab] = useState<LeaderboardTab>('players');
   const [players, setPlayers] = useState<PlayerLeaderboardEntry[]>([]);
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [loadingDecks, setLoadingDecks] = useState(true);
+
+  // Redirect to dashboard if authenticated but no pod
+  useEffect(() => {
+    if (!isGuest && currentPlayer && !currentPod && !podLoading) {
+      navigate('/');
+    }
+  }, [isGuest, currentPlayer, currentPod, podLoading, navigate]);
 
   useEffect(() => {
     loadPlayerLeaderboard();

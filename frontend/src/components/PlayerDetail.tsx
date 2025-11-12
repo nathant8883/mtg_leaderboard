@@ -4,12 +4,14 @@ import ColorPips from './ColorPips';
 import DeckForm from './DeckForm';
 import ProfileEditModal from './ProfileEditModal';
 import { useAuth } from '../contexts/AuthContext';
+import { usePod } from '../contexts/PodContext';
 import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats } from '../services/api';
 
 function PlayerDetail() {
   const { playerId } = useParams<{ playerId: string }>();
   const navigate = useNavigate();
-  const { currentPlayer, refreshPlayer } = useAuth();
+  const { currentPlayer, isGuest, refreshPlayer } = useAuth();
+  const { currentPod, loading: podLoading } = usePod();
   const [playerDetail, setPlayerDetail] = useState<PlayerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeckForm, setShowDeckForm] = useState(false);
@@ -19,6 +21,13 @@ function PlayerDetail() {
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
+
+  // Redirect to dashboard if authenticated but no pod
+  useEffect(() => {
+    if (!isGuest && currentPlayer && !currentPod && !podLoading) {
+      navigate('/');
+    }
+  }, [isGuest, currentPlayer, currentPod, podLoading, navigate]);
 
   useEffect(() => {
     if (playerId) {

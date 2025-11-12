@@ -6,6 +6,8 @@ import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
 import ActiveGame from '../components/match-tracker/ActiveGame';
 import WinnerScreen from '../components/match-tracker/WinnerScreen';
 import LandscapePrompt from '../components/LandscapePrompt';
+import { useAuth } from '../contexts/AuthContext';
+import { usePod } from '../contexts/PodContext';
 import { playerApi, deckApi, Player, Deck } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -58,6 +60,8 @@ const STORAGE_KEY = 'mtg_active_match';
 function MatchTracker() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { currentPlayer, isGuest } = useAuth();
+  const { currentPod, loading: podLoading } = usePod();
   const { isOnline } = useOnlineStatus();
 
   // Prevent screen timeout during match play
@@ -68,6 +72,13 @@ function MatchTracker() {
 
   // Detect quick play mode from URL
   const isQuickPlayMode = searchParams.get('mode') === 'quick';
+
+  // Redirect authenticated users without a pod (unless in quick play mode)
+  useEffect(() => {
+    if (!isQuickPlayMode && !isGuest && currentPlayer && !currentPod && !podLoading) {
+      navigate('/');
+    }
+  }, [isQuickPlayMode, isGuest, currentPlayer, currentPod, podLoading, navigate]);
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);

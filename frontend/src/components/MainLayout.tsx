@@ -394,8 +394,24 @@ export function MainLayout() {
             <span className="text-[11px]">Home</span>
           </button>
           <button
-            className="flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] bg-gradient-purple text-white cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] shadow-[0_2px_8px_rgba(102,126,234,0.3)] opacity-100 active:scale-95"
-            onClick={() => navigate('/match-tracker')}
+            className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] text-white text-xs font-semibold transition-[all_0.15s_ease-out] ${
+              !isGuest && currentPlayer && !currentPod
+                ? 'bg-[#2C2E33] cursor-not-allowed opacity-40'
+                : 'bg-gradient-purple cursor-pointer shadow-[0_2px_8px_rgba(102,126,234,0.3)] opacity-100 active:scale-95'
+            }`}
+            onClick={() => {
+              if (!isGuest && currentPlayer && !currentPod) {
+                // Show alert for authenticated users without a pod
+                toast.error('Please create or join a pod to start tracking games', {
+                  duration: 3000,
+                  position: 'bottom-center',
+                  icon: '🎯',
+                });
+              } else {
+                navigate('/match-tracker');
+              }
+            }}
+            disabled={!isGuest && currentPlayer && !currentPod}
           >
             <Play size={24} />
             <span className="text-[11px]">Start Game</span>

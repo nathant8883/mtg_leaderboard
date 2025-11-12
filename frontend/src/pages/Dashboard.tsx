@@ -4,6 +4,9 @@ import StatsCards from '../components/StatsCards';
 import TopPlayers from '../components/TopPlayers';
 import TopDecks from '../components/TopDecks';
 import RecentMatches from '../components/RecentMatches';
+import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
+import { useAuth } from '../contexts/AuthContext';
+import { usePod } from '../contexts/PodContext';
 import type { Match } from '../services/api';
 import { matchApi } from '../services/api';
 import type { PendingMatch } from '../types/matchTypes';
@@ -14,6 +17,8 @@ import offlineQueue from '../services/offlineQueue';
  */
 export function Dashboard() {
   const navigate = useNavigate();
+  const { currentPlayer, isGuest } = useAuth();
+  const { currentPod, loading: podLoading } = usePod();
   const [matches, setMatches] = useState<Match[]>([]);
   const [pendingMatches, setPendingMatches] = useState<PendingMatch[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
@@ -97,6 +102,11 @@ export function Dashboard() {
   const handleViewPlayerDetail = (playerId: string) => {
     navigate(`/players/${playerId}`);
   };
+
+  // Show placeholder if authenticated but no pod selected
+  if (!isGuest && currentPlayer && !currentPod && !podLoading) {
+    return <NoPodPlaceholder />;
+  }
 
   return (
     <div>

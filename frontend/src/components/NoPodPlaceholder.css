@@ -1,0 +1,214 @@
+.no-pod-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: -24px -12px -96px -12px; /* Negative margin to counteract parent padding */
+  padding: 16px;
+  padding-bottom: 80px; /* Space for mobile nav */
+  background: #141517;
+  box-sizing: border-box;
+  overflow-y: hidden; /* Hide any scrollbars */
+}
+
+.no-pod-content {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  /* Hide scrollbar but allow scroll if truly needed */
+  overflow-y: auto;
+  max-height: 100%;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.no-pod-content::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Icon */
+.no-pod-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.no-pod-icon-wrapper {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.no-pod-icon {
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+  }
+}
+
+/* Heading */
+.no-pod-heading {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+}
+
+/* Message */
+.no-pod-message {
+  font-size: 16px;
+  color: #C1C2C5;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+/* Info items */
+.no-pod-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.no-pod-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  padding: 14px;
+  background: #1A1B1E;
+  border: 1px solid #2C2E33;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.no-pod-info-item:hover {
+  border-color: #667eea;
+  background: #1C1D21;
+  transform: translateY(-2px);
+}
+
+.no-pod-info-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.no-pod-info-text {
+  font-size: 14px;
+  color: #C1C2C5;
+  line-height: 1.5;
+}
+
+/* Primary button */
+.no-pod-primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.no-pod-primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.no-pod-primary-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Secondary section */
+.no-pod-secondary {
+  margin-top: 24px;
+}
+
+.no-pod-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  color: #909296;
+  font-size: 14px;
+}
+
+.no-pod-divider::before,
+.no-pod-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #2C2E33;
+}
+
+.no-pod-divider-text {
+  padding: 0 16px;
+}
+
+/* Invite hint */
+.no-pod-invite-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #909296;
+  font-size: 14px;
+  background: #1A1B1E;
+  border: 1px solid #2C2E33;
+  border-radius: 8px;
+}
+
+.no-pod-arrow-icon {
+  color: #667eea;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .no-pod-primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .no-pod-invite-hint {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .no-pod-arrow-icon {
+    display: none;
+  }
+}
