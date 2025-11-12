@@ -4,6 +4,7 @@ import { podApi, playerApi, type Pod, type Player } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import toast from 'react-hot-toast';
+import PlayerAutocomplete from './PlayerAutocomplete';
 import './PodManagementModal.css';
 
 interface PodManagementModalProps {
@@ -21,7 +22,9 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
   const { refreshPods } = usePod();
   const [pod, setPod] = useState(initialPod);
   const [members, setMembers] = useState<Player[]>([]);
+  const [inviteMethod, setInviteMethod] = useState<'player' | 'email'>('player');
   const [inviteEmail, setInviteEmail] = useState('');
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
   const [removingMember, setRemovingMember] = useState<{ id: string; name: string } | null>(null);
@@ -80,16 +83,31 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim()) return;
+
+    // Validate based on invite method
+    if (inviteMethod === 'email' && !inviteEmail.trim()) return;
+    if (inviteMethod === 'player' && !selectedPlayer) return;
 
     try {
       setInviting(true);
-      await podApi.invite(pod.id!, inviteEmail);
-      toast.success(`Invitation sent to ${inviteEmail}`, {
-        duration: 3000,
-        position: 'top-center',
-      });
-      setInviteEmail('');
+
+      if (inviteMethod === 'player' && selectedPlayer) {
+        // Invite by player ID
+        await podApi.invite(pod.id!, undefined, selectedPlayer.id);
+        toast.success(`Invitation sent to ${selectedPlayer.name}`, {
+          duration: 3000,
+          position: 'top-center',
+        });
+        setSelectedPlayer(null);
+      } else if (inviteMethod === 'email' && inviteEmail.trim()) {
+        // Invite by email
+        await podApi.invite(pod.id!, inviteEmail);
+        toast.success(`Invitation sent to ${inviteEmail}`, {
+          duration: 3000,
+          position: 'top-center',
+        });
+        setInviteEmail('');
+      }
     } catch (error: any) {
       console.error('Error inviting member:', error);
       const message = error.response?.data?.detail || 'Failed to send invitation';
@@ -451,22 +469,57 @@ export const PodManagementModal: React.FC<PodManagementModalProps> = ({
               <UserPlus size={18} />
               <h3>Invite Members</h3>
             </div>
+
+            {/* Invite Method Tabs */}
+            <div className="invite-method-tabs">
+              <button
+                type="button"
+                className={`invite-method-tab ${inviteMethod === 'player' ? 'active' : ''}`}
+                onClick={() => setInviteMethod('player')}
+              >
+                <Users size={16} />
+                Existing Player
+              </button>
+              <button
+                type="button"
+                className={`invite-method-tab ${inviteMethod === 'email' ? 'active' : ''}`}
+                onClick={() => setInviteMethod('email')}
+              >
+                <Mail size={16} />
+                Email Address
+              </button>
+            </div>
+
             <form onSubmit={handleInvite} className="pod-invite-form">
-              <div className="pod-invite-input-group">
-                <Mail size={18} className="pod-invite-icon" />
-                <input
-                  type="email"
-                  placeholder="Enter email address"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  className="pod-invite-input"
-                  disabled={inviting}
-                />
-              </div>
+              {inviteMethod === 'player' ? (
+                <div className="pod-invite-input-group">
+                  <PlayerAutocomplete
+                    onSelect={(player) => setSelectedPlayer(player)}
+                    placeholder="Search for a player..."
+                    disabled={inviting}
+                  />
+                </div>
+              ) : (
+                <div className="pod-invite-input-group">
+                  <Mail size={18} className="pod-invite-icon" />
+                  <input
+                    type="email"
+                    placeholder="Enter email address"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="pod-invite-input"
+                    disabled={inviting}
+                  />
+                </div>
+              )}
               <button
                 type="submit"
                 className="pod-invite-button"
-                disabled={inviting || !inviteEmail.trim()}
+                disabled={
+                  inviting ||
+                  (inviteMethod === 'email' && !inviteEmail.trim()) ||
+                  (inviteMethod === 'player' && !selectedPlayer)
+                }
               >
                 {inviting ? 'Sending...' : 'Send Invite'}
               </button>

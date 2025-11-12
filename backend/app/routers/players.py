@@ -65,6 +65,35 @@ async def get_all_players(current_player: Optional[Player] = Depends(get_optiona
     ]
 
 
+@router.get("/search")
+async def search_players(q: str):
+    """Search players by name (case-insensitive, excludes guest players)"""
+    if not q or len(q.strip()) == 0:
+        return []
+
+    # Search for non-guest players whose name contains the query (case-insensitive)
+    players = await Player.find(
+        {
+            "$and": [
+                {"name": {"$regex": q, "$options": "i"}},
+                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
+            ]
+        }
+    ).limit(10).to_list()
+
+    # Return minimal fields for autocomplete
+    return [
+        {
+            "id": str(player.id),
+            "name": player.name,
+            "avatar": player.avatar,
+            "picture": player.picture,
+            "custom_avatar": player.custom_avatar,
+        }
+        for player in players
+    ]
+
+
 @router.get("/{player_id}")
 async def get_player(player_id: PydanticObjectId):
     """Get a specific player by ID"""

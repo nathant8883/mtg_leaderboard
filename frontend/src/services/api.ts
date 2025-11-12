@@ -55,6 +55,16 @@ export const playerApi = {
     return response.data;
   },
 
+  search: async (query: string): Promise<Player[]> => {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+    const response = await api.get('/players/search', {
+      params: { q: query }
+    });
+    return response.data;
+  },
+
   create: async (player: Omit<Player, 'id' | 'created_at'>): Promise<Player> => {
     const response = await api.post('/players/', player);
     return response.data;
@@ -353,7 +363,7 @@ export interface PodInvite {
   pod_description?: string;
   inviter_id: string;
   inviter_name?: string;
-  invitee_email: string;
+  invitee_email?: string;
   invitee_player_id?: string;
   status: 'pending' | 'accepted' | 'declined';
   created_at?: string;
@@ -426,10 +436,12 @@ export const podApi = {
     return response.data;
   },
 
-  invite: async (podId: string, email: string): Promise<PodInvite> => {
-    const response = await api.post(`/pods/${podId}/invite`, null, {
-      params: { invitee_email: email }
-    });
+  invite: async (podId: string, email?: string, playerId?: string): Promise<PodInvite> => {
+    const params: { invitee_email?: string; invitee_player_id?: string } = {};
+    if (email) params.invitee_email = email;
+    if (playerId) params.invitee_player_id = playerId;
+
+    const response = await api.post(`/pods/${podId}/invite`, null, { params });
     return response.data;
   },
 

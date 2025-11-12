@@ -441,13 +441,21 @@ async def demote_from_admin(
 @router.post("/{pod_id}/invite", status_code=status.HTTP_201_CREATED)
 async def invite_to_pod(
     pod_id: PydanticObjectId,
-    invitee_email: str,
+    invitee_email: str = None,
+    invitee_player_id: str = None,
     current_player: Player = Depends(get_current_player)
 ):
-    """Send invitation to join pod by email (admins only)"""
+    """Send invitation to join pod by email or player ID (admins only)"""
     pod = await Pod.get(pod_id)
     if not pod:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pod not found")
+
+    # Validate at least one invite target is provided
+    if not invitee_email and not invitee_player_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either invitee_email or invitee_player_id must be provided"
+        )
 
     inviter_id = str(current_player.id)
 
@@ -458,27 +466,59 @@ async def invite_to_pod(
             detail="Pod admin access required to send invites"
         )
 
-    # Find player by email
-    invitee_player = await Player.find_one(Player.email == invitee_email)
+    # Resolve invitee_player if player_id provided
+    invitee_player = None
+    if invitee_player_id:
+        # Validate player exists
+        invitee_player = await Player.get(PydanticObjectId(invitee_player_id))
+        if not invitee_player:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Player not found"
+            )
 
-    # Check if player is already a member
-    if invitee_player and str(invitee_player.id) in pod.member_ids:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Player is already a member of this pod"
-        )
+        # Cannot invite yourself
+        if invitee_player_id == inviter_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot invite yourself"
+            )
+
+        # Check if player is already a member
+        if invitee_player_id in pod.member_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Player is already a member of this pod"
+            )
+
+    # If email provided, find player by email
+    elif invitee_email:
+        invitee_player = await Player.find_one(Player.email == invitee_email)
+
+        # Check if player is already a member
+        if invitee_player and str(invitee_player.id) in pod.member_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Player is already a member of this pod"
+            )
 
     # Check for existing pending invite
-    existing_invite = await PodInvite.find_one(
-        PodInvite.pod_id == str(pod_id),
-        PodInvite.invitee_email == invitee_email,
-        PodInvite.status == "pending"
-    )
+    existing_invite_query = {
+        "pod_id": str(pod_id),
+        "status": "pending"
+    }
+
+    if invitee_player_id:
+        existing_invite_query["invitee_player_id"] = invitee_player_id
+    elif invitee_email:
+        existing_invite_query["invitee_email"] = invitee_email
+
+    existing_invite = await PodInvite.find_one(existing_invite_query)
 
     if existing_invite:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Pending invite already exists for this email"
+            detail="Pending invite already exists for this player"
         )
 
     # Create invite
@@ -486,7 +526,7 @@ async def invite_to_pod(
         pod_id=str(pod_id),
         inviter_id=inviter_id,
         invitee_email=invitee_email,
-        invitee_player_id=str(invitee_player.id) if invitee_player else None,
+        invitee_player_id=invitee_player_id if invitee_player_id else (str(invitee_player.id) if invitee_player else None),
         status="pending"
     )
     await invite.insert()
@@ -496,6 +536,7 @@ async def invite_to_pod(
         "pod_id": invite.pod_id,
         "inviter_id": invite.inviter_id,
         "invitee_email": invite.invitee_email,
+        "invitee_player_id": invite.invitee_player_id,
         "status": invite.status,
         "created_at": invite.created_at
     }

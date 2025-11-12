@@ -61,11 +61,23 @@ class PodInvite(Document):
     """Pod invitation document - tracks invitations to join a pod"""
     pod_id: str  # Pod being invited to
     inviter_id: str  # Admin who sent the invite
-    invitee_email: str  # Email address of person being invited
-    invitee_player_id: Optional[str] = None  # Set when we match email to existing player
+    invitee_email: Optional[str] = None  # Email address of person being invited (optional if player_id provided)
+    invitee_player_id: Optional[str] = None  # Player ID for inviting existing players (optional if email provided)
     status: str = "pending"  # "pending", "accepted", "declined"
     created_at: datetime = Field(default_factory=datetime.utcnow)
     responded_at: Optional[datetime] = None  # When invite was accepted/declined
+
+    @field_validator('invitee_player_id')
+    @classmethod
+    def validate_invite_target(cls, v: str | None, info) -> str | None:
+        """Ensure either invitee_email or invitee_player_id is provided"""
+        invitee_email = info.data.get('invitee_email')
+
+        # At least one must be provided
+        if not v and not invitee_email:
+            raise ValueError("Either invitee_email or invitee_player_id must be provided")
+
+        return v
 
     class Settings:
         name = "pod_invites"

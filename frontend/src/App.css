@@ -109,6 +109,88 @@
     gap: 2px;
 }
 
+/* Player Autocomplete Suggestions */
+.player-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #25262B;
+    border: 1px solid #2C2E33;
+    border-radius: 8px;
+    margin-top: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.player-suggestion-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid rgba(44, 46, 51, 0.5);
+}
+
+.player-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.player-suggestion-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    padding-left: 16px;
+}
+
+.player-suggestion-item.selected {
+    background: rgba(102, 126, 234, 0.15);
+    padding-left: 16px;
+}
+
+.player-suggestion-avatar {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.player-avatar-image {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    display: block;
+}
+
+.player-avatar-letter {
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.player-suggestion-name {
+    color: #E9ECEF;
+    font-weight: 500;
+    font-size: 14px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    min-width: 0;
+}
+
 /* Match Form - Player Chips */
 .player-chip {
     padding: 8px 16px;
