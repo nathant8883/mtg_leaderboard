@@ -411,7 +411,7 @@ export function MainLayout() {
                 navigate('/match-tracker');
               }
             }}
-            disabled={!isGuest && currentPlayer && !currentPod}
+            disabled={!isGuest && !!currentPlayer && !currentPod}
           >
             <Play size={24} />
             <span className="text-[11px]">Start Game</span>
