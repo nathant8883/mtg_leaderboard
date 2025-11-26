@@ -793,8 +793,20 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     // This is the tracking player's card - show indicator with shake animation (swipe auto-plays via CSS)
                     <div className="commander-damage-indicator">
                       <div className={`commander-indicator-content vertical-stack ${isShaking ? 'shake' : ''}`}>
-                        <div className="commander-indicator-title">COMMANDER</div>
-                        <div className="commander-indicator-title">DAMAGE</div>
+                        <div
+                          className="commander-indicator-title"
+                          onClick={exitCommanderDamageMode}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          COMMANDER
+                        </div>
+                        <div
+                          className="commander-indicator-title"
+                          onClick={exitCommanderDamageMode}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          DAMAGE
+                        </div>
                         <div className="commander-indicator-subtitle">YOU'VE RECEIVED</div>
                         <div
                           className="commander-indicator-return"
