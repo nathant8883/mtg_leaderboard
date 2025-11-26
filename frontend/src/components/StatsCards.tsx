@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { IconCards, IconTrophy, IconSword } from '@tabler/icons-react';
 import ColorPips from './ColorPips';
 import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DashboardStats } from '../services/api';
@@ -10,6 +11,174 @@ const COLOR_NAMES: Record<string, string> = {
   R: 'Red',
   G: 'Green',
 };
+
+const COLOR_MAP: Record<string, string> = {
+  W: 'ms-w',
+  U: 'ms-u',
+  B: 'ms-b',
+  R: 'ms-r',
+  G: 'ms-g',
+};
+
+// Arranges color pips in shapes based on count
+const ArrangedColorPips: React.FC<{ colors: string[]; size?: string }> = ({ colors, size = 'text-sm' }) => {
+  if (!colors || colors.length === 0) {
+    return <i className={`ms ms-c ms-cost ms-shadow ${size}`} title="Colorless" />;
+  }
+
+  // Sort colors in WUBRG order
+  const sortOrder = ['W', 'U', 'B', 'R', 'G'];
+  const sortedColors = [...colors].sort((a, b) => sortOrder.indexOf(a) - sortOrder.indexOf(b));
+
+  const renderPip = (color: string, index: number) => (
+    <i
+      key={`${color}-${index}`}
+      className={`ms ${COLOR_MAP[color]} ms-cost ms-shadow ${size}`}
+      title={color}
+    />
+  );
+
+  // Single pip - centered
+  if (sortedColors.length === 1) {
+    return renderPip(sortedColors[0], 0);
+  }
+
+  // Two pips - horizontal row
+  if (sortedColors.length === 2) {
+    return (
+      <div className="flex gap-0.5">
+        {sortedColors.map((c, i) => renderPip(c, i))}
+      </div>
+    );
+  }
+
+  // Three pips - triangle (1 top, 2 bottom)
+  if (sortedColors.length === 3) {
+    return (
+      <div className="flex flex-col items-center gap-0">
+        <div>{renderPip(sortedColors[0], 0)}</div>
+        <div className="flex gap-0.5 -mt-1">
+          {renderPip(sortedColors[1], 1)}
+          {renderPip(sortedColors[2], 2)}
+        </div>
+      </div>
+    );
+  }
+
+  // Four pips - 2x2 grid
+  if (sortedColors.length === 4) {
+    return (
+      <div className="grid grid-cols-2 gap-0">
+        {sortedColors.map((c, i) => renderPip(c, i))}
+      </div>
+    );
+  }
+
+  // Five pips - 2 top, 3 bottom (pentagon-ish)
+  if (sortedColors.length === 5) {
+    return (
+      <div className="flex flex-col items-center gap-0">
+        <div className="flex gap-0.5">
+          {renderPip(sortedColors[0], 0)}
+          {renderPip(sortedColors[1], 1)}
+        </div>
+        <div className="flex gap-0 -mt-1">
+          {renderPip(sortedColors[2], 2)}
+          {renderPip(sortedColors[3], 3)}
+          {renderPip(sortedColors[4], 4)}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback - horizontal row
+  return (
+    <div className="flex gap-0.5">
+      {sortedColors.map((c, i) => renderPip(c, i))}
+    </div>
+  );
+};
+
+type CardColor = 'blue' | 'purple' | 'orange' | 'yellow' | 'gray';
+
+const colorMap: Record<CardColor, { bg: string; border: string; text: string; iconColor: string }> = {
+  blue: { bg: 'bg-blue-500/20', border: 'border-blue-500/40', text: 'text-blue-400', iconColor: '#3b82f6' },
+  purple: { bg: 'bg-purple-500/20', border: 'border-purple-500/40', text: 'text-purple-400', iconColor: '#a855f7' },
+  orange: { bg: 'bg-orange-500/20', border: 'border-orange-500/40', text: 'text-orange-400', iconColor: '#f97316' },
+  yellow: { bg: 'bg-yellow-500/20', border: 'border-yellow-500/40', text: 'text-yellow-400', iconColor: '#eab308' },
+  gray: { bg: 'bg-gray-500/20', border: 'border-gray-500/40', text: 'text-gray-400', iconColor: '#6b7280' },
+};
+
+interface MetricPillProps {
+  label: string;
+  value: string;
+  analytic: string;
+  analyticLabel: string;
+  color: CardColor;
+  icon?: React.ComponentType<{ size?: number; color?: string; stroke?: number }>;
+  avatar?: React.ReactNode;
+  commanderImage?: string;
+  customIcon?: React.ReactNode;
+}
+
+const MetricPill: React.FC<MetricPillProps> = ({
+  label,
+  value,
+  analytic,
+  analyticLabel,
+  color,
+  icon: Icon,
+  avatar,
+  commanderImage,
+  customIcon,
+}) => {
+  const colors = colorMap[color];
+  return (
+    <div className={`bg-gray-800/90 rounded-2xl border ${colors.border} min-w-fit flex overflow-hidden`}>
+      {/* Primary section */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        {avatar ? (
+          avatar
+        ) : commanderImage ? (
+          <img src={commanderImage} className="w-9 h-9 rounded-full object-cover object-[center_20%]" alt="" />
+        ) : customIcon ? (
+          <div className={`w-9 h-9 rounded-full ${colors.bg} flex items-center justify-center`}>
+            {customIcon}
+          </div>
+        ) : Icon ? (
+          <div className={`w-9 h-9 rounded-full ${colors.bg} flex items-center justify-center`}>
+            <Icon size={20} color={colors.iconColor} stroke={1.5} />
+          </div>
+        ) : null}
+        <div>
+          <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+          <p className="text-sm font-semibold text-white whitespace-nowrap">{value}</p>
+        </div>
+      </div>
+      {/* Analytic section */}
+      <div className={`${colors.bg} px-4 py-3 flex flex-col items-center justify-center border-l border-gray-700/50`}>
+        <p className={`text-lg font-bold ${colors.text}`}>{analytic}</p>
+        <p className="text-[10px] text-gray-500">{analyticLabel}</p>
+      </div>
+    </div>
+  );
+};
+
+const SkeletonPill: React.FC = () => (
+  <div className="bg-gray-800/90 rounded-2xl border border-gray-700/50 min-w-fit flex overflow-hidden animate-pulse">
+    <div className="flex items-center gap-3 px-4 py-3">
+      <div className="w-9 h-9 rounded-full bg-gray-700"></div>
+      <div>
+        <div className="h-2 w-16 bg-gray-700 rounded mb-2"></div>
+        <div className="h-4 w-24 bg-gray-700 rounded"></div>
+      </div>
+    </div>
+    <div className="bg-gray-700/30 px-4 py-3 flex flex-col items-center justify-center border-l border-gray-700/50">
+      <div className="h-5 w-8 bg-gray-700 rounded mb-1"></div>
+      <div className="h-2 w-10 bg-gray-700 rounded"></div>
+    </div>
+  </div>
+);
 
 function StatsCards() {
   const getColorName = (color: string): string => {
@@ -118,37 +287,27 @@ function StatsCards() {
     };
   }, [loading, stats, isUserInteracting]);
 
-  const formatLastGameDate = (dateStr: string | null): string => {
-    if (!dateStr) return 'No games yet';
+  const formatLastGameDate = (dateStr: string | null): { display: string; analytic: string; label: string } => {
+    if (!dateStr) return { display: 'No games yet', analytic: '-', label: '' };
 
     const date = new Date(dateStr);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return '1 day ago';
-    return `${diffDays} days ago`;
+    if (diffDays === 0) return { display: 'Today', analytic: '0', label: 'days ago' };
+    if (diffDays === 1) return { display: '1 day ago', analytic: '1', label: 'day ago' };
+    return { display: `${diffDays} days ago`, analytic: String(diffDays), label: 'days ago' };
   };
 
   if (loading) {
     return (
       <div ref={carouselRef} className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile ${isAutoScrolling ? 'auto-scrolling' : ''}`}>
-        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-purple">
-          <div className="loading-spinner"></div>
-        </div>
-        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-pink">
-          <div className="loading-spinner"></div>
-        </div>
-        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-blue">
-          <div className="loading-spinner"></div>
-        </div>
-        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-orange">
-          <div className="loading-spinner"></div>
-        </div>
-        <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] overflow-hidden flex flex-col stat-card-purple">
-          <div className="loading-spinner"></div>
-        </div>
+        <SkeletonPill />
+        <SkeletonPill />
+        <SkeletonPill />
+        <SkeletonPill />
+        <SkeletonPill />
       </div>
     );
   }
@@ -157,140 +316,83 @@ function StatsCards() {
     return null;
   }
 
+  const lastGameInfo = formatLastGameDate(stats.last_game_date);
+
   return (
     <div ref={carouselRef} className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile ${isAutoScrolling ? 'auto-scrolling' : ''}`}>
       {/* Total Games Card */}
-      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-pink">
-        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
-          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">⚔️</div>
-          <div className="flex-1 text-white">
-            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Total Games</div>
-            <div className="text-2xl font-bold text-white">{stats.total_games}</div>
-          </div>
-        </div>
-        <div className="px-6 py-5 bg-[#1A1B1E]">
-          <div className="text-[#909296] text-[13px]">
-            Last game {formatLastGameDate(stats.last_game_date)}
-          </div>
-        </div>
-      </div>
+      <MetricPill
+        label="Total Games"
+        value={String(stats.total_games)}
+        analytic={lastGameInfo.analytic}
+        analyticLabel={lastGameInfo.label}
+        color="blue"
+        icon={IconCards}
+      />
 
       {/* Most Games Played Card */}
-      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-purple">
-        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
-          <div className="flex-shrink-0">
-            {stats.most_games_player ? (
-              <PlayerAvatar
-                playerName={stats.most_games_player.player_name}
-                customAvatar={stats.most_games_player.player_custom_avatar}
-                picture={stats.most_games_player.player_picture}
-                size="large"
-                className="w-14 h-14"
-              />
-            ) : (
-              <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px]">
-                👤
-              </div>
-            )}
-          </div>
-          <div className="flex-1 text-white">
-            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Most Games</div>
-            <div className="text-2xl font-bold text-white">
-              {stats.most_games_player ? stats.most_games_player.player_name : '-'}
-            </div>
-          </div>
-        </div>
-        <div className="px-6 py-5 bg-[#1A1B1E]">
-          <div className="text-[#909296] text-[13px]">
-            {stats.most_games_player ? `${stats.most_games_player.games_played} games played` : 'No data yet'}
-          </div>
-        </div>
-      </div>
+      <MetricPill
+        label="Most Games"
+        value={stats.most_games_player ? stats.most_games_player.player_name : '-'}
+        analytic={stats.most_games_player ? String(stats.most_games_player.games_played) : '-'}
+        analyticLabel="games"
+        color="purple"
+        avatar={
+          stats.most_games_player ? (
+            <PlayerAvatar
+              playerName={stats.most_games_player.player_name}
+              customAvatar={stats.most_games_player.player_custom_avatar}
+              picture={stats.most_games_player.player_picture}
+              size="small"
+              className="w-9 h-9"
+            />
+          ) : undefined
+        }
+        icon={IconTrophy}
+      />
 
       {/* Most Played Deck Card */}
-      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-blue">
-        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
-          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">
-            {stats.most_played_deck?.commander_image_url ? (
-              <img
-                src={stats.most_played_deck.commander_image_url}
-                alt={stats.most_played_deck.deck_name}
-                className="w-full h-full object-cover object-[center_20%]"
-              />
-            ) : (
-              '🃏'
-            )}
-          </div>
-          <div className="flex-1 text-white">
-            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Most Played</div>
-            <div className="text-2xl font-bold text-white">
-              {stats.most_played_deck ? stats.most_played_deck.deck_name : '-'}
-            </div>
-          </div>
-        </div>
-        <div className="px-6 py-5 bg-[#1A1B1E]">
-          <div className="text-[#909296] text-[13px]">
-            {stats.most_played_deck
-              ? `${stats.most_played_deck.player_name} • ${stats.most_played_deck.games_played} games`
-              : 'No data yet'}
-          </div>
-        </div>
-      </div>
+      <MetricPill
+        label="Most Played"
+        value={stats.most_played_deck ? stats.most_played_deck.deck_name : '-'}
+        analytic={stats.most_played_deck ? String(stats.most_played_deck.games_played) : '-'}
+        analyticLabel="games"
+        color="orange"
+        commanderImage={stats.most_played_deck?.commander_image_url}
+        icon={IconSword}
+      />
 
       {/* Most Popular Color Card */}
-      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-orange">
-        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
-          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative stat-icon-mana">
-            {stats.most_popular_color ? (
+      <MetricPill
+        label="Popular Color"
+        value={stats.most_popular_color ? getColorName(stats.most_popular_color.color) : '-'}
+        analytic={stats.most_popular_color ? `${stats.most_popular_color.percentage}%` : '-'}
+        analyticLabel="of decks"
+        color="yellow"
+        customIcon={
+          stats.most_popular_color ? (
+            <div className="text-2xl">
               <ColorPips colors={[stats.most_popular_color.color]} />
-            ) : (
-              '🎨'
-            )}
-          </div>
-          <div className="flex-1 text-white">
-            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Popular Color</div>
-            <div className="text-2xl font-bold text-white">
-              {stats.most_popular_color ? getColorName(stats.most_popular_color.color) : '-'}
             </div>
-          </div>
-        </div>
-        <div className="px-6 py-5 bg-[#1A1B1E]">
-          <div className="text-[#909296] text-[13px]">
-            {stats.most_popular_color
-              ? `${stats.most_popular_color.percentage}% of decks run ${getColorName(stats.most_popular_color.color)}`
-              : 'No data yet'}
-          </div>
-        </div>
-      </div>
+          ) : undefined
+        }
+        icon={IconCards}
+      />
 
       {/* Most Popular Identity Card */}
-      <div className="bg-gradient-card rounded-[16px] border border-[#2C2E33] transition-all duration-150 ease-out overflow-hidden flex flex-col stat-card-hover stat-card-purple">
-        <div className="bg-[var(--stat-color)] px-6 py-5 flex items-center gap-4">
-          <div className="w-14 h-14 bg-[rgba(0,0,0,0.15)] rounded-full flex items-center justify-center text-[28px] flex-shrink-0 overflow-hidden relative">
-            ✨
-          </div>
-          <div className="flex-1 text-white">
-            <div className="text-xs opacity-90 font-semibold uppercase tracking-wider mb-1">Popular Identity</div>
-            <div className="text-2xl font-bold flex items-center gap-2 min-h-[28px] stat-header-value-colors">
-              {stats.most_popular_identity ? (
-                <>
-                  <span>{stats.most_popular_identity.name}</span>
-                  <ColorPips colors={stats.most_popular_identity.colors} />
-                </>
-              ) : (
-                '-'
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="px-6 py-5 bg-[#1A1B1E]">
-          <div className="text-[#909296] text-[13px]">
-            {stats.most_popular_identity
-              ? `${stats.most_popular_identity.count} deck${stats.most_popular_identity.count !== 1 ? 's' : ''} • ${stats.most_popular_identity.percentage}% of pool`
-              : 'No data yet'}
-          </div>
-        </div>
-      </div>
+      <MetricPill
+        label="Top Identity"
+        value={stats.most_popular_identity ? stats.most_popular_identity.name : '-'}
+        analytic={stats.most_popular_identity ? String(stats.most_popular_identity.count) : '-'}
+        analyticLabel="decks"
+        color="gray"
+        customIcon={
+          stats.most_popular_identity ? (
+            <ArrangedColorPips colors={stats.most_popular_identity.colors} size="text-base" />
+          ) : undefined
+        }
+        icon={IconCards}
+      />
     </div>
   );
 }
