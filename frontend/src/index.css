@@ -1012,12 +1012,12 @@
   /* ==================== PLAYER SLOTS (Assignment & Game) ==================== */
 
   /* Position-based gradient colors with midpoints and animation delays */
-  .player-slot:nth-child(1) { --card-bg-start: #667eea; --card-bg-mid: #6e64c6; --card-bg-end: #764ba2; animation-delay: 0s, 0s; }
-  .player-slot:nth-child(2) { --card-bg-start: #f093fb; --card-bg-mid: #f275b4; --card-bg-end: #f5576c; animation-delay: 0s, 0.1s; }
-  .player-slot:nth-child(3) { --card-bg-start: #4facfe; --card-bg-mid: #28cffe; --card-bg-end: #00f2fe; animation-delay: 0s, 0.2s; }
-  .player-slot:nth-child(4) { --card-bg-start: #f27a8d; --card-bg-mid: #f3a886; --card-bg-end: #f5d680; animation-delay: 0s, 0.3s; }
-  .player-slot:nth-child(5) { --card-bg-start: #30e8a7; --card-bg-mid: #26cec4; --card-bg-end: #1cb5e0; animation-delay: 0s, 0.4s; }
-  .player-slot:nth-child(6) { --card-bg-start: #ff6b6b; --card-bg-mid: #f6626d; --card-bg-end: #ee5a6f; animation-delay: 0s, 0.5s; }
+  .player-slot:nth-child(1) { --card-bg-start: #667eea; --card-bg-mid: #6e64c6; --card-bg-end: #764ba2; animation-delay: 0s, 0s; }      /* Purple */
+  .player-slot:nth-child(2) { --card-bg-start: #f093fb; --card-bg-mid: #f275b4; --card-bg-end: #f5576c; animation-delay: 0s, 0.1s; }   /* Pink */
+  .player-slot:nth-child(3) { --card-bg-start: #4facfe; --card-bg-mid: #28cffe; --card-bg-end: #00f2fe; animation-delay: 0s, 0.2s; }   /* Cyan */
+  .player-slot:nth-child(4) { --card-bg-start: #f27a8d; --card-bg-mid: #f3a886; --card-bg-end: #f5d680; animation-delay: 0s, 0.3s; }   /* Coral/Peach */
+  .player-slot:nth-child(5) { --card-bg-start: #30e8a7; --card-bg-mid: #26cec4; --card-bg-end: #1cb5e0; animation-delay: 0s, 0.4s; }   /* Teal */
+  .player-slot:nth-child(6) { --card-bg-start: #ff6b6b; --card-bg-mid: #f6626d; --card-bg-end: #ee5a6f; animation-delay: 0s, 0.5s; }   /* Red */
 
   .player-slot {
     background: radial-gradient(circle at top left, var(--card-bg-start) 0%, var(--card-bg-mid) 50%, var(--card-bg-end) 100%);
@@ -2071,5 +2071,525 @@
   .players-grid.players-6 .player-card.player-slot:nth-child(3) .crown-badge svg {
     transform: rotate(180deg) translateX(16px) translateY(15px) !important;
     transform-origin: center center !important;
+  }
+}
+
+/* ==================== SMASH BROS SELECTION SCREENS ==================== */
+
+/* Slide Animation */
+@keyframes smashSlideIn {
+  from {
+    transform: translateX(30%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes smashSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
+}
+
+.smash-slide-in {
+  animation: smashSlideIn 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.smash-slide-out {
+  animation: smashSlideOut 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Smash Screen Container */
+.smash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #0F1012;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Content wrapper for rotation support */
+.smash-screen-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ==================== SMASH HEADER ==================== */
+.smash-header {
+  height: 56px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.smash-header-back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.smash-header-back:active {
+  transform: scale(0.9);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.smash-header-content {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.smash-header-title {
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.smash-header-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.smash-header-action {
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.smash-header-action:active {
+  transform: scale(0.95);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.smash-header-spacer {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+/* ==================== PLAYER GRID ==================== */
+.smash-player-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 12px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+/* ==================== PLAYER TILE (Premium Style) ==================== */
+@keyframes smashTileEntry {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes avatarGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+.smash-player-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px 8px;
+  border-radius: 12px;
+  background: linear-gradient(165deg,
+    rgba(40, 42, 48, 0.9) 0%,
+    rgba(26, 27, 30, 0.95) 50%,
+    rgba(20, 21, 23, 0.98) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  animation: smashTileEntry 0.3s ease-out backwards;
+  overflow: hidden;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.smash-player-tile:active:not(.disabled) {
+  transform: scale(0.95);
+  border-color: rgba(102, 126, 234, 0.6);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(102, 126, 234, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.smash-player-tile.disabled {
+  opacity: 0.35;
+  filter: grayscale(80%);
+  pointer-events: none;
+}
+
+/* Glass shine effect */
+.smash-tile-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: 12px 12px 0 0;
+}
+
+/* Avatar wrapper for glow effect */
+.smash-player-avatar-wrapper {
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.smash-player-avatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 2;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.smash-player-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.smash-player-avatar-letter {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Glow ring behind avatar */
+.smash-avatar-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(102, 126, 234, 0.4) 0%,
+    rgba(118, 75, 162, 0.2) 50%,
+    transparent 70%
+  );
+  z-index: 1;
+  animation: avatarGlow 3s ease-in-out infinite;
+}
+
+.smash-player-tile.disabled .smash-avatar-glow {
+  display: none;
+}
+
+.smash-player-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Deck count badge */
+.smash-deck-count-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+.smash-taken-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== DECK GRID ==================== */
+.smash-deck-grid-container {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.smash-deck-grid {
+  flex: 1;
+  display: grid;
+  gap: 10px;
+  align-content: stretch;
+}
+
+/* ==================== DECK TILE ==================== */
+.smash-deck-tile {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+  background: #1A1B1E;
+  -webkit-tap-highlight-color: transparent;
+  animation: smashTileEntry 0.3s ease-out backwards;
+  min-height: 0;
+}
+
+.smash-deck-tile:active {
+  transform: scale(0.97);
+  border-color: #30e8a7;
+}
+
+/* Commander art background image */
+.smash-deck-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.smash-deck-bg-img.loaded {
+  opacity: 1;
+}
+
+/* Skeleton placeholder while loading */
+.smash-deck-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #1A1B1E 0%,
+    #25262B 50%,
+    #1A1B1E 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Placeholder when no image */
+.smash-deck-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1A1B1E, #25262B);
+}
+
+.smash-deck-placeholder-icon {
+  font-size: 32px;
+  opacity: 0.5;
+}
+
+/* Dark gradient overlay for text readability */
+.smash-deck-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.7) 30%,
+    rgba(0, 0, 0, 0.3) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Content positioned over the image */
+.smash-deck-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.smash-deck-colors {
+  align-self: flex-start;
+}
+
+.smash-deck-info {
+  text-align: center;
+}
+
+.smash-deck-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  margin-bottom: 2px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smash-deck-commander {
+  font-size: 10px;
+  color: #a1a1aa;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==================== LOADING & EMPTY STATES ==================== */
+.smash-loading {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.smash-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #2C2E33;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.smash-loading-text {
+  color: #909296;
+  font-size: 14px;
+}
+
+.smash-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 20px;
+}
+
+.smash-empty-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.smash-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.smash-empty-subtitle {
+  font-size: 14px;
+  color: #909296;
+}
+
+/* ==================== REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+  .smash-slide-in,
+  .smash-slide-out,
+  .smash-player-tile,
+  .smash-deck-tile {
+    animation: none;
+  }
+
+  .smash-deck-skeleton {
+    animation: none;
+    background: #25262B;
   }
 }

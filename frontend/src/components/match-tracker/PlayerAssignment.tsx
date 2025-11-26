@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { playerApi, type Player } from '../../services/api';
+import { playerApi, deckApi, type Player, type Deck } from '../../services/api';
 import type { PlayerSlot, LayoutType } from '../../pages/MatchTracker';
-import DeckWheelSelector, { type DeckInfo } from './DeckWheelSelector';
+import { SmashPlayerSelect, SmashDeckSelect } from './smash-select';
 
 interface PlayerAssignmentProps {
   playerCount: number;
@@ -11,15 +11,16 @@ interface PlayerAssignmentProps {
   onBack: () => void;
 }
 
-type ModalState =
-  | { type: 'none' }
+// Selection flow state machine
+type SelectionPhase =
+  | { type: 'grid' }
   | { type: 'player-select'; position: number }
   | { type: 'guest-name'; position: number }
   | { type: 'deck-select'; position: number; playerId: string; playerName: string };
 
 function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack }: PlayerAssignmentProps) {
   const [players, setPlayers] = useState<PlayerSlot[]>(initialPlayers);
-  const [modalState, setModalState] = useState<ModalState>({ type: 'none' });
+  const [selectionPhase, setSelectionPhase] = useState<SelectionPhase>({ type: 'grid' });
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [guestName, setGuestName] = useState('');
   const [creatingGuest, setCreatingGuest] = useState(false);
@@ -46,10 +47,24 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
       const data = await playerApi.getAll();
       setAvailablePlayers(data);
       console.log(`[PlayerAssignment] Loaded ${data.length} players`);
+
+      // Preload commander images for faster deck selection
+      const allDecks = await deckApi.getAll();
+      const imageUrls = allDecks
+        .map((d) => d.commander_image_url)
+        .filter(Boolean) as string[];
+      preloadImages(imageUrls);
     } catch (err) {
       console.error('[PlayerAssignment] Error loading players:', err);
-      // Don't show error toast - might just be offline and cache will handle it
     }
+  };
+
+  // Preload images in the background
+  const preloadImages = (urls: string[]) => {
+    urls.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
   };
 
   const handleSlotClick = (position: number) => {
@@ -62,22 +77,25 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
       return; // Slot is disabled
     }
 
-    setModalState({ type: 'player-select', position });
+    setSelectionPhase({ type: 'player-select', position });
   };
 
-  const handlePlayerSelect = (player: Player, position: number) => {
+  const handlePlayerSelect = (player: Player) => {
+    if (selectionPhase.type !== 'player-select') return;
+
     // Show deck selector for regular players
-    setModalState({
+    setSelectionPhase({
       type: 'deck-select',
-      position,
+      position: selectionPhase.position,
       playerId: player.id!,
       playerName: player.name,
     });
   };
 
-  const handleGuestTabClick = (position: number) => {
+  const handleGuestClick = () => {
+    if (selectionPhase.type !== 'player-select') return;
     setGuestName('');
-    setModalState({ type: 'guest-name', position });
+    setSelectionPhase({ type: 'guest-name', position: selectionPhase.position });
   };
 
   const handleGuestCreate = async (position: number) => {
@@ -100,7 +118,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
         isGuest: true,
       };
       setPlayers(updatedPlayers);
-      setModalState({ type: 'none' });
+      setSelectionPhase({ type: 'grid' });
     } catch (err) {
       console.error('Error creating guest:', err);
       alert('Failed to create guest player');
@@ -109,20 +127,23 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
     }
   };
 
-  const handleDeckSelect = (deckInfo: DeckInfo, position: number, playerId: string, playerName: string) => {
+  const handleDeckSelect = (deck: Deck) => {
+    if (selectionPhase.type !== 'deck-select') return;
+
+    const { position, playerId, playerName } = selectionPhase;
     const updatedPlayers = [...players];
     updatedPlayers[position - 1] = {
       position,
       playerId,
       playerName,
-      deckId: deckInfo.deckId,
-      deckName: deckInfo.deckName,
-      commanderName: deckInfo.commander,
-      commanderImageUrl: deckInfo.commanderImageUrl,
+      deckId: deck.id!,
+      deckName: deck.name,
+      commanderName: deck.commander,
+      commanderImageUrl: deck.commander_image_url || '',
       isGuest: false,
     };
     setPlayers(updatedPlayers);
-    setModalState({ type: 'none' });
+    setSelectionPhase({ type: 'grid' });
   };
 
   const handleStartGame = () => {
@@ -212,54 +233,36 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
         })}
       </div>
 
-      {/* Player Select Modal */}
-      {modalState.type === 'player-select' && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4"
-          style={{ transform: `rotate(${getRotationForPosition(modalState.position)}deg)` }}
-          onClick={() => setModalState({ type: 'none' })}
-        >
-          <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-xl p-4 max-w-[600px] w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <h2 className="my-0 mb-3 text-center text-lg font-semibold">Select Player {modalState.position}</h2>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 mb-3 overflow-y-auto flex-1 min-h-0">
-              {availablePlayers.map((player) => (
-                <button
-                  key={player.id}
-                  className="relative flex flex-col items-center gap-1.5 py-3 px-2 bg-[#2c2e33] border-2 border-[#3c3e43] rounded-[10px] text-white cursor-pointer transition-all duration-200 min-h-0 hover:bg-[#3c3e43] hover:border-[#667eea] hover:-translate-y-0.5 active:translate-y-0"
-                  onClick={() => handlePlayerSelect(player, modalState.position)}
-                >
-                  <div className="w-9 h-9 text-sm rounded-full bg-[linear-gradient(135deg,#667eea_0%,#764ba2_100%)] flex items-center justify-center font-semibold overflow-hidden shrink-0">
-                    {player.custom_avatar || player.picture ? (
-                      <img src={player.custom_avatar || player.picture} alt={player.name} className="w-full h-full object-cover" />
-                    ) : (
-                      player.avatar || player.name[0]
-                    )}
-                  </div>
-                  <div className="text-center text-[13px] font-semibold leading-tight w-full">{player.name}</div>
-                </button>
-              ))}
-            </div>
-            <button
-              className="w-full py-3 px-4 bg-[#2c2e33] border border-dashed border-[#667eea] rounded-lg text-[#667eea] text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#3c3e43]"
-              onClick={() => handleGuestTabClick(modalState.position)}
-            >
-              + Add Guest Player
-            </button>
-            <button
-              className="w-full py-3 px-6 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 bg-[#2c2e33] text-white border border-[#3c3e43] mt-2 hover:bg-[#3c3e43]"
-              onClick={() => setModalState({ type: 'none' })}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+      {/* Smash Player Selection Screen */}
+      {selectionPhase.type === 'player-select' && (
+        <SmashPlayerSelect
+          seatNumber={selectionPhase.position}
+          playerCount={playerCount}
+          availablePlayers={availablePlayers}
+          assignedPlayers={players}
+          onSelect={handlePlayerSelect}
+          onGuestClick={handleGuestClick}
+          onBack={() => setSelectionPhase({ type: 'grid' })}
+        />
       )}
 
-      {/* Guest Name Modal */}
-      {modalState.type === 'guest-name' && (
+      {/* Smash Deck Selection Screen */}
+      {selectionPhase.type === 'deck-select' && (
+        <SmashDeckSelect
+          seatNumber={selectionPhase.position}
+          playerCount={playerCount}
+          playerId={selectionPhase.playerId}
+          playerName={selectionPhase.playerName}
+          onSelect={handleDeckSelect}
+          onBack={() => setSelectionPhase({ type: 'player-select', position: selectionPhase.position })}
+        />
+      )}
+
+      {/* Guest Name Modal (kept as modal for simple text input) */}
+      {selectionPhase.type === 'guest-name' && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4"
-          style={{ transform: `rotate(${getRotationForPosition(modalState.position)}deg)` }}
+          style={{ transform: `rotate(${getRotationForPosition(selectionPhase.position)}deg)` }}
         >
           <div className="bg-[#1a1b1e] border border-[#2c2e33] rounded-xl p-6 max-w-[400px] w-full">
             <h2 className="text-xl font-semibold my-0 mb-4">Add Guest Player</h2>
@@ -273,20 +276,20 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  handleGuestCreate(modalState.position);
+                  handleGuestCreate(selectionPhase.position);
                 }
               }}
             />
             <div className="flex gap-3 mt-6">
               <button
                 className="flex-1 py-3 px-6 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 bg-[#2c2e33] text-white border border-[#3c3e43] hover:bg-[#3c3e43]"
-                onClick={() => setModalState({ type: 'player-select', position: modalState.position })}
+                onClick={() => setSelectionPhase({ type: 'player-select', position: selectionPhase.position })}
               >
                 Back
               </button>
               <button
                 className="flex-1 py-3 px-6 border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 bg-[linear-gradient(135deg,#667eea_0%,#764ba2_100%)] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)] hover:-translate-y-0.5 disabled:hover:-translate-y-0 disabled:hover:shadow-none"
-                onClick={() => handleGuestCreate(modalState.position)}
+                onClick={() => handleGuestCreate(selectionPhase.position)}
                 disabled={!guestName.trim() || creatingGuest}
               >
                 {creatingGuest ? 'Creating...' : 'Continue'}
@@ -294,17 +297,6 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
             </div>
           </div>
         </div>
-      )}
-
-      {/* Deck Selector Modal */}
-      {modalState.type === 'deck-select' && (
-        <DeckWheelSelector
-          playerId={modalState.playerId}
-          playerName={modalState.playerName}
-          rotation={getRotationForPosition(modalState.position)}
-          onSelect={(deckInfo) => handleDeckSelect(deckInfo, modalState.position, modalState.playerId, modalState.playerName)}
-          onCancel={() => setModalState({ type: 'player-select', position: modalState.position })}
-        />
       )}
     </div>
   );
