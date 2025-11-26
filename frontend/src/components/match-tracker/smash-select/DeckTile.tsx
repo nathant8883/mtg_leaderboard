@@ -49,7 +49,7 @@ function DeckTile({ deck, onSelect, animationDelay = 0 }: DeckTileProps) {
         {/* Color pips at top-left */}
         {deck.colors.length > 0 && (
           <div className="smash-deck-colors">
-            <ColorPips colors={deck.colors} size="sm" />
+            <ColorPips colors={deck.colors} />
           </div>
         )}
 
