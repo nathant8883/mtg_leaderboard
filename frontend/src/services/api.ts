@@ -159,6 +159,7 @@ export interface PlayerLeaderboardEntry {
   losses: number;
   win_rate: number;
   deck_count: number;
+  ranked: boolean;
 }
 
 export interface DeckLeaderboardEntry {
@@ -175,6 +176,7 @@ export interface DeckLeaderboardEntry {
   wins: number;
   losses: number;
   win_rate: number;
+  ranked: boolean;
 }
 
 export interface DashboardStats {

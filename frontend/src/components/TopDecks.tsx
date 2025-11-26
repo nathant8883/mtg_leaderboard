@@ -29,7 +29,8 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
     try {
       setLoading(true);
       const data = await leaderboardApi.getDeckLeaderboard();
-      setDecks(data.slice(0, 3)); // Get top 3
+      // Only show ranked decks (4+ games) on the dashboard
+      setDecks(data.filter(d => d.ranked).slice(0, 3));
     } catch (err) {
       console.error('Error loading top decks:', err);
     } finally {

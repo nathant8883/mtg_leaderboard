@@ -13,6 +13,9 @@ from app.utils.color_identity import get_color_identity_name
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# Minimum games required for a player/deck to be ranked on the leaderboard
+MIN_GAMES_FOR_RANKING = 4
+
 
 @router.get("/players")
 async def get_player_leaderboard(
@@ -74,21 +77,24 @@ async def get_player_leaderboard(
 
         losses = games_played - wins
 
-        leaderboard.append({
-            "player_id": player_id,
-            "player_name": player.name,
-            "avatar": player.avatar,
-            "picture": player.picture,
-            "custom_avatar": player.custom_avatar,
-            "games_played": games_played,
-            "wins": wins,
-            "losses": losses,
-            "win_rate": round(win_rate, 1),
-            "deck_count": deck_count,
-        })
+        # Include all players with at least one game
+        if games_played > 0:
+            leaderboard.append({
+                "player_id": player_id,
+                "player_name": player.name,
+                "avatar": player.avatar,
+                "picture": player.picture,
+                "custom_avatar": player.custom_avatar,
+                "games_played": games_played,
+                "wins": wins,
+                "losses": losses,
+                "win_rate": round(win_rate, 1),
+                "deck_count": deck_count,
+                "ranked": games_played >= MIN_GAMES_FOR_RANKING,
+            })
 
-    # Sort by win rate descending
-    leaderboard.sort(key=lambda x: (x["win_rate"], x["wins"]), reverse=True)
+    # Sort by ranked first (True before False), then by win rate descending
+    leaderboard.sort(key=lambda x: (x["ranked"], x["win_rate"], x["wins"]), reverse=True)
 
     return leaderboard
 
@@ -190,10 +196,11 @@ async def get_deck_leaderboard(
                 "wins": wins,
                 "losses": losses,
                 "win_rate": round(win_rate, 1),
+                "ranked": games_played >= MIN_GAMES_FOR_RANKING,
             })
 
-    # Sort by win rate descending
-    leaderboard.sort(key=lambda x: (x["win_rate"], x["wins"]), reverse=True)
+    # Sort by ranked first (True before False), then by win rate descending
+    leaderboard.sort(key=lambda x: (x["ranked"], x["win_rate"], x["wins"]), reverse=True)
 
     return leaderboard
 

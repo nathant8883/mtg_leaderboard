@@ -7,6 +7,8 @@ interface DeckLeaderboardProps {
   onPlayerClick: (playerId: string) => void;
 }
 
+const MIN_GAMES_FOR_RANKING = 4;
+
 function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderboardProps) {
   const getRankBadgeClass = (rank: number): string => {
     if (rank === 1) return 'rank-badge rank-badge-gold';
@@ -62,78 +64,98 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
           </tr>
         </thead>
         <tbody>
-          {decks.map((deck, index) => {
-            const rank = index + 1;
-            return (
-              <tr key={deck.deck_id} className="transition-all duration-200 hover:bg-[#25262B]">
-                <td className="py-4 px-3 border-b border-[#2C2E33]">
-                  <div className={getRankBadgeClass(rank)}>
-                    {rank}
-                  </div>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33]">
-                  <div className="flex items-center gap-3">
-                    <div className="player-avatar-badge">
-                      {deck.player_name.charAt(0).toUpperCase()}
-                    </div>
-                    <span
-                      className="player-name-clickable text-white font-medium text-[15px]"
-                      onClick={() => onPlayerClick(deck.player_id)}
-                    >
-                      {deck.player_name}
-                    </span>
-                  </div>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33]">
-                  <span className="text-white font-medium text-[15px]">{deck.deck_name}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33]">
-                  <div className="flex items-center gap-3">
-                    {deck.commander_image_url ? (
-                      <div className="w-[60px] h-[60px] rounded-[8px] overflow-hidden border-2 border-[#2C2E33] shadow-[0_2px_8px_rgba(0,0,0,0.3)] shrink-0">
-                        <img
-                          src={deck.commander_image_url}
-                          alt={deck.commander}
-                          className="w-full h-full object-cover object-[center_20%]"
-                        />
+          {(() => {
+            let rankedCount = 0;
+            return decks.map((deck) => {
+              const isRanked = deck.ranked;
+              if (isRanked) rankedCount++;
+              const rank = isRanked ? rankedCount : null;
+              const gamesNeeded = MIN_GAMES_FOR_RANKING - deck.games_played;
+
+              return (
+                <tr key={deck.deck_id} className={`transition-all duration-200 hover:bg-[#25262B] ${!isRanked ? 'opacity-60' : ''}`}>
+                  <td className="py-4 px-3 border-b border-[#2C2E33]">
+                    {isRanked && rank ? (
+                      <div className={getRankBadgeClass(rank)}>
+                        {rank}
                       </div>
                     ) : (
-                      <div className="player-avatar-badge w-[60px] h-[60px] shrink-0 text-2xl">
-                        🎴
+                      <div className="rank-badge bg-[#2C2E33] text-[#909296]">
+                        —
                       </div>
                     )}
-                    <span className="text-[#C1C2C5] text-[13px] opacity-70">{deck.commander}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <ColorPips colors={deck.colors} />
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.games_played}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.wins}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.losses}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  {(() => {
-                    const tier = getWinRateTier(deck.win_rate / 100);
-                    return (
-                      <div className={`winrate-compact ${tier.class}`}>
-                        <div className="tier-icon-compact">{tier.icon}</div>
-                        <div className="text-left">
-                          <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
-                          <div className="text-lg font-bold text-white">{deck.win_rate.toFixed(1)}%</div>
-                        </div>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33]">
+                    <div className="flex items-center gap-3">
+                      <div className="player-avatar-badge">
+                        {deck.player_name.charAt(0).toUpperCase()}
                       </div>
-                    );
-                  })()}
-                </td>
-              </tr>
-            );
-          })}
+                      <span
+                        className="player-name-clickable text-white font-medium text-[15px]"
+                        onClick={() => onPlayerClick(deck.player_id)}
+                      >
+                        {deck.player_name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33]">
+                    <span className="text-white font-medium text-[15px]">{deck.deck_name}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33]">
+                    <div className="flex items-center gap-3">
+                      {deck.commander_image_url ? (
+                        <div className="w-[60px] h-[60px] rounded-[8px] overflow-hidden border-2 border-[#2C2E33] shadow-[0_2px_8px_rgba(0,0,0,0.3)] shrink-0">
+                          <img
+                            src={deck.commander_image_url}
+                            alt={deck.commander}
+                            className="w-full h-full object-cover object-[center_20%]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="player-avatar-badge w-[60px] h-[60px] shrink-0 text-2xl">
+                          🎴
+                        </div>
+                      )}
+                      <span className="text-[#C1C2C5] text-[13px] opacity-70">{deck.commander}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <ColorPips colors={deck.colors} />
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.games_played}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.wins}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.losses}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    {isRanked ? (
+                      (() => {
+                        const tier = getWinRateTier(deck.win_rate / 100);
+                        return (
+                          <div className={`winrate-compact ${tier.class}`}>
+                            <div className="tier-icon-compact">{tier.icon}</div>
+                            <div className="text-left">
+                              <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
+                              <div className="text-lg font-bold text-white">{deck.win_rate.toFixed(1)}%</div>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="text-left">
+                        <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">Unranked</div>
+                        <div className="text-sm text-[#909296]">Needs {gamesNeeded} more game{gamesNeeded !== 1 ? 's' : ''}</div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            });
+          })()}
         </tbody>
       </table>
     </div>

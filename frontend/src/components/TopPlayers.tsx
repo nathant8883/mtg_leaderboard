@@ -29,7 +29,8 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
     try {
       setLoading(true);
       const data = await leaderboardApi.getPlayerLeaderboard();
-      setPlayers(data.slice(0, 3)); // Get top 3
+      // Only show ranked players (4+ games) on the dashboard
+      setPlayers(data.filter(p => p.ranked).slice(0, 3));
     } catch (err) {
       console.error('Error loading top players:', err);
     } finally {

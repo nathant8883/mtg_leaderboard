@@ -1,6 +1,8 @@
 import type { PlayerLeaderboardEntry } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
 
+const MIN_GAMES_FOR_RANKING = 4;
+
 interface PlayerLeaderboardProps {
   players: PlayerLeaderboardEntry[];
   loading?: boolean;
@@ -60,57 +62,77 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
           </tr>
         </thead>
         <tbody>
-          {players.map((player, index) => {
-            const rank = index + 1;
-            return (
-              <tr key={player.player_id} className="transition-all duration-200 hover:bg-[#25262B]">
-                <td className="py-4 px-3 border-b border-[#2C2E33]">
-                  <div className={getRankBadgeClass(rank)}>
-                    {rank}
-                  </div>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33]">
-                  <div className="flex items-center gap-3">
-                    <PlayerAvatar
-                      playerName={player.player_name}
-                      customAvatar={player.custom_avatar}
-                      picture={player.picture}
-                      size="small"
-                    />
-                    <span
-                      className="text-white font-medium text-[15px] player-name-clickable"
-                      onClick={() => onPlayerClick(player.player_id)}
-                    >
-                      {player.player_name}
-                    </span>
-                  </div>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <span className="text-[#C1C2C5] font-medium text-[15px]">{player.games_played}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <span className="text-[#C1C2C5] font-medium text-[15px]">{player.wins}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  <span className="text-[#C1C2C5] font-medium text-[15px]">{player.losses}</span>
-                </td>
-                <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                  {(() => {
-                    const tier = getWinRateTier(player.win_rate / 100);
-                    return (
-                      <div className={`winrate-compact ${tier.class}`}>
-                        <div className="tier-icon-compact">{tier.icon}</div>
-                        <div className="text-left">
-                          <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
-                          <div className="text-lg font-bold text-white">{player.win_rate.toFixed(1)}%</div>
-                        </div>
+          {(() => {
+            let rankedCount = 0;
+            return players.map((player) => {
+              const isRanked = player.ranked;
+              if (isRanked) rankedCount++;
+              const rank = isRanked ? rankedCount : null;
+              const gamesNeeded = MIN_GAMES_FOR_RANKING - player.games_played;
+
+              return (
+                <tr key={player.player_id} className={`transition-all duration-200 hover:bg-[#25262B] ${!isRanked ? 'opacity-60' : ''}`}>
+                  <td className="py-4 px-3 border-b border-[#2C2E33]">
+                    {isRanked && rank ? (
+                      <div className={getRankBadgeClass(rank)}>
+                        {rank}
                       </div>
-                    );
-                  })()}
-                </td>
-              </tr>
-            );
-          })}
+                    ) : (
+                      <div className="rank-badge bg-[#2C2E33] text-[#909296]">
+                        —
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33]">
+                    <div className="flex items-center gap-3">
+                      <PlayerAvatar
+                        playerName={player.player_name}
+                        customAvatar={player.custom_avatar}
+                        picture={player.picture}
+                        size="small"
+                      />
+                      <span
+                        className="text-white font-medium text-[15px] player-name-clickable"
+                        onClick={() => onPlayerClick(player.player_id)}
+                      >
+                        {player.player_name}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">{player.games_played}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">{player.wins}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">{player.losses}</span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    {isRanked ? (
+                      (() => {
+                        const tier = getWinRateTier(player.win_rate / 100);
+                        return (
+                          <div className={`winrate-compact ${tier.class}`}>
+                            <div className="tier-icon-compact">{tier.icon}</div>
+                            <div className="text-left">
+                              <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
+                              <div className="text-lg font-bold text-white">{player.win_rate.toFixed(1)}%</div>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="text-left">
+                        <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">Unranked</div>
+                        <div className="text-sm text-[#909296]">Needs {gamesNeeded} more game{gamesNeeded !== 1 ? 's' : ''}</div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            });
+          })()}
         </tbody>
       </table>
     </div>
