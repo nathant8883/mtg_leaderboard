@@ -25,6 +25,7 @@ export interface PlayerSlot {
   deckName: string;
   commanderName: string;
   commanderImageUrl: string;
+  colors: string[]; // W/U/B/R/G color identity
   isGuest: boolean;
 }
 
@@ -156,6 +157,7 @@ function MatchTracker() {
         deckName: 'Deck',
         commanderName: 'Commander',
         commanderImageUrl: '',
+        colors: [],
         isGuest: true,
       }));
 
@@ -200,6 +202,7 @@ function MatchTracker() {
         deckName: '',
         commanderName: '',
         commanderImageUrl: '',
+        colors: [],
         isGuest: false,
       }));
 

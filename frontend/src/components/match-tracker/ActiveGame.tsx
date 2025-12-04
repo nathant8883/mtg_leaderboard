@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Crown, Sword, Menu, Heart, Skull } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
+import { getColorIdentityStyle } from '../../utils/manaColors';
 
 interface ActiveGameProps {
   players: PlayerSlot[];
@@ -685,6 +686,17 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
               onTouchEnd={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchEnd(e, player)}
               onClick={() => selectingFirstPlayer && handleSelectFirstPlayer(player.position)}
             >
+              {/* Background Layers */}
+              <div
+                className={`player-card-bg ${!player.commanderImageUrl ? 'no-image' : ''}`}
+                style={player.commanderImageUrl ? { backgroundImage: `url(${player.commanderImageUrl})` } : undefined}
+              />
+              <div className="player-card-overlay" />
+              <div
+                className="player-card-border"
+                style={getColorIdentityStyle(player.colors)}
+              />
+
               {playerState.eliminated && (
                 <div className="eliminated-overlay">
                   Eliminated
@@ -711,7 +723,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 </div>
               )}
 
-              <div className="absolute top-3 left-20 right-20 z-[2] text-center flex flex-col vertical-stack">
+              <div className="absolute top-3 left-20 right-20 z-[3] text-center flex flex-col vertical-stack">
                 <div
                   className="text-lg font-bold text-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   onClick={() => {
@@ -778,7 +790,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     {lifeChangeDeltaMap[player.position] > 0 ? `+${lifeChangeDeltaMap[player.position]}` : '+'}
                   </button>
 
-                  <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center px-20 z-[2]">
                     <div className="life-total">
                       {playerState.life}
                     </div>
@@ -867,7 +879,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                         {commanderDamageDeltaMap[player.position] > 0 ? `+${commanderDamageDeltaMap[player.position]}` : '+'}
                       </button>
 
-                      <div className="absolute inset-0 flex flex-col items-center justify-center px-20">
+                      <div className="absolute inset-0 flex flex-col items-center justify-center px-20 z-[2]">
                         <div
                           className={`life-total ${isLethalDamage ? 'lethal-damage' : ''}`}
                           onClick={() => {

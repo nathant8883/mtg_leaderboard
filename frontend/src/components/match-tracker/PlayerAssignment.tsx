@@ -115,6 +115,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
         deckName: 'Guest Deck',
         commanderName: 'Unknown Commander',
         commanderImageUrl: '',
+        colors: [],
         isGuest: true,
       };
       setPlayers(updatedPlayers);
@@ -140,6 +141,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
       deckName: deck.name,
       commanderName: deck.commander,
       commanderImageUrl: deck.commander_image_url || '',
+      colors: deck.colors || [],
       isGuest: false,
     };
     setPlayers(updatedPlayers);

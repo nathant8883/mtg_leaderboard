@@ -1233,7 +1233,6 @@
   .player-card:nth-child(6) { --card-bg-start: #ff6b6b; --card-bg-end: #ee5a6f; }
 
   .player-card {
-    background: linear-gradient(135deg, var(--card-bg-start) 0%, var(--card-bg-end) 100%);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -1242,6 +1241,62 @@
     touch-action: pan-y;
     user-select: none;
     border-radius: 16px;
+    /* Fallback background - used when no commander image */
+    background: linear-gradient(135deg, var(--card-bg-start) 0%, var(--card-bg-end) 100%);
+  }
+
+  /* Commander Background Image Layer */
+  .player-card-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-size: cover;
+    background-position: center 20%; /* Focus on commander art (upper portion) */
+    background-repeat: no-repeat;
+    border-radius: 16px;
+    pointer-events: none;
+  }
+
+  /* Fallback when no commander image - show position gradient */
+  .player-card-bg.no-image {
+    background: linear-gradient(135deg, var(--card-bg-start) 0%, var(--card-bg-end) 100%);
+  }
+
+  /* Dark Overlay for Readability (~75% darkness) */
+  .player-card-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+      ellipse 120% 100% at center,
+      rgba(0, 0, 0, 0.70) 0%,
+      rgba(0, 0, 0, 0.75) 50%,
+      rgba(0, 0, 0, 0.80) 100%
+    );
+    border-radius: 16px;
+    pointer-events: none;
+  }
+
+  /* Color Identity Border (pseudo-element) */
+  .player-card-border {
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: 19px; /* 16px + 3px border */
+    background: var(--border-gradient, linear-gradient(135deg, #6B7280 0%, #4B5563 100%));
+    box-shadow: var(--border-glow, 0 0 12px rgba(107, 114, 128, 0.4));
+    pointer-events: none;
+  }
+
+
+  /* Grayscale background when eliminated */
+  .player-card.eliminated .player-card-bg {
+    filter: grayscale(100%);
+  }
+
+  .player-card.eliminated .player-card-border {
+    opacity: 0.3;
+    filter: grayscale(100%);
   }
 
   /* Shake animation for commander damage - must preserve rotation */
@@ -1412,6 +1467,53 @@
   .players-grid.layout-table.players-6 .player-slot:nth-child(1) .eliminated-overlay,
   .players-grid.layout-table.players-6 .player-slot:nth-child(2) .eliminated-overlay,
   .players-grid.layout-table.players-6 .player-slot:nth-child(3) .eliminated-overlay {
+    transform: rotate(0deg) !important;
+  }
+
+  /* Background Layer Rotations - Override the universal * rotation to keep layers with parent rotation */
+  /* 3 players */
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .player-card-bg,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .player-card-overlay,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(1) .player-card-border,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .player-card-bg,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .player-card-overlay,
+  .players-grid.layout-table.players-3 .player-slot:nth-child(2) .player-card-border {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 4 players */
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .player-card-bg,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .player-card-overlay,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(1) .player-card-border,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .player-card-bg,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .player-card-overlay,
+  .players-grid.layout-table.players-4 .player-slot:nth-child(2) .player-card-border {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 5 players */
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .player-card-bg,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .player-card-overlay,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(1) .player-card-border,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .player-card-bg,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .player-card-overlay,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(2) .player-card-border,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .player-card-bg,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .player-card-overlay,
+  .players-grid.layout-table.players-5 .player-slot:nth-child(3) .player-card-border {
+    transform: rotate(0deg) !important;
+  }
+
+  /* 6 players */
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .player-card-bg,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .player-card-overlay,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(1) .player-card-border,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .player-card-bg,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .player-card-overlay,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(2) .player-card-border,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .player-card-bg,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .player-card-overlay,
+  .players-grid.layout-table.players-6 .player-slot:nth-child(3) .player-card-border {
     transform: rotate(0deg) !important;
   }
 
@@ -1597,7 +1699,7 @@
     justify-content: center;
     transition: all 0.15s ease;
     user-select: none;
-    z-index: 1;
+    z-index: 5;
   }
 
   .life-btn-left {
@@ -1655,7 +1757,10 @@
     font-size: 96px;
     font-weight: 900;
     line-height: 1;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    text-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.8),
+      0 4px 8px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(0, 0, 0, 0.9);
     user-select: none;
   }
 
@@ -1766,11 +1871,11 @@
   .commander-damage-indicator {
     position: absolute;
     inset: 0;
+    z-index: 10;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 2;
     text-align: center;
     padding: 20px;
     background: rgba(0, 0, 0, 0.85);
