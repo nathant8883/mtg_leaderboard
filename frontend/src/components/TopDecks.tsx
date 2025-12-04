@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
 import { leaderboardApi, type DeckLeaderboardEntry } from '../services/api';
+import { getColorIdentityStyle } from '../utils/manaColors';
 
 interface TopDecksProps {
   onViewLeaderboard: () => void;
@@ -43,6 +44,14 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
     if (rank === 1) return `${baseStyles} bg-gradient-gold text-[#1A1B1E] shadow-gold border-[rgba(255,215,0,0.3)]`;
     if (rank === 2) return `${baseStyles} bg-gradient-silver text-[#1A1B1E] shadow-silver border-[rgba(192,192,192,0.3)]`;
     if (rank === 3) return `${baseStyles} bg-gradient-bronze text-white shadow-bronze border-[rgba(205,127,50,0.3)]`;
+    return `${baseStyles} bg-[#2C2E33] text-[#909296] border-[rgba(255,255,255,0.15)]`;
+  };
+
+  const getRankBadgeClassSmall = (rank: number): string => {
+    const baseStyles = 'inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-sm border shadow-[0_2px_4px_rgba(0,0,0,0.5)]';
+    if (rank === 1) return `${baseStyles} bg-gradient-gold text-[#1A1B1E] border-[rgba(255,215,0,0.3)]`;
+    if (rank === 2) return `${baseStyles} bg-gradient-silver text-[#1A1B1E] border-[rgba(192,192,192,0.3)]`;
+    if (rank === 3) return `${baseStyles} bg-gradient-bronze text-white border-[rgba(205,127,50,0.3)]`;
     return `${baseStyles} bg-[#2C2E33] text-[#909296] border-[rgba(255,255,255,0.15)]`;
   };
 
@@ -159,7 +168,7 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
       </div>
 
       {/* Mobile Card View */}
-      <div className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-4 md:hidden">
         {decks.map((deck, index) => {
           const rank = index + 1;
           const tier = getWinRateTier(deck.win_rate / 100);
@@ -174,38 +183,49 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
           return (
             <div
               key={deck.deck_id}
-              className="flex items-center gap-3 bg-[linear-gradient(135deg,#25262B_0%,#27282D_100%)] border border-[#2C2E33] rounded-[12px] p-4 transition-all duration-150 active:scale-[0.98]"
+              className="flex items-stretch gap-3 bg-[linear-gradient(135deg,#25262B_0%,#27282D_100%)] border border-[#2C2E33] rounded-[12px] p-4 transition-all duration-150 active:scale-[0.98]"
             >
-              <div className={getRankBadgeClass(rank)}>
-                {rank}
-              </div>
-              <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-[#1A1B1E] border-2 border-[#2C2E33]">
-                {deck.commander_image_url ? (
-                  <img
-                    src={deck.commander_image_url}
-                    alt={deck.commander}
-                    className="w-full h-full object-cover object-[center_20%]"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[32px]">🎴</div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-                <div className="text-base font-semibold text-white">{deck.deck_name}</div>
-                <div className="text-xs text-[#909296] overflow-hidden text-ellipsis whitespace-nowrap opacity-70">{deck.commander}</div>
-                <div className="text-[11px] mt-0.5 text-[#9ca3af]">
-                  by {deck.player_name}
+              {/* Image with color border and rank badge */}
+              <div className="relative flex-shrink-0">
+                <div className="deck-color-border-wrapper" style={getColorIdentityStyle(deck.colors)}>
+                  <div className="w-[80px] aspect-[5/7] rounded-[10px] overflow-hidden bg-[#1A1B1E]">
+                    {deck.commander_image_url ? (
+                      <img
+                        src={deck.commander_image_url}
+                        alt={deck.commander}
+                        className="w-full h-full object-cover object-[center_20%]"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[32px]">🎴</div>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-1 flex justify-start">
-                  <ColorPips colors={deck.colors} />
-                </div>
-                <div className="text-xs text-[#909296] mt-1 opacity-70">{deck.wins}-{deck.losses}</div>
-                <div className={`text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-[20px] inline-block mt-1 border border-[rgba(255,255,255,0.15)] ${tierBgClass} ${tierColorClass}`}>
-                  {tier.icon} {tier.letter} TIER
+                <div className={`absolute -top-2 -left-2 ${getRankBadgeClassSmall(rank)}`}>
+                  {rank}
                 </div>
               </div>
-              <div className={`text-2xl font-bold flex-shrink-0 ml-auto ${tierColorClass}`}>
-                {deck.win_rate.toFixed(0)}%
+
+              {/* Content area with left/right columns */}
+              <div className="flex-1 min-w-0 flex gap-2">
+                {/* Left column */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                  <div className="text-base font-semibold text-white whitespace-nowrap">{deck.deck_name}</div>
+                  <div className="text-xs text-[#909296] overflow-hidden text-ellipsis whitespace-nowrap opacity-70">{deck.commander}</div>
+                  <div className="text-[11px] text-[#9ca3af]">
+                    by {deck.player_name}
+                  </div>
+                  <div className="text-xs text-[#909296] mt-1.5">{deck.wins}-{deck.losses}</div>
+                </div>
+
+                {/* Right column */}
+                <div className="flex flex-col items-center justify-center flex-shrink-0 pl-2 ml-auto">
+                  <div className={`text-2xl font-bold ${tierColorClass}`}>
+                    {deck.win_rate.toFixed(0)}%
+                  </div>
+                  <div className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[rgba(255,255,255,0.15)] text-white ${tierBgClass}`}>
+                    {tier.icon} {tier.letter} Tier
+                  </div>
+                </div>
               </div>
             </div>
           );

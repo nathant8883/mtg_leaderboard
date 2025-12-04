@@ -71,6 +71,14 @@
     color: #FF6B6B;
   }
 
+  /* Deck card color identity border - wrapper approach */
+  .deck-color-border-wrapper {
+    padding: 3px;
+    border-radius: 13px;
+    background: var(--border-gradient, linear-gradient(135deg, #6B7280 0%, #4B5563 100%));
+    box-shadow: var(--border-glow, 0 0 12px rgba(107, 114, 128, 0.4));
+  }
+
   /* Mana symbol fonts for MTG color pips */
   .color-pips {
     display: flex;

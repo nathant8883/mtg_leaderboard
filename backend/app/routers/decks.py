@@ -123,6 +123,7 @@ async def create_deck(
         )
 
     # Auto-populate commander image and colors from Scryfall if not provided
+    # Use art_crop for cropped artwork display
     commander_image_url = deck_request.commander_image_url
     if not commander_image_url:
         commander_image_url = commander_details.get("image_art_crop") or commander_details.get("image_normal")
@@ -181,7 +182,7 @@ async def update_deck(
                 detail=f"Commander '{deck_request.commander}' not found or is not a legendary creature"
             )
 
-        # Update image and colors from Scryfall
+        # Update image and colors from Scryfall - use art_crop for cropped artwork
         commander_image_url = commander_details.get("image_art_crop") or commander_details.get("image_normal")
         colors = commander_details.get("color_identity", [])
     else:
