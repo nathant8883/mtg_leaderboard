@@ -27,6 +27,28 @@ async def search_commanders(
         raise HTTPException(status_code=500, detail=f"Error searching Scryfall: {str(e)}")
 
 
+@router.get("/commanders/{name}/printings")
+async def get_commander_printings(name: str):
+    """
+    Get all unique artwork versions/printings for a specific commander.
+
+    Args:
+        name: Exact card name
+
+    Returns:
+        List of card printings with unique artwork, including set info and images
+    """
+    try:
+        results = await scryfall_service.get_commander_printings(name)
+        if not results:
+            raise HTTPException(status_code=404, detail="No printings found for commander")
+        return {"printings": results}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching commander printings: {str(e)}")
+
+
 @router.get("/commanders/{name}")
 async def get_commander_details(name: str):
     """

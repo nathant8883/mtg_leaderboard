@@ -153,6 +153,71 @@ class ScryfallService:
             }
 
     @staticmethod
+    async def get_commander_printings(name: str) -> list[dict]:
+        """
+        Get all unique artwork versions/printings for a specific commander.
+
+        Uses Scryfall's unique:art parameter to get distinct artwork versions.
+
+        Args:
+            name: Exact card name
+
+        Returns:
+            List of card printings with unique artwork, including set info and images
+        """
+        async with httpx.AsyncClient() as client:
+            # Search for all printings with unique artwork
+            # The !"name" syntax is exact name match in Scryfall
+            search_query = f'!"{name}" unique:art'
+            params = {
+                "q": search_query,
+                "order": "released",
+                "dir": "desc",  # Newest first
+            }
+
+            response = await client.get(
+                f"{SCRYFALL_API_BASE}/cards/search",
+                params=params,
+                timeout=10.0
+            )
+
+            if response.status_code != 200:
+                return []
+
+            data = response.json()
+            cards = data.get("data", [])
+
+            results = []
+            seen_illustrations = set()
+
+            for card in cards:
+                # Get illustration_id to truly deduplicate same artwork
+                illustration_id = card.get("illustration_id")
+                if illustration_id and illustration_id in seen_illustrations:
+                    continue
+                if illustration_id:
+                    seen_illustrations.add(illustration_id)
+
+                card_data = ScryfallService._extract_card_data(card)
+
+                # Skip cards without images
+                if not card_data["image_art_crop"] and not card_data["image_normal"]:
+                    continue
+
+                results.append({
+                    "name": card["name"],
+                    "set_name": card.get("set_name", "Unknown Set"),
+                    "set_code": card.get("set", ""),
+                    "collector_number": card.get("collector_number", ""),
+                    "illustration_id": illustration_id,
+                    "image_small": card_data["image_small"],
+                    "image_normal": card_data["image_normal"],
+                    "image_art_crop": card_data["image_art_crop"],
+                })
+
+            return results
+
+    @staticmethod
     @lru_cache(maxsize=100)
     def get_cached_commander_sync(name: str) -> Optional[dict]:
         """

@@ -118,6 +118,18 @@ export interface CommanderCard {
   mana_cost: string;
 }
 
+// Commander Printing/Art Version Type
+export interface CommanderPrinting {
+  name: string;
+  set_name: string;
+  set_code: string;
+  collector_number: string;
+  illustration_id: string | null;
+  image_small?: string;
+  image_normal?: string;
+  image_art_crop?: string;
+}
+
 // Match Types
 export interface MatchPlayer {
   player_id: string;
@@ -334,6 +346,16 @@ export const scryfallApi = {
       return response.data;
     } catch (error) {
       return null;
+    }
+  },
+
+  getCommanderPrintings: async (name: string): Promise<CommanderPrinting[]> => {
+    try {
+      const response = await api.get(`/scryfall/commanders/${encodeURIComponent(name)}/printings`);
+      return response.data.printings || [];
+    } catch (error) {
+      console.error('Error fetching commander printings:', error);
+      return [];
     }
   },
 };

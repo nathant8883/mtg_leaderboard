@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import type { Deck, Player } from '../services/api';
 import CommanderAutocomplete from './CommanderAutocomplete';
 import ColorPips from './ColorPips';
+import ArtSelectorModal from './ArtSelectorModal';
 
 interface DeckFormProps {
   onSubmit: (deck: Omit<Deck, 'id' | 'created_at'>) => Promise<void>;
@@ -21,6 +22,7 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
   const [disabled, setDisabled] = useState(initialData?.disabled || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showArtSelector, setShowArtSelector] = useState(false);
 
   const handleCommanderChange = (
     commanderName: string,
@@ -30,6 +32,10 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
     setCommander(commanderName);
     if (imageUrl) setCommanderImageUrl(imageUrl);
     if (colorIdentity) setColors(colorIdentity);
+  };
+
+  const handleArtSelect = (imageUrl: string) => {
+    setCommanderImageUrl(imageUrl);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -148,11 +154,22 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
             <div className="mb-5">
               <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">Commander Preview</label>
               <div className="flex items-center gap-3">
-                <img
-                  src={commanderImageUrl}
-                  alt={commander}
-                  className="w-[100px] h-auto rounded-[8px] border-2 border-[#2C2E33]"
-                />
+                <button
+                  type="button"
+                  onClick={() => setShowArtSelector(true)}
+                  disabled={isSubmitting}
+                  className="relative group cursor-pointer bg-transparent border-none p-0 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Click to change artwork"
+                >
+                  <img
+                    src={commanderImageUrl}
+                    alt={commander}
+                    className="w-[100px] h-auto rounded-[8px] border-2 border-[#2C2E33] transition-all group-hover:border-[#667eea] group-hover:shadow-[0_0_12px_rgba(102,126,234,0.3)]"
+                  />
+                  <div className="absolute inset-0 rounded-[8px] bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-white text-xs font-medium">Change Art</span>
+                  </div>
+                </button>
                 <div>
                   <div className="text-white font-medium mb-1">
                     {commander}
@@ -224,6 +241,16 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
           </div>
         </div>
       </div>
+
+      {/* Art Selector Modal */}
+      {showArtSelector && commander && (
+        <ArtSelectorModal
+          commanderName={commander}
+          currentImageUrl={commanderImageUrl}
+          onSelect={handleArtSelect}
+          onClose={() => setShowArtSelector(false)}
+        />
+      )}
     </div>
   );
 }
