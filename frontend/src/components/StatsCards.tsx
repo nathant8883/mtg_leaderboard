@@ -121,6 +121,21 @@ interface MetricPillProps {
   customIcon?: React.ReactNode;
 }
 
+// Data structure for building metric card array
+interface MetricCardData extends Omit<MetricPillProps, 'avatar' | 'customIcon'> {
+  id: string;
+  visible: boolean;
+  avatarData?: {
+    playerName: string;
+    customAvatar?: string;
+    picture?: string;
+  };
+  customIconData?: {
+    type: 'colorPip' | 'arrangedPips';
+    colors: string[];
+  };
+}
+
 const MetricPill: React.FC<MetricPillProps> = ({
   label,
   value,
@@ -186,9 +201,7 @@ function StatsCards() {
   };
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const [isUserInteracting, setIsUserInteracting] = useState(false);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     loadStats();
@@ -216,76 +229,6 @@ function StatsCards() {
     }
   };
 
-  // Auto-scroll functionality for mobile carousel - continuous smooth scroll
-  useEffect(() => {
-    const isMobile = () => window.innerWidth <= 768;
-
-    if (!isMobile() || loading || !stats || isUserInteracting) {
-      setIsAutoScrolling(false);
-      return;
-    }
-
-    const carousel = carouselRef.current;
-    if (!carousel) return;
-
-    // Enable auto-scrolling mode
-    setIsAutoScrolling(true);
-
-    let animationId: number;
-    const scrollSpeed = 0.25; // pixels per frame - adjust for speed
-    let accumulatedScroll = 0; // Track fractional pixels
-
-    const animate = () => {
-      if (carousel && !isUserInteracting) {
-        // Accumulate scroll amount to handle fractional pixels
-        accumulatedScroll += scrollSpeed;
-
-        // Only scroll when we have at least 1 pixel accumulated
-        if (accumulatedScroll >= 1) {
-          const scrollAmount = Math.floor(accumulatedScroll);
-          carousel.scrollLeft += scrollAmount;
-          accumulatedScroll -= scrollAmount;
-        }
-
-        // Reset to beginning when we reach the end (creating infinite loop effect)
-        // Leave some buffer to make the reset less noticeable
-        if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) {
-          carousel.scrollLeft = 0;
-          accumulatedScroll = 0;
-        }
-
-        animationId = requestAnimationFrame(animate);
-      }
-    };
-
-    // Start the animation
-    animationId = requestAnimationFrame(animate);
-
-    // Handle user interaction - stop auto-scroll and snap to nearest card
-    const handleUserInteraction = () => {
-      setIsUserInteracting(true);
-      setIsAutoScrolling(false);
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
-    };
-
-    carousel.addEventListener('touchstart', handleUserInteraction);
-    carousel.addEventListener('mousedown', handleUserInteraction);
-    carousel.addEventListener('wheel', handleUserInteraction);
-
-    return () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
-      setIsAutoScrolling(false);
-      if (carousel) {
-        carousel.removeEventListener('touchstart', handleUserInteraction);
-        carousel.removeEventListener('mousedown', handleUserInteraction);
-        carousel.removeEventListener('wheel', handleUserInteraction);
-      }
-    };
-  }, [loading, stats, isUserInteracting]);
 
   const formatLastGameDate = (dateStr: string | null): { display: string; analytic: string; label: string } => {
     if (!dateStr) return { display: 'No games yet', analytic: '-', label: '' };
@@ -302,12 +245,14 @@ function StatsCards() {
 
   if (loading) {
     return (
-      <div ref={carouselRef} className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile ${isAutoScrolling ? 'auto-scrolling' : ''}`}>
-        <SkeletonPill />
-        <SkeletonPill />
-        <SkeletonPill />
-        <SkeletonPill />
-        <SkeletonPill />
+      <div className="stats-carousel-container mb-8">
+        <div className="stats-carousel-track">
+          <SkeletonPill />
+          <SkeletonPill />
+          <SkeletonPill />
+          <SkeletonPill />
+          <SkeletonPill />
+        </div>
       </div>
     );
   }
@@ -318,135 +263,190 @@ function StatsCards() {
 
   const lastGameInfo = formatLastGameDate(stats.last_game_date);
 
+  // Build array of metric cards for infinite carousel cloning
+  const metricCards: MetricCardData[] = [
+    {
+      id: 'total-games',
+      label: 'Total Games',
+      value: String(stats.total_games),
+      analytic: lastGameInfo.analytic,
+      analyticLabel: lastGameInfo.label,
+      color: 'blue',
+      icon: IconCards,
+      visible: true,
+    },
+    {
+      id: 'most-games',
+      label: 'Most Games',
+      value: stats.most_games_player ? stats.most_games_player.player_name : '-',
+      analytic: stats.most_games_player ? String(stats.most_games_player.games_played) : '-',
+      analyticLabel: 'games',
+      color: 'purple',
+      icon: IconTrophy,
+      visible: true,
+      avatarData: stats.most_games_player ? {
+        playerName: stats.most_games_player.player_name,
+        customAvatar: stats.most_games_player.player_custom_avatar,
+        picture: stats.most_games_player.player_picture,
+      } : undefined,
+    },
+    {
+      id: 'most-played',
+      label: 'Most Played',
+      value: stats.most_played_deck ? stats.most_played_deck.deck_name : '-',
+      analytic: stats.most_played_deck ? String(stats.most_played_deck.games_played) : '-',
+      analyticLabel: 'games',
+      color: 'orange',
+      commanderImage: stats.most_played_deck?.commander_image_url,
+      icon: IconSword,
+      visible: true,
+    },
+    {
+      id: 'popular-color',
+      label: 'Popular Color',
+      value: stats.most_popular_color ? getColorName(stats.most_popular_color.color) : '-',
+      analytic: stats.most_popular_color ? `${stats.most_popular_color.percentage}%` : '-',
+      analyticLabel: 'of decks',
+      color: 'yellow',
+      icon: IconCards,
+      visible: true,
+      customIconData: stats.most_popular_color ? {
+        type: 'colorPip',
+        colors: [stats.most_popular_color.color],
+      } : undefined,
+    },
+    {
+      id: 'top-identity',
+      label: 'Top Identity',
+      value: stats.most_popular_identity ? stats.most_popular_identity.name : '-',
+      analytic: stats.most_popular_identity ? String(stats.most_popular_identity.count) : '-',
+      analyticLabel: 'decks',
+      color: 'gray',
+      icon: IconCards,
+      visible: true,
+      customIconData: stats.most_popular_identity ? {
+        type: 'arrangedPips',
+        colors: stats.most_popular_identity.colors,
+      } : undefined,
+    },
+    {
+      id: 'elo-leader',
+      label: 'Elo Leader',
+      value: stats.elo_leader?.player_name || '-',
+      analytic: stats.elo_leader ? String(stats.elo_leader.elo) : '-',
+      analyticLabel: 'rating',
+      color: 'purple',
+      icon: IconTrophy,
+      visible: !!stats.elo_leader,
+      avatarData: stats.elo_leader ? {
+        playerName: stats.elo_leader.player_name,
+        customAvatar: stats.elo_leader.custom_avatar,
+        picture: stats.elo_leader.picture,
+      } : undefined,
+    },
+    {
+      id: 'rising-star',
+      label: 'Rising Star',
+      value: stats.rising_star?.player?.player_name || '-',
+      analytic: stats.rising_star ? `+${stats.rising_star.elo_gain}` : '-',
+      analyticLabel: 'Elo gain',
+      color: 'orange',
+      icon: IconTrophy,
+      visible: !!(stats.rising_star?.player),
+      avatarData: stats.rising_star?.player ? {
+        playerName: stats.rising_star.player.player_name,
+        customAvatar: stats.rising_star.player.custom_avatar,
+        picture: stats.rising_star.player.picture,
+      } : undefined,
+    },
+    {
+      id: 'pod-balance',
+      label: 'Pod Balance',
+      value: stats.pod_balance?.status || '-',
+      analytic: stats.pod_balance ? `${stats.pod_balance.score}%` : '-',
+      analyticLabel: 'parity',
+      color: stats.pod_balance?.status === 'Healthy' ? 'blue' : stats.pod_balance?.status === 'Uneven' ? 'orange' : 'purple',
+      icon: stats.pod_balance?.status === 'Healthy' ? IconScale : stats.pod_balance?.status === 'Uneven' ? IconChartBar : IconCrown,
+      visible: !!(stats.pod_balance && stats.pod_balance.score > 0),
+    },
+  ].filter(card => card.visible);
+
+  // Helper to render a metric card from data
+  const renderMetricCard = (card: MetricCardData, keyPrefix: string) => {
+    let avatar: React.ReactNode | undefined;
+    let customIcon: React.ReactNode | undefined;
+
+    if (card.avatarData) {
+      avatar = (
+        <PlayerAvatar
+          playerName={card.avatarData.playerName}
+          customAvatar={card.avatarData.customAvatar}
+          picture={card.avatarData.picture}
+          size="small"
+          className="w-9 h-9"
+        />
+      );
+    }
+
+    if (card.customIconData) {
+      if (card.customIconData.type === 'colorPip') {
+        customIcon = (
+          <div className="text-2xl">
+            <ColorPips colors={card.customIconData.colors} />
+          </div>
+        );
+      } else if (card.customIconData.type === 'arrangedPips') {
+        customIcon = <ArrangedColorPips colors={card.customIconData.colors} size="text-base" />;
+      }
+    }
+
+    return (
+      <MetricPill
+        key={`${keyPrefix}-${card.id}`}
+        label={card.label}
+        value={card.value}
+        analytic={card.analytic}
+        analyticLabel={card.analyticLabel}
+        color={card.color}
+        icon={card.icon}
+        avatar={avatar}
+        commanderImage={card.commanderImage}
+        customIcon={customIcon}
+      />
+    );
+  };
+
+  // For infinite carousel on mobile - duplicate cards for seamless loop
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
+  // Render cards (duplicated on mobile for infinite animation)
+  const cardsToRender = isMobile
+    ? [
+        ...metricCards.map((card) => renderMetricCard(card, 'set1')),
+        ...metricCards.map((card) => renderMetricCard(card, 'set2')),
+      ]
+    : metricCards.map((card) => renderMetricCard(card, 'original'));
+
+  // Calculate animation duration based on card count (slower = more readable)
+  const animationDuration = metricCards.length * 8; // 8 seconds per card
+
+  // When user interacts, switch to manual scroll mode
+  const handleInteractionStart = () => {
+    setIsPaused(true);
+  };
+
   return (
-    <div ref={carouselRef} className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5 mb-8 stats-grid-mobile ${isAutoScrolling ? 'auto-scrolling' : ''}`}>
-      {/* Total Games Card */}
-      <MetricPill
-        label="Total Games"
-        value={String(stats.total_games)}
-        analytic={lastGameInfo.analytic}
-        analyticLabel={lastGameInfo.label}
-        color="blue"
-        icon={IconCards}
-      />
-
-      {/* Most Games Played Card */}
-      <MetricPill
-        label="Most Games"
-        value={stats.most_games_player ? stats.most_games_player.player_name : '-'}
-        analytic={stats.most_games_player ? String(stats.most_games_player.games_played) : '-'}
-        analyticLabel="games"
-        color="purple"
-        avatar={
-          stats.most_games_player ? (
-            <PlayerAvatar
-              playerName={stats.most_games_player.player_name}
-              customAvatar={stats.most_games_player.player_custom_avatar}
-              picture={stats.most_games_player.player_picture}
-              size="small"
-              className="w-9 h-9"
-            />
-          ) : undefined
-        }
-        icon={IconTrophy}
-      />
-
-      {/* Most Played Deck Card */}
-      <MetricPill
-        label="Most Played"
-        value={stats.most_played_deck ? stats.most_played_deck.deck_name : '-'}
-        analytic={stats.most_played_deck ? String(stats.most_played_deck.games_played) : '-'}
-        analyticLabel="games"
-        color="orange"
-        commanderImage={stats.most_played_deck?.commander_image_url}
-        icon={IconSword}
-      />
-
-      {/* Most Popular Color Card */}
-      <MetricPill
-        label="Popular Color"
-        value={stats.most_popular_color ? getColorName(stats.most_popular_color.color) : '-'}
-        analytic={stats.most_popular_color ? `${stats.most_popular_color.percentage}%` : '-'}
-        analyticLabel="of decks"
-        color="yellow"
-        customIcon={
-          stats.most_popular_color ? (
-            <div className="text-2xl">
-              <ColorPips colors={[stats.most_popular_color.color]} />
-            </div>
-          ) : undefined
-        }
-        icon={IconCards}
-      />
-
-      {/* Most Popular Identity Card */}
-      <MetricPill
-        label="Top Identity"
-        value={stats.most_popular_identity ? stats.most_popular_identity.name : '-'}
-        analytic={stats.most_popular_identity ? String(stats.most_popular_identity.count) : '-'}
-        analyticLabel="decks"
-        color="gray"
-        customIcon={
-          stats.most_popular_identity ? (
-            <ArrangedColorPips colors={stats.most_popular_identity.colors} size="text-base" />
-          ) : undefined
-        }
-        icon={IconCards}
-      />
-
-      {/* Elo Leader Card */}
-      {stats.elo_leader && (
-        <MetricPill
-          label="Elo Leader"
-          value={stats.elo_leader.player_name}
-          analytic={String(stats.elo_leader.elo)}
-          analyticLabel="rating"
-          color="purple"
-          avatar={
-            <PlayerAvatar
-              playerName={stats.elo_leader.player_name}
-              customAvatar={stats.elo_leader.custom_avatar}
-              picture={stats.elo_leader.picture}
-              size="small"
-              className="w-9 h-9"
-            />
-          }
-          icon={IconTrophy}
-        />
-      )}
-
-      {/* Rising Star Card */}
-      {stats.rising_star?.player && (
-        <MetricPill
-          label="Rising Star"
-          value={stats.rising_star.player.player_name}
-          analytic={`+${stats.rising_star.elo_gain}`}
-          analyticLabel="Elo gain"
-          color="orange"
-          avatar={
-            <PlayerAvatar
-              playerName={stats.rising_star.player.player_name}
-              customAvatar={stats.rising_star.player.custom_avatar}
-              picture={stats.rising_star.player.picture}
-              size="small"
-              className="w-9 h-9"
-            />
-          }
-          icon={IconTrophy}
-        />
-      )}
-
-      {/* Pod Balance Card */}
-      {stats.pod_balance && stats.pod_balance.score > 0 && (
-        <MetricPill
-          label="Pod Balance"
-          value={stats.pod_balance.status}
-          analytic={`${stats.pod_balance.score}%`}
-          analyticLabel="parity"
-          color={stats.pod_balance.status === 'Healthy' ? 'blue' : stats.pod_balance.status === 'Uneven' ? 'orange' : 'purple'}
-          icon={stats.pod_balance.status === 'Healthy' ? IconScale : stats.pod_balance.status === 'Uneven' ? IconChartBar : IconCrown}
-        />
-      )}
+    <div
+      className={`stats-carousel-container mb-8 ${isPaused ? 'scrollable' : ''}`}
+      onMouseEnter={handleInteractionStart}
+      onTouchStart={handleInteractionStart}
+    >
+      <div
+        className={`stats-carousel-track ${isPaused ? 'paused' : ''}`}
+        style={{ '--animation-duration': `${animationDuration}s` } as React.CSSProperties}
+      >
+        {cardsToRender}
+      </div>
     </div>
   );
 }

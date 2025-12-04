@@ -288,49 +288,65 @@
     font-size: 1.5rem;
   }
 
-  /* Mobile carousel effect for stats grid */
+  /* Infinite scrolling carousel for stats */
+  .stats-carousel-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .stats-carousel-track {
+    display: contents;
+  }
+
   @media (max-width: 768px) {
-    .stats-grid-mobile {
-      display: flex !important;
-      grid-template-columns: none !important;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-      gap: 0.75rem !important;
-      margin-bottom: 1.5rem;
-      padding: 0 1rem 1rem 1rem;
+    .stats-carousel-container {
+      display: block;
+      overflow: hidden;
       margin-left: -1rem;
       margin-right: -1rem;
+      padding: 0 1rem 1rem 1rem;
+    }
+
+    .stats-carousel-track {
+      display: flex;
+      gap: 1rem;
+      width: max-content;
+      animation: scrollCarousel var(--animation-duration, 60s) linear infinite;
+    }
+
+    .stats-carousel-track.paused {
+      animation: none;
+    }
+
+    .stats-carousel-track > * {
+      flex-shrink: 0;
+      min-width: 280px;
+    }
+
+    /* When paused, make container scrollable */
+    .stats-carousel-container.scrollable {
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
 
-    /* Disable scroll-snap during auto-scroll for smooth continuous movement */
-    .stats-grid-mobile.auto-scrolling {
-      scroll-snap-type: none;
-      scroll-behavior: auto;
-    }
-
-    .stats-grid-mobile::-webkit-scrollbar {
+    .stats-carousel-container.scrollable::-webkit-scrollbar {
       display: none;
     }
+  }
 
-    .stats-grid-mobile > * {
-      min-width: 85%;
-      max-width: 85%;
-      flex-shrink: 0;
-      scroll-snap-align: center;
+  @keyframes scrollCarousel {
+    from {
+      transform: translateX(0);
     }
-
-    .stats-grid-mobile > *:first-child {
-      margin-left: 7.5%;
+    to {
+      transform: translateX(-50%);
     }
+  }
 
-    .stats-grid-mobile > *:last-child {
-      margin-right: 7.5%;
-    }
-
-    /* Win rate compact - mobile adjustments */
+  /* Win rate compact - mobile adjustments */
+  @media (max-width: 768px) {
     .winrate-compact {
       padding: 0.375rem 0.625rem;
     }
