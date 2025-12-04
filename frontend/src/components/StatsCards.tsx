@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { IconCards, IconTrophy, IconSword, IconScale, IconChartBar, IconCrown } from '@tabler/icons-react';
 import ColorPips from './ColorPips';
 import PlayerAvatar from './PlayerAvatar';
@@ -365,7 +365,7 @@ function StatsCards() {
       value: stats.pod_balance?.status || '-',
       analytic: stats.pod_balance ? `${stats.pod_balance.score}%` : '-',
       analyticLabel: 'parity',
-      color: stats.pod_balance?.status === 'Healthy' ? 'blue' : stats.pod_balance?.status === 'Uneven' ? 'orange' : 'purple',
+      color: (stats.pod_balance?.status === 'Healthy' ? 'blue' : stats.pod_balance?.status === 'Uneven' ? 'orange' : 'purple') as CardColor,
       icon: stats.pod_balance?.status === 'Healthy' ? IconScale : stats.pod_balance?.status === 'Uneven' ? IconChartBar : IconCrown,
       visible: !!(stats.pod_balance && stats.pod_balance.score > 0),
     },
