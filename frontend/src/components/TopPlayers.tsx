@@ -46,11 +46,26 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
     return `${baseStyles} bg-card-border text-text-muted border-[rgba(255,255,255,0.15)]`;
   };
 
-  const getWinRateTier = (winRate: number): { class: string; letter: string; icon: string; color: string } => {
-    if (winRate >= 0.35) return { class: 's-tier', letter: 'S', icon: '🏆', color: 'text-tier-s' };
-    if (winRate >= 0.28) return { class: 'a-tier', letter: 'A', icon: '⭐', color: 'text-tier-a' };
-    if (winRate >= 0.22) return { class: 'b-tier', letter: 'B', icon: '💎', color: 'text-tier-b' };
-    return { class: 'd-tier', letter: 'D', icon: '📉', color: 'text-tier-d' };
+  // Get all player Elos for percentile calculation
+  const rankedElos = players
+    .filter(p => p.elo)
+    .map(p => p.elo!)
+    .sort((a, b) => b - a);
+
+  const getEloTier = (elo: number | undefined): { class: string; letter: string; icon: string; color: string; eloColor: string } => {
+    if (!elo || rankedElos.length === 0) {
+      return { class: 'd-tier', letter: 'D', icon: '📉', color: 'text-tier-d', eloColor: 'text-[#FF6B6B]' };
+    }
+
+    // Find position in sorted Elos (handle ties by finding first occurrence)
+    const position = rankedElos.findIndex(e => e <= elo);
+    const percentile = position === -1 ? 1 : position / rankedElos.length;
+
+    // Top 25% = S, 25-50% = A, 50-75% = B, Bottom 25% = D
+    if (percentile < 0.25) return { class: 's-tier', letter: 'S', icon: '🏆', color: 'text-tier-s', eloColor: 'text-[#FFD700]' };
+    if (percentile < 0.50) return { class: 'a-tier', letter: 'A', icon: '⭐', color: 'text-tier-a', eloColor: 'text-[#33D9B2]' };
+    if (percentile < 0.75) return { class: 'b-tier', letter: 'B', icon: '💎', color: 'text-tier-b', eloColor: 'text-[#4FACFE]' };
+    return { class: 'd-tier', letter: 'D', icon: '📉', color: 'text-tier-d', eloColor: 'text-[#FF6B6B]' };
   };
 
   if (loading) {
@@ -97,14 +112,15 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
             <tr>
               <th className="text-text-muted text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
               <th className="text-text-muted text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
+              <th className="text-text-muted text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Elo</th>
               <th className="text-text-muted text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Record</th>
-              <th className="text-text-muted text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Win Rate</th>
+              <th className="text-text-muted text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Tier</th>
             </tr>
           </thead>
           <tbody>
             {players.map((player, index) => {
               const rank = index + 1;
-              const tier = getWinRateTier(player.win_rate / 100);
+              const tier = getEloTier(player.elo);
               return (
                 <tr key={player.player_id} className="transition-all hover:bg-hover-bg">
                   <td className="py-4 px-3 border-b border-[#2C2E33]">
@@ -129,17 +145,28 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                     </div>
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                    <span className="text-text-secondary font-medium text-[15px]">{player.wins}-{player.losses}</span>
+                    {player.elo ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-[#667eea] font-bold text-xl">{player.elo}</span>
+                        {player.elo_change !== undefined && player.elo_change !== 0 && (
+                          <span className={`text-xs font-medium ${player.elo_change > 0 ? 'text-[#33D9B2]' : 'text-[#FF6B6B]'}`}>
+                            {player.elo_change > 0 ? '+' : ''}{player.elo_change.toFixed(0)}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-text-muted">-</span>
+                    )}
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                    <div className={`inline-flex items-center gap-3 px-3 py-2 rounded-[8px] bg-gradient-compact border border-[#2C2E33] transition-all ${tier.class} hover:border-[var(--tier-color)] hover:shadow-card-hover`}>
-                      <div className="w-9 h-9 rounded-[8px] bg-[linear-gradient(135deg,var(--tier-color),var(--tier-color-light))] flex items-center justify-center text-lg flex-shrink-0">
-                        {tier.icon}
-                      </div>
-                      <div className="text-left">
-                        <div className="text-[10px] text-text-muted uppercase font-semibold mb-0.5 tracking-wider">{tier.letter} Tier</div>
-                        <div className={`text-lg font-bold ${tier.color}`}>{player.win_rate.toFixed(1)}%</div>
-                      </div>
+                    <span className="text-text-secondary font-medium text-[15px]">
+                      {player.wins}-{player.losses} <span className="text-text-muted">({player.win_rate.toFixed(0)}%)</span>
+                    </span>
+                  </td>
+                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] ${tier.class}`}>
+                      <span className="text-sm">{tier.icon}</span>
+                      <span className="text-sm font-bold text-white">{tier.letter}</span>
                     </div>
                   </td>
                 </tr>
@@ -153,11 +180,11 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
       <div className="flex flex-col gap-3 md:hidden">
         {players.map((player, index) => {
           const rank = index + 1;
-          const tier = getWinRateTier(player.win_rate / 100);
-          const tierBgClass = tier.class === 's-tier' ? 'bg-[rgba(255,215,0,0.15)] text-tier-s border-[rgba(255,215,0,0.15)]' :
-                             tier.class === 'a-tier' ? 'bg-[rgba(51,217,178,0.15)] text-tier-a border-[rgba(51,217,178,0.15)]' :
-                             tier.class === 'b-tier' ? 'bg-[rgba(79,172,254,0.15)] text-tier-b border-[rgba(79,172,254,0.15)]' :
-                             'bg-[rgba(255,107,107,0.15)] text-tier-d border-[rgba(255,107,107,0.15)]';
+          const tier = getEloTier(player.elo);
+          const tierBgClass = tier.class === 's-tier' ? 'bg-[rgba(255,215,0,0.15)] border-[rgba(255,215,0,0.3)]' :
+                             tier.class === 'a-tier' ? 'bg-[rgba(51,217,178,0.15)] border-[rgba(51,217,178,0.3)]' :
+                             tier.class === 'b-tier' ? 'bg-[rgba(79,172,254,0.15)] border-[rgba(79,172,254,0.3)]' :
+                             'bg-[rgba(255,107,107,0.15)] border-[rgba(255,107,107,0.3)]';
 
           return (
             <div
@@ -174,15 +201,29 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                 picture={player.picture}
                 size="medium"
               />
-              <div className="flex-1 min-w-0">
-                <div className="text-base font-semibold text-white mb-1">{player.player_name}</div>
-                <div className="text-xs text-text-muted mb-1 opacity-70">{player.wins}-{player.losses}</div>
-                <div className={`text-[11px] font-semibold uppercase tracking-wide py-1 px-2.5 rounded-[20px] inline-block border ${tierBgClass}`}>
-                  {tier.icon} {tier.letter} TIER
-                </div>
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <div className="text-base font-semibold text-white">{player.player_name}</div>
+                <div className="text-xs text-text-muted opacity-70">{player.wins}-{player.losses} ({player.win_rate.toFixed(0)}%)</div>
               </div>
-              <div className={`text-2xl font-bold flex-shrink-0 ml-auto ${tier.color}`}>
-                {player.win_rate.toFixed(0)}%
+              <div className="flex flex-col items-end justify-center flex-shrink-0 ml-auto">
+                {player.elo ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <span className={`font-bold text-xl ${tier.eloColor}`}>{player.elo}</span>
+                      {player.elo_change !== undefined && player.elo_change !== 0 && (
+                        <span className={`text-[10px] font-medium ${player.elo_change > 0 ? 'text-[#33D9B2]' : 'text-[#FF6B6B]'}`}>
+                          {player.elo_change > 0 ? '+' : ''}{player.elo_change.toFixed(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`text-[10px] font-semibold uppercase tracking-wide py-0.5 px-2 rounded-[12px] inline-flex items-center gap-1 border ${tierBgClass}`}>
+                      <span>{tier.icon}</span>
+                      <span className="text-white">{tier.letter} TIER</span>
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-text-muted text-xl">-</span>
+                )}
               </div>
             </div>
           );

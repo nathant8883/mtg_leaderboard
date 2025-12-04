@@ -160,6 +160,9 @@ export interface PlayerLeaderboardEntry {
   win_rate: number;
   deck_count: number;
   ranked: boolean;
+  // Elo analytics
+  elo?: number;
+  elo_change?: number;
 }
 
 export interface DeckLeaderboardEntry {
@@ -210,6 +213,31 @@ export interface DashboardStats {
     count: number;
     percentage: number;
   } | null;
+  // Analytics
+  elo_leader?: {
+    player_id: string;
+    player_name: string;
+    picture?: string;
+    custom_avatar?: string;
+    elo: number;
+    games_rated: number;
+  } | null;
+  rising_star?: {
+    player: {
+      player_id: string;
+      player_name: string;
+      picture?: string;
+      custom_avatar?: string;
+    };
+    elo_gain: number;
+    current_elo: number;
+  } | null;
+  pod_balance?: {
+    score: number;
+    status: 'Healthy' | 'Uneven' | 'Dominated';
+    games_analyzed: number;
+    unique_winners: number;
+  } | null;
 }
 
 export interface PlayerDeckStats {
@@ -241,6 +269,23 @@ export interface PlayerDetail {
   favorite_single_color: string | null;
   favorite_color_combo: string[] | null;
   decks: PlayerDeckStats[];
+}
+
+// Analytics Types
+export interface KingmakerRelationship {
+  player_id: string;
+  player_name: string;
+  picture?: string;
+  custom_avatar?: string;
+  win_rate_with: number;
+  win_rate_without: number;
+  lift_percentage: number;
+  games_together: number;
+}
+
+export interface KingmakerData {
+  kingmaker_for: KingmakerRelationship[];
+  analyzed_games: number;
 }
 
 // Deck API Functions
@@ -339,6 +384,29 @@ export const leaderboardApi = {
 
   getStats: async (): Promise<DashboardStats> => {
     const response = await api.get('/leaderboard/stats');
+    return response.data;
+  },
+};
+
+// Analytics API Functions
+export const analyticsApi = {
+  getKingmaker: async (playerId: string): Promise<KingmakerData> => {
+    const response = await api.get(`/analytics/players/${playerId}/kingmaker`);
+    return response.data;
+  },
+
+  getPodBalance: async (): Promise<DashboardStats['pod_balance']> => {
+    const response = await api.get('/analytics/pod-balance');
+    return response.data;
+  },
+
+  getRisingStar: async (): Promise<DashboardStats['rising_star']> => {
+    const response = await api.get('/analytics/rising-star');
+    return response.data;
+  },
+
+  getEloLeader: async (): Promise<DashboardStats['elo_leader']> => {
+    const response = await api.get('/analytics/elo/leader');
     return response.data;
   },
 };

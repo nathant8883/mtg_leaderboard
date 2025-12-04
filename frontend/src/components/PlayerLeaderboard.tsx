@@ -18,14 +18,25 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
     return baseClass;
   };
 
-  const getWinRateTier = (winRate: number): { class: string; letter: string; icon: string } => {
-    // S-Tier: 35%+ (too strong)
-    if (winRate >= 0.35) return { class: 's-tier', letter: 'S', icon: '🏆' };
-    // A-Tier: 28-35% (above baseline)
-    if (winRate >= 0.28) return { class: 'a-tier', letter: 'A', icon: '⭐' };
-    // B-Tier: 22-28% (balanced, around 25% baseline)
-    if (winRate >= 0.22) return { class: 'b-tier', letter: 'B', icon: '💎' };
-    // D-Tier: Below 22% (underperforming)
+  // Get all ranked player Elos for percentile calculation
+  const rankedElos = players
+    .filter(p => p.ranked && p.elo)
+    .map(p => p.elo!)
+    .sort((a, b) => b - a);
+
+  const getEloTier = (elo: number | undefined): { class: string; letter: string; icon: string } => {
+    if (!elo || rankedElos.length === 0) {
+      return { class: 'd-tier', letter: 'D', icon: '📉' };
+    }
+
+    // Find position in sorted Elos (handle ties by finding first occurrence)
+    const position = rankedElos.findIndex(e => e <= elo);
+    const percentile = position === -1 ? 1 : position / rankedElos.length;
+
+    // Top 25% = S, 25-50% = A, 50-75% = B, Bottom 25% = D
+    if (percentile < 0.25) return { class: 's-tier', letter: 'S', icon: '🏆' };
+    if (percentile < 0.50) return { class: 'a-tier', letter: 'A', icon: '⭐' };
+    if (percentile < 0.75) return { class: 'b-tier', letter: 'B', icon: '💎' };
     return { class: 'd-tier', letter: 'D', icon: '📉' };
   };
 
@@ -55,10 +66,9 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
           <tr>
             <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
             <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Games</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Wins</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Losses</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Win Rate</th>
+            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Elo</th>
+            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Record</th>
+            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Tier</th>
           </tr>
         </thead>
         <tbody>
@@ -100,32 +110,38 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
                     </div>
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                    <span className="text-[#C1C2C5] font-medium text-[15px]">{player.games_played}</span>
+                    {player.elo ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-[#667eea] font-bold text-xl">{player.elo}</span>
+                        {player.elo_change !== undefined && player.elo_change !== 0 && (
+                          <span className={`text-xs font-medium ${player.elo_change > 0 ? 'text-[#33D9B2]' : 'text-[#FF6B6B]'}`}>
+                            {player.elo_change > 0 ? '+' : ''}{player.elo_change.toFixed(0)}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[#909296]">-</span>
+                    )}
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                    <span className="text-[#C1C2C5] font-medium text-[15px]">{player.wins}</span>
-                  </td>
-                  <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                    <span className="text-[#C1C2C5] font-medium text-[15px]">{player.losses}</span>
+                    <span className="text-[#C1C2C5] font-medium text-[15px]">
+                      {player.wins}-{player.losses} <span className="text-[#909296]">({player.win_rate.toFixed(0)}%)</span>
+                    </span>
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
                     {isRanked ? (
                       (() => {
-                        const tier = getWinRateTier(player.win_rate / 100);
+                        const tier = getEloTier(player.elo);
                         return (
-                          <div className={`winrate-compact ${tier.class}`}>
-                            <div className="tier-icon-compact">{tier.icon}</div>
-                            <div className="text-left">
-                              <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
-                              <div className="text-lg font-bold text-white">{player.win_rate.toFixed(1)}%</div>
-                            </div>
+                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] ${tier.class}`}>
+                            <span className="text-sm">{tier.icon}</span>
+                            <span className="text-sm font-bold text-white">{tier.letter}</span>
                           </div>
                         );
                       })()
                     ) : (
-                      <div className="text-left">
-                        <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">Unranked</div>
-                        <div className="text-sm text-[#909296]">Needs {gamesNeeded} more game{gamesNeeded !== 1 ? 's' : ''}</div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-[#909296] uppercase font-semibold tracking-[0.5px]">+{gamesNeeded} game{gamesNeeded !== 1 ? 's' : ''}</div>
                       </div>
                     )}
                   </td>

@@ -7,8 +7,10 @@ import logging
 from app.models.match import Match
 from app.models.player import Player, Deck
 from app.models.pod import Pod
+from app.models.analytics import PlayerEloRating
 from app.middleware.auth import get_optional_player
 from app.utils.color_identity import get_color_identity_name
+from app.services.elo_service import get_rising_star
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -58,6 +60,14 @@ async def get_player_leaderboard(
             ).to_list()
             matches = await Match.find_all().to_list()
 
+    # Build Elo lookup if we have pod context
+    elo_lookup: Dict[str, PlayerEloRating] = {}
+    if current_player and current_player.current_pod_id:
+        elo_ratings = await PlayerEloRating.find(
+            PlayerEloRating.pod_id == current_player.current_pod_id
+        ).to_list()
+        elo_lookup = {r.player_id: r for r in elo_ratings}
+
     leaderboard = []
 
     for player in players:
@@ -77,6 +87,9 @@ async def get_player_leaderboard(
 
         losses = games_played - wins
 
+        # Get Elo data if available
+        player_elo = elo_lookup.get(player_id)
+
         # Include all players with at least one game
         if games_played > 0:
             leaderboard.append({
@@ -91,10 +104,17 @@ async def get_player_leaderboard(
                 "win_rate": round(win_rate, 1),
                 "deck_count": deck_count,
                 "ranked": games_played >= MIN_GAMES_FOR_RANKING,
+                "elo": round(player_elo.current_elo) if player_elo else None,
+                "elo_change": round(player_elo.last_elo_change, 1) if player_elo else None,
             })
 
-    # Sort by ranked first (True before False), then by win rate descending
-    leaderboard.sort(key=lambda x: (x["ranked"], x["win_rate"], x["wins"]), reverse=True)
+    # Sort by ranked first (True before False), then by Elo (if available), then by win rate
+    leaderboard.sort(key=lambda x: (
+        x["ranked"],
+        x["elo"] if x["elo"] is not None else 0,
+        x["win_rate"],
+        x["wins"]
+    ), reverse=True)
 
     return leaderboard
 
@@ -358,6 +378,76 @@ async def get_dashboard_stats(
                 "percentage": round((most_common_identity[1] / len(enabled_decks)) * 100, 1)
             }
 
+    # Analytics: Elo Leader
+    elo_leader = None
+    if current_player and current_player.current_pod_id:
+        top_rating = await PlayerEloRating.find(
+            PlayerEloRating.pod_id == current_player.current_pod_id
+        ).sort(-PlayerEloRating.current_elo).first_or_none()
+
+        if top_rating:
+            leader_player = await Player.get(PydanticObjectId(top_rating.player_id))
+            if leader_player:
+                elo_leader = {
+                    "player_id": top_rating.player_id,
+                    "player_name": leader_player.name,
+                    "picture": leader_player.picture,
+                    "custom_avatar": leader_player.custom_avatar,
+                    "elo": round(top_rating.current_elo),
+                    "games_rated": top_rating.games_rated
+                }
+
+    # Analytics: Rising Star
+    rising_star_data = None
+    if current_player and current_player.current_pod_id:
+        rising_star_result = await get_rising_star(current_player.current_pod_id)
+        if rising_star_result:
+            rs_player = await Player.get(PydanticObjectId(rising_star_result["player_id"]))
+            rising_star_data = {
+                "player": {
+                    "player_id": rising_star_result["player_id"],
+                    "player_name": rs_player.name if rs_player else "Unknown",
+                    "picture": rs_player.picture if rs_player else None,
+                    "custom_avatar": rs_player.custom_avatar if rs_player else None,
+                },
+                "elo_gain": rising_star_result["elo_gain"],
+                "current_elo": rising_star_result["current_elo"]
+            }
+
+    # Analytics: Pod Balance
+    pod_balance = None
+    if current_player and current_player.current_pod_id and len(matches) >= 5:
+        # Get last 30 matches for balance calculation
+        recent_matches = sorted(matches, key=lambda m: m.created_at, reverse=True)[:30]
+        win_counts = Counter(match.winner_player_id for match in recent_matches)
+        total_wins = sum(win_counts.values())
+
+        if total_wins > 0:
+            wins = sorted(win_counts.values())
+            n = len(wins)
+
+            if n <= 1:
+                gini = 0
+            else:
+                cumulative = sum((i + 1) * w for i, w in enumerate(wins))
+                gini = (2 * cumulative) / (n * sum(wins)) - (n + 1) / n
+
+            balance_score = round((1 - gini) * 100)
+
+            if balance_score >= 70:
+                status = "Healthy"
+            elif balance_score >= 50:
+                status = "Uneven"
+            else:
+                status = "Dominated"
+
+            pod_balance = {
+                "score": balance_score,
+                "status": status,
+                "games_analyzed": len(recent_matches),
+                "unique_winners": len(win_counts)
+            }
+
     return {
         "total_games": total_games,
         "total_players": total_players,
@@ -369,4 +459,8 @@ async def get_dashboard_stats(
         "most_played_deck": most_played_deck,
         "most_popular_color": most_popular_color,
         "most_popular_identity": most_popular_identity,
+        # Analytics
+        "elo_leader": elo_leader,
+        "rising_star": rising_star_data,
+        "pod_balance": pod_balance,
     }

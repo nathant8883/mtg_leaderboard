@@ -242,6 +242,44 @@
     animation: slide-down 0.5s ease-out;
   }
 
+  /* Stat Card Color Variables */
+  .stat-card-pink {
+    --stat-color: #f093fb;
+  }
+
+  .stat-card-purple {
+    --stat-color: #667eea;
+  }
+
+  .stat-card-blue {
+    --stat-color: #4facfe;
+  }
+
+  .stat-card-orange {
+    --stat-color: #ffa726;
+  }
+
+  .stat-card-green {
+    --stat-color: #33D9B2;
+  }
+
+  /* Stat card hover effect using CSS variable */
+  .stat-card-hover:hover {
+    border-color: var(--stat-color);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  /* Stat icon mana symbols - larger size */
+  .stat-icon-mana .color-pips .ms {
+    font-size: 2.25rem;
+  }
+
+  /* Stat header value colors - larger mana symbols */
+  .stat-header-value-colors .color-pips .ms {
+    font-size: 1.5rem;
+  }
+
   /* Mobile carousel effect for stats grid */
   @media (max-width: 768px) {
     .stats-grid-mobile {

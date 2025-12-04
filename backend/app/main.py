@@ -5,7 +5,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.routers import players, decks, matches, leaderboard, scryfall, auth, pods
+from app.routers import players, decks, matches, leaderboard, scryfall, auth, pods, analytics
 
 
 @asynccontextmanager
@@ -48,6 +48,7 @@ app.include_router(decks.router, prefix="/api/decks", tags=["decks"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
 app.include_router(leaderboard.router, prefix="/api/leaderboard", tags=["leaderboard"])
 app.include_router(scryfall.router, prefix="/api/scryfall", tags=["scryfall"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 
 @app.get("/")

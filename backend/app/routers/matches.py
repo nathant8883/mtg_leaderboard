@@ -8,6 +8,7 @@ from app.models.match import Match, MatchPlayer
 from app.models.player import Player, Deck
 from app.models.pod import Pod
 from app.middleware.auth import get_optional_player
+from app.services.elo_service import process_match_elo, recalculate_pod_elo
 
 router = APIRouter()
 
@@ -207,6 +208,10 @@ async def create_match(
 
     await match.insert()
 
+    # Process Elo ratings for this match
+    if match.pod_id:
+        await process_match_elo(match)
+
     # Return serialized match
     return {
         "id": str(match.id),
@@ -344,6 +349,10 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
     # Save the updated match
     await match.save()
 
+    # Recalculate Elo for the pod since match was modified
+    if match.pod_id:
+        await recalculate_pod_elo(match.pod_id)
+
     return serialize_match(match)
 
 
@@ -354,4 +363,11 @@ async def delete_match(match_id: PydanticObjectId):
     if not match:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
 
+    # Store pod_id before deleting
+    pod_id = match.pod_id
+
     await match.delete()
+
+    # Recalculate Elo for the pod since match was deleted
+    if pod_id:
+        await recalculate_pod_elo(pod_id)

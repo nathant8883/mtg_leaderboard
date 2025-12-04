@@ -5,7 +5,8 @@ import DeckForm from './DeckForm';
 import ProfileEditModal from './ProfileEditModal';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import { playerApi, deckApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats } from '../services/api';
+import { playerApi, deckApi, analyticsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData } from '../services/api';
+import PlayerAvatar from './PlayerAvatar';
 
 function PlayerDetail() {
   const { playerId } = useParams<{ playerId: string }>();
@@ -18,6 +19,8 @@ function PlayerDetail() {
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
   const [openMenuDeckId, setOpenMenuDeckId] = useState<string | null>(null);
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
+  const [kingmakerData, setKingmakerData] = useState<KingmakerData | null>(null);
+  const [kingmakerLoading, setKingmakerLoading] = useState(false);
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
@@ -46,6 +49,25 @@ function PlayerDetail() {
       window.removeEventListener('podSwitched', handlePodSwitch);
     };
   }, [playerId]);
+
+  // Load kingmaker data
+  useEffect(() => {
+    const loadKingmakerData = async () => {
+      if (!playerId || !currentPod) return;
+      try {
+        setKingmakerLoading(true);
+        const data = await analyticsApi.getKingmaker(playerId);
+        setKingmakerData(data);
+      } catch (err) {
+        console.error('Error loading kingmaker data:', err);
+        setKingmakerData(null);
+      } finally {
+        setKingmakerLoading(false);
+      }
+    };
+
+    loadKingmakerData();
+  }, [playerId, currentPod]);
 
   const loadPlayerDetail = async () => {
     if (!playerId) return;
@@ -243,6 +265,66 @@ function PlayerDetail() {
               )}
             </div>
           </div>
+
+          {/* Kingmaker Section */}
+          {kingmakerLoading ? (
+            <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">👑</span>
+                <h3 className="text-lg font-semibold text-white">Player Dynamics</h3>
+              </div>
+              <div className="text-center py-4">
+                <div className="loading-spinner"></div>
+                <p className="text-[#909296] text-sm mt-2">Loading dynamics...</p>
+              </div>
+            </div>
+          ) : kingmakerData && kingmakerData.kingmaker_for.length > 0 ? (
+            <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">👑</span>
+                <h3 className="text-lg font-semibold text-white">Player Dynamics</h3>
+              </div>
+              <p className="text-[#909296] text-xs mb-4">
+                When {playerDetail.player_name} plays, these players win more often:
+              </p>
+              <div className="flex flex-col gap-3">
+                {kingmakerData.kingmaker_for.map((relationship) => (
+                  <div
+                    key={relationship.player_id}
+                    className="flex items-center gap-3 p-3 bg-[#25262B] rounded-[8px]"
+                  >
+                    <PlayerAvatar
+                      playerName={relationship.player_name}
+                      customAvatar={relationship.custom_avatar}
+                      picture={relationship.picture}
+                      size="small"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-medium text-sm truncate">
+                        {relationship.player_name}
+                      </div>
+                      <div className="text-[#909296] text-xs">
+                        {relationship.games_together} games together
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[#33D9B2] font-bold text-sm">
+                        +{relationship.lift_percentage.toFixed(0)}%
+                      </div>
+                      <div className="text-[#909296] text-[10px]">
+                        win rate lift
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 pt-3 border-t border-[#2C2E33]">
+                <p className="text-[#666] text-[10px] text-center">
+                  Based on {kingmakerData.analyzed_games} games analyzed
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Main Content */}

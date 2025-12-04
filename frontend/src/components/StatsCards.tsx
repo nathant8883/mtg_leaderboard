@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { IconCards, IconTrophy, IconSword } from '@tabler/icons-react';
+import { IconCards, IconTrophy, IconSword, IconScale, IconChartBar, IconCrown } from '@tabler/icons-react';
 import ColorPips from './ColorPips';
 import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DashboardStats } from '../services/api';
@@ -393,6 +393,60 @@ function StatsCards() {
         }
         icon={IconCards}
       />
+
+      {/* Elo Leader Card */}
+      {stats.elo_leader && (
+        <MetricPill
+          label="Elo Leader"
+          value={stats.elo_leader.player_name}
+          analytic={String(stats.elo_leader.elo)}
+          analyticLabel="rating"
+          color="purple"
+          avatar={
+            <PlayerAvatar
+              playerName={stats.elo_leader.player_name}
+              customAvatar={stats.elo_leader.custom_avatar}
+              picture={stats.elo_leader.picture}
+              size="small"
+              className="w-9 h-9"
+            />
+          }
+          icon={IconTrophy}
+        />
+      )}
+
+      {/* Rising Star Card */}
+      {stats.rising_star?.player && (
+        <MetricPill
+          label="Rising Star"
+          value={stats.rising_star.player.player_name}
+          analytic={`+${stats.rising_star.elo_gain}`}
+          analyticLabel="Elo gain"
+          color="orange"
+          avatar={
+            <PlayerAvatar
+              playerName={stats.rising_star.player.player_name}
+              customAvatar={stats.rising_star.player.custom_avatar}
+              picture={stats.rising_star.player.picture}
+              size="small"
+              className="w-9 h-9"
+            />
+          }
+          icon={IconTrophy}
+        />
+      )}
+
+      {/* Pod Balance Card */}
+      {stats.pod_balance && stats.pod_balance.score > 0 && (
+        <MetricPill
+          label="Pod Balance"
+          value={stats.pod_balance.status}
+          analytic={`${stats.pod_balance.score}%`}
+          analyticLabel="parity"
+          color={stats.pod_balance.status === 'Healthy' ? 'blue' : stats.pod_balance.status === 'Uneven' ? 'orange' : 'purple'}
+          icon={stats.pod_balance.status === 'Healthy' ? IconScale : stats.pod_balance.status === 'Uneven' ? IconChartBar : IconCrown}
+        />
+      )}
     </div>
   );
 }
