@@ -73,8 +73,15 @@ function MatchTracker() {
   // Detect quick play mode from URL
   const isQuickPlayMode = searchParams.get('mode') === 'quick';
 
-  // Redirect authenticated users without a pod (unless in quick play mode)
+  // Redirect authenticated users without a pod (unless in quick play mode or resuming a saved game)
   useEffect(() => {
+    // Don't redirect if there's a saved game to resume
+    const savedMatch = localStorage.getItem(STORAGE_KEY);
+    if (savedMatch) {
+      return; // Let the user resume their game
+    }
+
+    // Only redirect if no saved game and user has no pod
     if (!isQuickPlayMode && !isGuest && currentPlayer && !currentPod && !podLoading) {
       navigate('/');
     }
