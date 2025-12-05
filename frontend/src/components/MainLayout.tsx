@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Play, User, WifiOff, List } from 'lucide-react';
+import { Home, Play, User, WifiOff, List, BarChart3 } from 'lucide-react';
 import { ProfileDropdown } from './ProfileDropdown';
 import { PodDrawer } from './PodDrawer';
 import { CreatePodModal } from './CreatePodModal';
@@ -269,6 +269,18 @@ export function MainLayout() {
             </div>
             <div className="flex gap-3 max-md:gap-[6px]">
               <button
+                className={`relative px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden ${
+                  location.pathname === '/pod-dynamics' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
+                }`}
+                onClick={() => navigate('/pod-dynamics')}
+              >
+                <span>📊</span>
+                <span> Dynamics</span>
+                <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-[#33D9B2] text-[#0a0a0b] text-[9px] font-bold rounded-full uppercase tracking-wide">
+                  Beta
+                </span>
+              </button>
+              <button
                 className={`px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden ${
                   location.pathname === '/' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
                 }`}
@@ -383,6 +395,20 @@ export function MainLayout() {
       {!isMatchTracker && (
         <div className="hidden max-md:flex fixed bottom-0 left-0 right-0 bg-[rgba(26,27,30,0.95)] backdrop-blur-[10px] border-t border-[#2C2E33] px-3 py-2 mobile-bottom-nav z-[900] shadow-[0_-4px_12px_rgba(0,0,0,0.3)] gap-2">
           <button
+            className={`relative flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
+              location.pathname === '/pod-dynamics'
+                ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
+                : 'bg-transparent text-[#909296] opacity-60'
+            }`}
+            onClick={() => navigate('/pod-dynamics')}
+          >
+            <BarChart3 size={24} />
+            <span className="text-[11px]">Stats</span>
+            <span className="absolute top-1 right-1 px-1 py-0.5 bg-[#33D9B2] text-[#0a0a0b] text-[7px] font-bold rounded-full uppercase tracking-wide">
+              Beta
+            </span>
+          </button>
+          <button
             className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
               location.pathname === '/'
                 ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
@@ -414,7 +440,7 @@ export function MainLayout() {
             disabled={!isGuest && !!currentPlayer && !currentPod}
           >
             <Play size={24} />
-            <span className="text-[11px]">Start Game</span>
+            <span className="text-[11px]">Play</span>
           </button>
           {!isGuest && (
             <button

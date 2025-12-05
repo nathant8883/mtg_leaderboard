@@ -568,4 +568,257 @@ export const authApi = {
   },
 };
 
+// Pod Dynamics Types
+export interface EloHistoryPoint {
+  match_id: string;
+  elo: number;
+  change: number;
+  date: string;
+}
+
+export interface EloHistoryData {
+  history: EloHistoryPoint[];
+  current_elo: number;
+  peak_elo: number;
+  lowest_elo: number;
+  games_rated: number;
+}
+
+export interface PodSizePerformance {
+  games: number;
+  wins: number;
+  win_rate: number;
+}
+
+export interface PlacementData {
+  count: number;
+  percentage: number;
+}
+
+export interface FirstPlayerStats {
+  as_first: {
+    games: number;
+    wins: number;
+    win_rate: number;
+  };
+  not_first: {
+    games: number;
+    wins: number;
+    win_rate: number;
+  };
+}
+
+export interface WinRateTrendPoint {
+  game_number: number;
+  date: string;
+  win_rate: number;
+}
+
+export interface ConsistencyData {
+  average_placement: number;
+  standard_deviation: number;
+  label: string;
+  games_analyzed: number;
+}
+
+export interface PlayerTrendsData {
+  pod_size_performance: Record<string, PodSizePerformance>;
+  placement_distribution: Record<string, PlacementData>;
+  first_player_stats: FirstPlayerStats;
+  win_rate_trend: WinRateTrendPoint[];
+  consistency: ConsistencyData;
+  total_games: number;
+}
+
+export interface PodDynamicsOverview {
+  total_games: number;
+  unique_winners: number;
+  avg_duration_minutes: number | null;
+  pod_balance_score: number | null;
+}
+
+// Head-to-Head Matchup Types
+export interface MatchupStats {
+  wins: number;
+  losses: number;
+  games: number;
+  win_rate: number;
+}
+
+export interface MatchupPlayer {
+  id: string;
+  name: string;
+}
+
+export interface MatchupsData {
+  players: MatchupPlayer[];
+  matchups: Record<string, Record<string, MatchupStats>>;
+}
+
+// Games Together Types
+export interface PartnerStats {
+  player_id: string;
+  player_name: string;
+  games_together: number;
+  my_wins: number;
+  their_wins: number;
+  my_win_rate: number;
+  their_win_rate: number;
+}
+
+export interface GamesTogetherData {
+  total_games: number;
+  partners: PartnerStats[];
+  most_played_with: PartnerStats | null;
+  best_partner: PartnerStats | null;
+  nemesis: PartnerStats | null;
+}
+
+// Deck Stats Types
+export interface CommanderStats {
+  name: string;
+  games: number;
+  wins: number;
+  win_rate: number;
+  tier: string;
+  players: string[];
+  colors: string[];
+}
+
+export interface PlayerDeckStats {
+  deck_id: string;
+  name: string;
+  colors: string[];
+  games: number;
+  wins: number;
+  win_rate: number;
+}
+
+export interface DeckStatsData {
+  commanders: CommanderStats[];
+  player_decks: PlayerDeckStats[];
+  total_games: number;
+}
+
+// Color Stats Types
+export interface ColorStat {
+  games: number;
+  wins: number;
+  win_rate: number;
+}
+
+export interface MetaCompositionEntry {
+  count: number;
+  percentage: number;
+}
+
+export interface ColorStatsData {
+  by_color: Record<string, ColorStat>;
+  by_color_count: Record<string, ColorStat>;
+  meta_composition: Record<string, MetaCompositionEntry>;
+  total_games: number;
+}
+
+// Insights Types
+export interface Insight {
+  type: string;
+  icon: string;
+  title: string;
+  description: string;
+  priority: number;
+}
+
+export interface PodHealth {
+  variety_score: number;
+  unique_winners_recent: number;
+  unique_winners_total: number;
+  total_players: number;
+  underdog_wins_recent: number;
+  games_analyzed: number;
+}
+
+export interface InsightsData {
+  insights: Insight[];
+  pod_health: PodHealth;
+}
+
+// Calendar Types
+export interface CalendarDay {
+  date: string;
+  count: number;
+  weekday: number;
+  month: number;
+}
+
+export interface CalendarStats {
+  total_days_played: number;
+  total_games: number;
+  best_weekday: string | null;
+  best_weekday_count: number;
+  longest_gap_days: number;
+  days_since_last_game: number | null;
+  busiest_month: string | null;
+  busiest_month_count: number;
+  avg_games_per_play_day: number;
+}
+
+export interface CalendarData {
+  calendar: CalendarDay[];
+  stats: CalendarStats;
+}
+
+// Pod Dynamics API Functions
+export const podDynamicsApi = {
+  getEloHistory: async (playerId?: string): Promise<EloHistoryData> => {
+    const response = await api.get('/pod-dynamics/elo-history', {
+      params: playerId ? { player_id: playerId } : undefined
+    });
+    return response.data;
+  },
+
+  getPlayerTrends: async (playerId?: string): Promise<PlayerTrendsData> => {
+    const response = await api.get('/pod-dynamics/player-trends', {
+      params: playerId ? { player_id: playerId } : undefined
+    });
+    return response.data;
+  },
+
+  getOverview: async (): Promise<PodDynamicsOverview> => {
+    const response = await api.get('/pod-dynamics/overview');
+    return response.data;
+  },
+
+  getMatchups: async (): Promise<MatchupsData> => {
+    const response = await api.get('/pod-dynamics/matchups');
+    return response.data;
+  },
+
+  getGamesTogether: async (playerId?: string): Promise<GamesTogetherData> => {
+    const response = await api.get('/pod-dynamics/games-together', {
+      params: playerId ? { player_id: playerId } : undefined
+    });
+    return response.data;
+  },
+
+  getDeckStats: async (): Promise<DeckStatsData> => {
+    const response = await api.get('/pod-dynamics/deck-stats');
+    return response.data;
+  },
+
+  getColorStats: async (): Promise<ColorStatsData> => {
+    const response = await api.get('/pod-dynamics/color-stats');
+    return response.data;
+  },
+
+  getInsights: async (): Promise<InsightsData> => {
+    const response = await api.get('/pod-dynamics/insights');
+    return response.data;
+  },
+
+  getCalendar: async (): Promise<CalendarData> => {
+    const response = await api.get('/pod-dynamics/calendar');
+    return response.data;
+  },
+};
+
 export default api;
