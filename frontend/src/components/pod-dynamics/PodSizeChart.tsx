@@ -66,7 +66,7 @@ export function PodSizeChart({ data }: PodSizeChartProps) {
                 borderRadius: '8px',
                 padding: '8px 12px',
               }}
-              formatter={(value: number, name: string, props: any) => {
+              formatter={(value: number, _name: string, props: any) => {
                 const item = props.payload;
                 return [
                   <div key="tooltip" className="text-white">

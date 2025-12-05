@@ -1,4 +1,4 @@
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import type { PlacementData } from '../../services/api';
 
 interface PlacementChartProps {
@@ -55,7 +55,7 @@ export function PlacementChart({ data }: PlacementChartProps) {
               outerRadius={80}
               paddingAngle={2}
               dataKey="value"
-              label={({ name, percentage }) => `${name}: ${percentage.toFixed(0)}%`}
+              label={({ name, payload }) => `${name}: ${(payload as { percentage: number }).percentage.toFixed(0)}%`}
               labelLine={false}
             >
               {chartData.map((entry, index) => (
