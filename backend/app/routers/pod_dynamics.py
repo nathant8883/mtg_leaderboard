@@ -454,11 +454,11 @@ async def get_games_together_stats(
             "nemesis": None
         }
 
-    # Fetch all players to get avatars
+    # Fetch all players to get avatars (use custom_avatar if set, otherwise picture)
     all_players = await Player.find(
         Player.current_pod_id == current_player.current_pod_id
     ).to_list()
-    player_avatars = {str(p.id): p.avatar for p in all_players}
+    player_avatars = {str(p.id): (p.custom_avatar or p.picture) for p in all_players}
 
     # Track stats with each partner
     partner_stats: Dict[str, Dict[str, Any]] = defaultdict(
