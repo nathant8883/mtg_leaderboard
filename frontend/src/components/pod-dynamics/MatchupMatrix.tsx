@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { MatchupsData, MatchupStats } from '../../services/api';
 
+// Updated: 4-game minimum for stats display
 interface MatchupMatrixProps {
   data: MatchupsData;
   currentPlayerId?: string;
@@ -25,7 +26,7 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
 
   // Get win rate color based on percentage
   const getWinRateColor = (winRate: number, games: number) => {
-    if (games === 0) return 'bg-[#1A1B1E]';
+    if (games === 0 || games < 4) return 'bg-[#141517]';
     if (winRate >= 60) return 'bg-[#33D9B2]/30';
     if (winRate >= 50) return 'bg-[#33D9B2]/15';
     if (winRate >= 40) return 'bg-[#FF6B6B]/15';
@@ -33,7 +34,7 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
   };
 
   const getWinRateTextColor = (winRate: number, games: number) => {
-    if (games === 0) return 'text-[#909296]';
+    if (games === 0 || games < 4) return 'text-[#909296]';
     if (winRate >= 55) return 'text-[#33D9B2]';
     if (winRate >= 45) return 'text-white';
     return 'text-[#FF6B6B]';
@@ -111,7 +112,13 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
                           stats.games
                         )}`}
                       >
-                        {stats.games > 0 ? (
+                        {stats.games === 0 ? (
+                          <span className="text-xs text-[#909296]">—</span>
+                        ) : stats.games < 4 ? (
+                          <span className="text-xs text-[#909296]">
+                            {stats.games}g
+                          </span>
+                        ) : (
                           <>
                             <span className={`text-sm font-bold ${getWinRateTextColor(stats.win_rate, stats.games)}`}>
                               {stats.win_rate.toFixed(0)}%
@@ -120,8 +127,6 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
                               {stats.games}g
                             </span>
                           </>
-                        ) : (
-                          <span className="text-xs text-[#909296]">—</span>
                         )}
                       </button>
                     </td>
@@ -176,23 +181,32 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
       )}
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-4 text-xs text-[#909296]">
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-[#33D9B2]/30" />
-          <span>&gt;60%</span>
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center justify-center gap-4 text-xs text-[#909296]">
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-[#33D9B2]/30" />
+            <span>&gt;60%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-[#33D9B2]/15" />
+            <span>50-60%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-[#FF6B6B]/15" />
+            <span>40-50%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-[#FF6B6B]/30" />
+            <span>&lt;40%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-[#141517] border border-[#2C2E33]" />
+            <span>&lt;4 games</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-[#33D9B2]/15" />
-          <span>50-60%</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-[#FF6B6B]/15" />
-          <span>40-50%</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 rounded bg-[#FF6B6B]/30" />
-          <span>&lt;40%</span>
-        </div>
+        <p className="text-center text-[10px] text-[#909296]">
+          Win rates shown only for matchups with 4+ games played
+        </p>
       </div>
     </div>
   );
