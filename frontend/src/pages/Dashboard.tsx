@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatsCards from '../components/StatsCards';
 import TopPlayers from '../components/TopPlayers';
@@ -7,8 +7,8 @@ import RecentMatches from '../components/RecentMatches';
 import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import type { Match } from '../services/api';
-import { matchApi } from '../services/api';
+import type { Match, Deck, EloHistoryPoint } from '../services/api';
+import { matchApi, deckApi, podDynamicsApi } from '../services/api';
 import type { PendingMatch } from '../types/matchTypes';
 import offlineQueue from '../services/offlineQueue';
 
@@ -22,10 +22,13 @@ export function Dashboard() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [pendingMatches, setPendingMatches] = useState<PendingMatch[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [eloHistoryByPlayer, setEloHistoryByPlayer] = useState<Map<string, EloHistoryPoint[]>>(new Map());
 
   useEffect(() => {
     loadMatches();
     loadPendingMatches();
+    loadDecks();
 
     // Listen for refresh events from MainLayout
     const handleRefreshMatches = () => {
@@ -37,6 +40,7 @@ export function Dashboard() {
     const handlePodSwitch = () => {
       loadMatches();
       loadPendingMatches();
+      loadDecks();
       // Trigger a full page refresh for child components
       window.dispatchEvent(new Event('podSwitched-refresh'));
     };
@@ -54,10 +58,54 @@ export function Dashboard() {
       setLoadingMatches(true);
       const matchesData = await matchApi.getRecent(3);
       setMatches(matchesData);
+
+      // Load ELO history for all unique players in these matches
+      loadEloHistoryForMatches(matchesData);
     } catch (err) {
       console.error('Error loading matches:', err);
     } finally {
       setLoadingMatches(false);
+    }
+  };
+
+  const loadDecks = async () => {
+    try {
+      const decksData = await deckApi.getAll();
+      setDecks(decksData);
+    } catch (err) {
+      console.error('Error loading decks:', err);
+    }
+  };
+
+  const loadEloHistoryForMatches = async (matchesData: Match[]) => {
+    try {
+      // Get unique player IDs from matches
+      const playerIds = new Set<string>();
+      matchesData.forEach((match) => {
+        match.players.forEach((player) => {
+          playerIds.add(player.player_id);
+        });
+      });
+
+      // Fetch ELO history for each player
+      const historyMap = new Map<string, EloHistoryPoint[]>();
+      await Promise.all(
+        Array.from(playerIds).map(async (playerId) => {
+          try {
+            const data = await podDynamicsApi.getEloHistory(playerId);
+            if (data.history && data.history.length > 0) {
+              historyMap.set(playerId, data.history);
+            }
+          } catch (err) {
+            // Silently fail for individual player - ELO just won't show
+            console.debug(`Failed to load ELO history for player ${playerId}:`, err);
+          }
+        })
+      );
+
+      setEloHistoryByPlayer(historyMap);
+    } catch (err) {
+      console.error('Error loading ELO history:', err);
     }
   };
 
@@ -103,6 +151,17 @@ export function Dashboard() {
     navigate(`/players/${playerId}`);
   };
 
+  // Create deck lookup map for RecentMatches
+  const deckMap = useMemo(() => {
+    const map = new Map<string, Deck>();
+    decks.forEach((deck) => {
+      if (deck.id) {
+        map.set(deck.id, deck);
+      }
+    });
+    return map;
+  }, [decks]);
+
   // Show placeholder if authenticated but no pod selected
   if (!isGuest && currentPlayer && !currentPod && !podLoading) {
     return <NoPodPlaceholder />;
@@ -125,6 +184,8 @@ export function Dashboard() {
 
       <RecentMatches
         matches={[...pendingMatches, ...matches]}
+        deckMap={deckMap}
+        eloHistoryByPlayer={eloHistoryByPlayer}
         loading={loadingMatches}
       />
     </div>

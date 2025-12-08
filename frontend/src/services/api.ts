@@ -148,6 +148,7 @@ export interface Match {
   winner_deck_id: string;
   match_date: string;  // ISO date string
   duration_seconds?: number;  // Game duration in seconds
+  first_player_position?: number;  // Index of player who went first (0-based)
   notes?: string;
   created_at?: string;
 }
