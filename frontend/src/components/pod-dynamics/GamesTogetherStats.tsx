@@ -92,15 +92,23 @@ export function GamesTogetherStats({ data }: GamesTogetherStatsProps) {
           All Opponents
         </h4>
         <div className="space-y-2">
-          {partners.map((partner) => (
+          {[...partners].sort((a, b) => b.my_win_rate - a.my_win_rate).map((partner) => (
             <div
               key={partner.player_id}
               className="flex items-center justify-between p-2 rounded-lg bg-[#1A1B1E] hover:bg-[#2C2E33] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#667eea]/20 flex items-center justify-center text-[#667eea] text-sm font-bold">
-                  {partner.player_name.charAt(0).toUpperCase()}
-                </div>
+                {partner.avatar ? (
+                  <img
+                    src={partner.avatar}
+                    alt={partner.player_name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[#667eea]/20 flex items-center justify-center text-[#667eea] text-sm font-bold">
+                    {partner.player_name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <div className="text-white font-medium text-sm">
                     {partner.player_name}

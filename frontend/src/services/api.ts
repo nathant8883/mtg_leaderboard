@@ -629,6 +629,7 @@ export interface PlayerTrendsData {
   win_rate_trend: WinRateTrendPoint[];
   consistency: ConsistencyData;
   total_games: number;
+  games_with_placement_data: number;
 }
 
 export interface PodDynamicsOverview {
@@ -660,6 +661,7 @@ export interface MatchupsData {
 export interface PartnerStats {
   player_id: string;
   player_name: string;
+  avatar?: string | null;
   games_together: number;
   my_wins: number;
   their_wins: number;

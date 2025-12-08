@@ -129,9 +129,10 @@ async def get_player_trends(
     # 1. Performance by pod size
     pod_size_stats: Dict[int, Dict[str, int]] = defaultdict(lambda: {"wins": 0, "games": 0})
 
-    # 2. Placement distribution
+    # 2. Placement distribution (only count games with actual elimination_order data)
     placements: List[int] = []
     placement_counts: Dict[int, int] = Counter()
+    games_with_placement_data = 0
 
     # 3. First player advantage
     first_player_wins = 0
@@ -160,13 +161,11 @@ async def get_player_trends(
         if is_winner:
             pod_size_stats[pod_size]["wins"] += 1
 
-        # Placement distribution
+        # Placement distribution - only count when actual elimination_order is recorded
         if player_match_data and player_match_data.elimination_order is not None:
             placements.append(player_match_data.elimination_order)
             placement_counts[player_match_data.elimination_order] += 1
-        elif is_winner:
-            placements.append(1)
-            placement_counts[1] += 1
+            games_with_placement_data += 1
 
         # First player advantage
         if match.first_player_position is not None and player_position is not None:
@@ -275,7 +274,8 @@ async def get_player_trends(
         "first_player_stats": first_player_stats,
         "win_rate_trend": win_rate_trend,
         "consistency": consistency,
-        "total_games": len(player_matches)
+        "total_games": len(player_matches),
+        "games_with_placement_data": games_with_placement_data
     }
 
 
@@ -454,6 +454,12 @@ async def get_games_together_stats(
             "nemesis": None
         }
 
+    # Fetch all players to get avatars
+    all_players = await Player.find(
+        Player.current_pod_id == current_player.current_pod_id
+    ).to_list()
+    player_avatars = {str(p.id): p.avatar for p in all_players}
+
     # Track stats with each partner
     partner_stats: Dict[str, Dict[str, Any]] = defaultdict(
         lambda: {"name": "", "games": 0, "wins_together": 0, "their_wins": 0}
@@ -481,6 +487,7 @@ async def get_games_together_stats(
         partners.append({
             "player_id": partner_id,
             "player_name": stats["name"],
+            "avatar": player_avatars.get(partner_id),
             "games_together": games,
             "my_wins": stats["wins_together"],
             "their_wins": stats["their_wins"],
@@ -806,7 +813,7 @@ async def get_auto_insights(
             name = player_stats[pid]["name"]
             insights.append({
                 "type": "streak",
-                "icon": "🔥",
+                "icon": "flame",
                 "title": "Hot Streak!",
                 "description": f"{name} has won {streak} games in a row",
                 "priority": streak
@@ -818,7 +825,7 @@ async def get_auto_insights(
         if stats["recent_games"] >= 5 and stats["recent_wins"] == 0:
             insights.append({
                 "type": "cold_streak",
-                "icon": "❄️",
+                "icon": "snowflake",
                 "title": "Cold Streak",
                 "description": f"{stats['name']} hasn't won in their last {stats['recent_games']} games",
                 "priority": 2
@@ -832,7 +839,7 @@ async def get_auto_insights(
             if recent_wr - overall_wr >= 20:
                 insights.append({
                     "type": "rising",
-                    "icon": "📈",
+                    "icon": "trending-up",
                     "title": "On the Rise",
                     "description": f"{stats['name']} is playing hot! {recent_wr:.0f}% recent vs {overall_wr:.0f}% overall",
                     "priority": 3
@@ -844,7 +851,7 @@ async def get_auto_insights(
         if stats["games"] <= 5 and stats["wins"] >= 2:
             insights.append({
                 "type": "underdog",
-                "icon": "⭐",
+                "icon": "star",
                 "title": "New Threat",
                 "description": f"{stats['name']} has won {stats['wins']} of their first {stats['games']} games!",
                 "priority": 2
@@ -858,7 +865,7 @@ async def get_auto_insights(
             if win_rate >= 40:
                 insights.append({
                     "type": "dominant",
-                    "icon": "👑",
+                    "icon": "crown",
                     "title": "Pod Boss",
                     "description": f"{stats['name']} has a dominant {win_rate:.0f}% win rate over {stats['games']} games",
                     "priority": 4
@@ -877,7 +884,7 @@ async def get_auto_insights(
             name2 = player_stats[win_rates[1][0]]["name"]
             insights.append({
                 "type": "rivalry",
-                "icon": "⚔️",
+                "icon": "swords",
                 "title": "Tight Race",
                 "description": f"{name1} and {name2} are neck-and-neck for first place!",
                 "priority": 3
@@ -893,7 +900,7 @@ async def get_auto_insights(
             if avg_recent > avg_overall * 1.2:
                 insights.append({
                     "type": "duration",
-                    "icon": "⏱️",
+                    "icon": "clock",
                     "title": "Longer Games",
                     "description": f"Recent games are running {((avg_recent - avg_overall) / avg_overall * 100):.0f}% longer than average",
                     "priority": 1
@@ -901,7 +908,7 @@ async def get_auto_insights(
             elif avg_recent < avg_overall * 0.8:
                 insights.append({
                     "type": "duration",
-                    "icon": "⚡",
+                    "icon": "zap",
                     "title": "Quick Games",
                     "description": f"Recent games are finishing {((avg_overall - avg_recent) / avg_overall * 100):.0f}% faster than average",
                     "priority": 1

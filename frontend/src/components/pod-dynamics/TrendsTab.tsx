@@ -166,14 +166,16 @@ export function TrendsTab({ playerId }: TrendsTabProps) {
           <PodSizeChart data={trendsData.pod_size_performance} />
         </div>
 
-        {/* Placement Distribution */}
-        <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Target size={18} className="text-[#667eea]" />
-            Placement Distribution
-          </h3>
-          <PlacementChart data={trendsData.placement_distribution} />
-        </div>
+        {/* Placement Distribution - only show if we have actual elimination_order data */}
+        {trendsData.games_with_placement_data > 0 && (
+          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
+            <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+              <Target size={18} className="text-[#667eea]" />
+              Placement Distribution
+            </h3>
+            <PlacementChart data={trendsData.placement_distribution} />
+          </div>
+        )}
       </div>
 
       {/* First Player Advantage Detail */}
