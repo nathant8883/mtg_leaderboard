@@ -79,9 +79,6 @@ export function RelationshipsTab({ playerId }: RelationshipsTabProps) {
             <Grid3X3 size={18} className="text-[#667eea]" />
             Head-to-Head Matchups
           </h3>
-          <p className="text-[#909296] text-sm mb-4">
-            Your win rate when playing against each opponent. Click a cell for details.
-          </p>
           <MatchupMatrix data={matchupsData} currentPlayerId={playerId} />
         </div>
       )}
@@ -93,9 +90,6 @@ export function RelationshipsTab({ playerId }: RelationshipsTabProps) {
             <Users size={18} className="text-[#667eea]" />
             Your Opponents
           </h3>
-          <p className="text-[#909296] text-sm mb-4">
-            How you perform against each player in your pod.
-          </p>
           <GamesTogetherStats data={gamesTogetherData} />
         </div>
       )}

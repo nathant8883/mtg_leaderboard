@@ -8,7 +8,7 @@ import type { PodDynamicsOverview } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
-import { TrendingUp, Users, GitBranch, Lightbulb, BarChart3, Clock, Trophy } from 'lucide-react';
+import { TrendingUp, GitBranch, Lightbulb, BarChart3 } from 'lucide-react';
 
 type TabId = 'trends' | 'relationships' | 'decks' | 'insights';
 
@@ -62,45 +62,28 @@ export function PodDynamics() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-2">Pod Dynamics</h1>
-        <p className="text-[#909296] text-sm">
-          Deep analytics and insights for your playgroup
-        </p>
-      </div>
+      <h1 className="text-2xl font-bold text-white mb-4">Pod Dynamics</h1>
 
-      {/* Overview Stats Cards */}
+      {/* Overview Stats Cards - Compact */}
       {overview && !loadingOverview && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-[#909296] text-xs mb-1">
-              <BarChart3 size={14} />
-              <span>Total Games</span>
-            </div>
-            <div className="text-white text-2xl font-bold">{overview.total_games}</div>
+        <div className="grid grid-cols-4 gap-2 mb-4">
+          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center">
+            <div className="text-[#909296] text-[10px] mb-0.5">Games</div>
+            <div className="text-white text-lg font-bold">{overview.total_games}</div>
           </div>
-          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-[#909296] text-xs mb-1">
-              <Trophy size={14} />
-              <span>Unique Winners</span>
-            </div>
-            <div className="text-white text-2xl font-bold">{overview.unique_winners}</div>
+          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center">
+            <div className="text-[#909296] text-[10px] mb-0.5">Winners</div>
+            <div className="text-white text-lg font-bold">{overview.unique_winners}</div>
           </div>
-          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-[#909296] text-xs mb-1">
-              <Clock size={14} />
-              <span>Avg Duration</span>
-            </div>
-            <div className="text-white text-2xl font-bold">
+          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center">
+            <div className="text-[#909296] text-[10px] mb-0.5">Avg Time</div>
+            <div className="text-white text-lg font-bold">
               {overview.avg_duration_minutes ? `${overview.avg_duration_minutes}m` : 'N/A'}
             </div>
           </div>
-          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-[#909296] text-xs mb-1">
-              <Users size={14} />
-              <span>Pod Balance</span>
-            </div>
-            <div className={`text-2xl font-bold ${
+          <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center">
+            <div className="text-[#909296] text-[10px] mb-0.5">Balance</div>
+            <div className={`text-lg font-bold ${
               overview.pod_balance_score !== null
                 ? overview.pod_balance_score >= 70 ? 'text-[#33D9B2]'
                 : overview.pod_balance_score >= 50 ? 'text-[#FFA500]'
@@ -114,30 +97,38 @@ export function PodDynamics() {
       )}
 
       {loadingOverview && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-4 gap-2 mb-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4 text-center animate-pulse">
-              <div className="h-4 bg-[#2C2E33] rounded w-20 mx-auto mb-2" />
-              <div className="h-8 bg-[#2C2E33] rounded w-12 mx-auto" />
+            <div key={i} className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center animate-pulse">
+              <div className="h-3 bg-[#2C2E33] rounded w-10 mx-auto mb-1" />
+              <div className="h-5 bg-[#2C2E33] rounded w-8 mx-auto" />
             </div>
           ))}
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-hide">
+      {/* Tab Navigation - Sliding Pill */}
+      <div className="relative flex bg-[#1A1B1E] rounded-xl p-1 mb-6 border border-[#2C2E33]">
+        {/* Sliding pill background */}
+        <div
+          className="absolute top-1 bottom-1 bg-[#667eea] rounded-lg transition-all duration-300 ease-out"
+          style={{
+            width: `calc((100% - 8px) / ${TABS.length})`,
+            left: `calc(4px + ${TABS.findIndex(t => t.id === activeTab)} * (100% - 8px) / ${TABS.length})`,
+          }}
+        />
+
+        {/* Tab buttons */}
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-              activeTab === tab.id
-                ? 'bg-[#667eea] text-white'
-                : 'bg-[#1A1B1E] text-[#909296] border border-[#2C2E33] hover:border-[#667eea] hover:text-white'
-            }`}
+            className={`relative z-10 flex-1 flex items-center justify-center gap-2
+                        px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                        ${activeTab === tab.id ? 'text-white' : 'text-[#909296] hover:text-white'}`}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden md:inline">{tab.label}</span>
           </button>
         ))}
       </div>

@@ -1,4 +1,4 @@
-import { Users, Heart, Skull, Trophy } from 'lucide-react';
+import { Heart, Skull, Trophy } from 'lucide-react';
 import type { GamesTogetherData, PartnerStats } from '../../services/api';
 
 interface GamesTogetherStatsProps {
@@ -51,7 +51,7 @@ function PartnerCard({
 }
 
 export function GamesTogetherStats({ data }: GamesTogetherStatsProps) {
-  const { partners, most_played_with, best_partner, nemesis } = data;
+  const { partners, best_partner, nemesis } = data;
 
   if (partners.length === 0) {
     return (
@@ -64,18 +64,12 @@ export function GamesTogetherStats({ data }: GamesTogetherStatsProps) {
   return (
     <div className="space-y-4">
       {/* Highlight Cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <PartnerCard
           partner={best_partner}
           type="Best Partner"
           icon={<Heart size={14} />}
           accentColor="text-[#33D9B2]"
-        />
-        <PartnerCard
-          partner={most_played_with}
-          type="Most Played"
-          icon={<Users size={14} />}
-          accentColor="text-[#667eea]"
         />
         <PartnerCard
           partner={nemesis}
