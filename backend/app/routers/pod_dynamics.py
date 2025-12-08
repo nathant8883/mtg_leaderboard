@@ -604,8 +604,14 @@ async def get_deck_stats(
             "colors": stats["colors"]
         })
 
-    # Sort by win rate (with games as tiebreaker)
-    commanders.sort(key=lambda x: (x["win_rate"], x["games"]), reverse=True)
+    # Sort by tier (S→A→B→C→D→?), then win rate, then games
+    # Unranked decks ("?") are placed at the bottom
+    TIER_ORDER = {'S': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4, '?': 5}
+    commanders.sort(key=lambda x: (
+        TIER_ORDER.get(x["tier"], 5),  # Tier order (? goes last)
+        -x["win_rate"],                 # Win rate descending
+        -x["games"]                     # Games descending
+    ))
 
     # Player's deck stats
     player_decks = []
