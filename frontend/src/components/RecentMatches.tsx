@@ -67,15 +67,6 @@ function formatDuration(seconds?: number): string {
 }
 
 /**
- * Get placement suffix (2nd, 3rd, 4th, etc.)
- */
-function getPlacementLabel(order: number): string {
-  if (order === 2) return '2nd';
-  if (order === 3) return '3rd';
-  return `${order}th`;
-}
-
-/**
  * Get placement badge color class
  */
 function getPlacementColor(order: number): string {
