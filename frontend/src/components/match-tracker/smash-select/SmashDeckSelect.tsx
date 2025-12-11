@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { deckApi, type Deck } from '../../../services/api';
 import SmashHeader from './SmashHeader';
 import DeckTile from './DeckTile';
+import QuickDeckForm from '../../QuickDeckForm';
 
 interface SmashDeckSelectProps {
   seatNumber: number;
@@ -35,6 +36,7 @@ function SmashDeckSelect({
 }: SmashDeckSelectProps) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showQuickDeckForm, setShowQuickDeckForm] = useState(false);
 
   // Determine if this seat should be rotated (top row faces opposite direction)
   const shouldRotate = (() => {
@@ -71,7 +73,16 @@ function SmashDeckSelect({
     }
   };
 
-  const gridLayout = useMemo(() => getGridLayout(decks.length), [decks.length]);
+  // Account for the "+" quick add tile in layout
+  const gridLayout = useMemo(() => getGridLayout(decks.length + 1), [decks.length]);
+
+  const handleQuickDeckCreated = (newDeck: Deck) => {
+    // Add to local state and auto-select
+    setDecks([...decks, newDeck]);
+    setShowQuickDeckForm(false);
+    // Auto-select the newly created deck
+    onSelect(newDeck);
+  };
 
   return (
     <div className="smash-screen smash-slide-in">
@@ -99,6 +110,12 @@ function SmashDeckSelect({
               <div className="smash-empty-subtitle">
                 {playerName} doesn't have any decks yet
               </div>
+              <button
+                className="smash-quick-add-button"
+                onClick={() => setShowQuickDeckForm(true)}
+              >
+                + Quick Add Deck
+              </button>
             </div>
           ) : (
             <div
@@ -116,10 +133,31 @@ function SmashDeckSelect({
                   animationDelay={index * 50}
                 />
               ))}
+              {/* Quick Add Deck tile */}
+              <button
+                className="smash-deck-tile smash-quick-add-tile"
+                style={{ animationDelay: `${decks.length * 50}ms` }}
+                onClick={() => setShowQuickDeckForm(true)}
+              >
+                <div className="smash-quick-add-content">
+                  <span className="smash-quick-add-icon">+</span>
+                  <span className="smash-quick-add-label">Quick Add</span>
+                </div>
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Quick Deck Form Modal */}
+      {showQuickDeckForm && (
+        <QuickDeckForm
+          targetPlayerId={playerId}
+          targetPlayerName={playerName}
+          onSubmit={handleQuickDeckCreated}
+          onCancel={() => setShowQuickDeckForm(false)}
+        />
+      )}
     </div>
   );
 }

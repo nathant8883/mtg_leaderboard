@@ -21,6 +21,13 @@ class CreateDeckRequest(BaseModel):
     player_id: str | None = None  # Optional - only used by superusers to create decks for other players
 
 
+class CreateQuickDeckRequest(BaseModel):
+    """Request model for creating a quick deck on behalf of another player"""
+    target_player_id: str  # The player who will own this deck
+    name: str
+    commander: str
+
+
 @router.get("/")
 async def get_all_decks(current_player: Optional[Player] = Depends(get_optional_player)):
     """Get all enabled decks from current pod (or all enabled decks if no pod context)"""
@@ -58,10 +65,51 @@ async def get_all_decks(current_player: Optional[Player] = Depends(get_optional_
             "commander_image_url": deck.commander_image_url,
             "colors": deck.colors,
             "disabled": deck.disabled,
+            "is_quick_deck": deck.is_quick_deck,
+            "created_by_player_id": deck.created_by_player_id,
             "created_at": deck.created_at
         }
         for deck in decks
     ]
+
+
+@router.get("/pending")
+async def get_pending_decks(current_player: Player = Depends(get_current_player)):
+    """Get all quick decks pending review for the current player"""
+    decks = await Deck.find(
+        {
+            "player_id": str(current_player.id),
+            "is_quick_deck": True
+        }
+    ).to_list()
+
+    # Resolve creator names
+    result = []
+    for deck in decks:
+        creator_name = "Unknown"
+        if deck.created_by_player_id:
+            try:
+                creator = await Player.get(PydanticObjectId(deck.created_by_player_id))
+                if creator:
+                    creator_name = creator.name
+            except Exception:
+                pass
+
+        result.append({
+            "id": str(deck.id),
+            "name": deck.name,
+            "player_id": deck.player_id,
+            "commander": deck.commander,
+            "commander_image_url": deck.commander_image_url,
+            "colors": deck.colors,
+            "disabled": deck.disabled,
+            "is_quick_deck": deck.is_quick_deck,
+            "created_by_player_id": deck.created_by_player_id,
+            "created_by_player_name": creator_name,
+            "created_at": deck.created_at
+        })
+
+    return result
 
 
 @router.get("/{deck_id}")
@@ -78,6 +126,8 @@ async def get_deck(deck_id: PydanticObjectId):
         "commander_image_url": deck.commander_image_url,
         "colors": deck.colors,
         "disabled": deck.disabled,
+        "is_quick_deck": deck.is_quick_deck,
+        "created_by_player_id": deck.created_by_player_id,
         "created_at": deck.created_at
     }
 
@@ -151,6 +201,110 @@ async def create_deck(
         "commander_image_url": deck.commander_image_url,
         "colors": deck.colors,
         "disabled": deck.disabled,
+        "is_quick_deck": deck.is_quick_deck,
+        "created_by_player_id": deck.created_by_player_id,
+        "created_at": deck.created_at
+    }
+
+
+@router.post("/quick", status_code=status.HTTP_201_CREATED)
+async def create_quick_deck(
+    deck_request: CreateQuickDeckRequest,
+    current_player: Player = Depends(get_current_player)
+):
+    """
+    Create a quick deck on behalf of another player.
+
+    Any authenticated player can create a deck for another player in their pod.
+    The deck is marked as a quick deck and must be reviewed by the owner.
+    """
+    # Verify the target player exists
+    target_player = await Player.get(PydanticObjectId(deck_request.target_player_id))
+    if not target_player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Player with ID '{deck_request.target_player_id}' not found"
+        )
+
+    # Verify commander exists and is a legendary creature via Scryfall
+    commander_details = await scryfall_service.get_commander_details(deck_request.commander)
+    if not commander_details:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Commander '{deck_request.commander}' not found or is not a legendary creature"
+        )
+
+    # Get commander image and colors from Scryfall
+    commander_image_url = commander_details.get("image_art_crop") or commander_details.get("image_normal")
+    colors = commander_details.get("color_identity", [])
+
+    # Create the quick deck
+    deck = Deck(
+        name=deck_request.name,
+        player_id=deck_request.target_player_id,
+        commander=deck_request.commander,
+        commander_image_url=commander_image_url,
+        colors=colors,
+        disabled=False,  # Quick decks are immediately usable
+        is_quick_deck=True,
+        created_by_player_id=str(current_player.id)
+    )
+
+    await deck.insert()
+    return {
+        "id": str(deck.id),
+        "name": deck.name,
+        "player_id": deck.player_id,
+        "commander": deck.commander,
+        "commander_image_url": deck.commander_image_url,
+        "colors": deck.colors,
+        "disabled": deck.disabled,
+        "is_quick_deck": deck.is_quick_deck,
+        "created_by_player_id": deck.created_by_player_id,
+        "created_at": deck.created_at
+    }
+
+
+@router.post("/{deck_id}/accept")
+async def accept_quick_deck(
+    deck_id: PydanticObjectId,
+    current_player: Player = Depends(get_current_player)
+):
+    """Accept a quick deck, marking it as fully owned by the player."""
+    deck = await Deck.get(deck_id)
+    if not deck:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deck not found")
+
+    # Verify ownership
+    if deck.player_id != str(current_player.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only accept your own decks"
+        )
+
+    # Verify it's a quick deck
+    if not deck.is_quick_deck:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This deck is not a quick deck"
+        )
+
+    # Accept the deck by clearing the quick deck flags
+    await deck.set({
+        Deck.is_quick_deck: False,
+        Deck.created_by_player_id: None
+    })
+
+    return {
+        "id": str(deck.id),
+        "name": deck.name,
+        "player_id": deck.player_id,
+        "commander": deck.commander,
+        "commander_image_url": deck.commander_image_url,
+        "colors": deck.colors,
+        "disabled": deck.disabled,
+        "is_quick_deck": deck.is_quick_deck,
+        "created_by_player_id": deck.created_by_player_id,
         "created_at": deck.created_at
     }
 
@@ -204,6 +358,8 @@ async def update_deck(
         "commander_image_url": deck.commander_image_url,
         "colors": deck.colors,
         "disabled": deck.disabled,
+        "is_quick_deck": deck.is_quick_deck,
+        "created_by_player_id": deck.created_by_player_id,
         "created_at": deck.created_at
     }
 

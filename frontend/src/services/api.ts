@@ -104,7 +104,16 @@ export interface Deck {
   commander_image_url?: string;
   colors: string[];
   disabled?: boolean;
+  is_quick_deck?: boolean;
+  created_by_player_id?: string;
   created_at?: string;
+}
+
+// Pending Quick Deck (with resolved creator name)
+export interface PendingQuickDeck extends Deck {
+  is_quick_deck: true;
+  created_by_player_id: string;
+  created_by_player_name: string;
 }
 
 // Scryfall Commander Types
@@ -315,6 +324,25 @@ export const deckApi = {
 
   create: async (deck: Omit<Deck, 'id' | 'created_at'>): Promise<Deck> => {
     const response = await api.post('/decks/', deck);
+    return response.data;
+  },
+
+  createQuick: async (targetPlayerId: string, name: string, commander: string): Promise<Deck> => {
+    const response = await api.post('/decks/quick', {
+      target_player_id: targetPlayerId,
+      name,
+      commander
+    });
+    return response.data;
+  },
+
+  getPending: async (): Promise<PendingQuickDeck[]> => {
+    const response = await api.get('/decks/pending');
+    return response.data;
+  },
+
+  accept: async (deckId: string): Promise<Deck> => {
+    const response = await api.post(`/decks/${deckId}/accept`);
     return response.data;
   },
 

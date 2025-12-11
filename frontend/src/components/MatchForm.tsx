@@ -174,10 +174,10 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
                       onChange={(e) => handleDeckSelect(playerId, e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="">Select a deck...</option>
+                      <option value="">{playerDecks.length === 0 ? 'No decks available' : 'Select a deck...'}</option>
                       {playerDecks.map((deck) => (
                         <option key={deck.id} value={deck.id}>
-                          {deck.name} ({deck.commander})
+                          {deck.name} ({deck.commander}){deck.is_quick_deck ? ' ⚡' : ''}
                         </option>
                       ))}
                     </select>

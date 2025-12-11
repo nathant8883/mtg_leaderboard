@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePendingDecks } from '../contexts/PendingDecksContext';
 import { authService } from '../services/auth';
 import { APP_VERSION } from '../version';
 import './ProfileDropdown.css';
 
 export const ProfileDropdown: React.FC = () => {
   const { currentPlayer, isGuest, logout } = useAuth();
+  const { pendingCount } = usePendingDecks();
   const [isOpen, setIsOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -97,6 +99,10 @@ export const ProfileDropdown: React.FC = () => {
             className="profile-image"
             onError={() => setImageError(true)}
           />
+        )}
+        {/* Pending decks notification badge */}
+        {pendingCount > 0 && !isGuest && (
+          <span className="pending-decks-badge">{pendingCount}</span>
         )}
       </button>
 

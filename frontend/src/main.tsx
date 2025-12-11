@@ -16,6 +16,7 @@ import Leaderboard from './components/Leaderboard.tsx'
 import AdminPanel from './components/AdminPanel.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
+import { PendingDecksProvider } from './contexts/PendingDecksContext.tsx'
 import { Toaster } from 'react-hot-toast'
 
 // Detect iOS and add class for iOS-specific styling (safe areas)
@@ -45,8 +46,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <PodProvider>
-          <Toaster />
-          <Routes>
+          <PendingDecksProvider>
+            <Toaster />
+            <Routes>
             <Route path="/login" element={<Login />} />
 
             {/* Match Tracker - Standalone full-screen route (no MainLayout) */}
@@ -75,7 +77,8 @@ createRoot(document.getElementById('root')!).render(
               {/* 404 catch-all */}
               <Route path="*" element={<NotFound />} />
             </Route>
-          </Routes>
+            </Routes>
+          </PendingDecksProvider>
         </PodProvider>
       </AuthProvider>
     </BrowserRouter>

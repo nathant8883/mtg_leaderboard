@@ -2657,6 +2657,59 @@
   color: #909296;
 }
 
+/* Quick Add Deck button in empty state */
+.smash-quick-add-button {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.smash-quick-add-button:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Quick Add tile in deck grid */
+.smash-quick-add-tile {
+  background: linear-gradient(135deg, #25262B 0%, #1A1B1E 100%);
+  border: 2px dashed #3C3E43;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smash-quick-add-tile:active {
+  border-color: #667eea;
+  border-style: solid;
+}
+
+.smash-quick-add-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.smash-quick-add-icon {
+  font-size: 36px;
+  font-weight: 300;
+  color: #667eea;
+  line-height: 1;
+}
+
+.smash-quick-add-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #909296;
+}
+
 /* ==================== REDUCED MOTION ==================== */
 @media (prefers-reduced-motion: reduce) {
   .smash-slide-in,

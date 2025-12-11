@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ColorPips from './ColorPips';
 import DeckForm from './DeckForm';
 import ProfileEditModal from './ProfileEditModal';
+import PendingDeckReview from './PendingDeckReview';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import { playerApi, deckApi, analyticsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData } from '../services/api';
+import { playerApi, deckApi, analyticsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
 
 function PlayerDetail() {
@@ -21,6 +22,8 @@ function PlayerDetail() {
   const [showProfileEditModal, setShowProfileEditModal] = useState(false);
   const [kingmakerData, setKingmakerData] = useState<KingmakerData | null>(null);
   const [kingmakerLoading, setKingmakerLoading] = useState(false);
+  const [pendingDecks, setPendingDecks] = useState<PendingQuickDeck[]>([]);
+  const [pendingDecksLoading, setPendingDecksLoading] = useState(false);
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
@@ -68,6 +71,28 @@ function PlayerDetail() {
 
     loadKingmakerData();
   }, [playerId, currentPod]);
+
+  // Load pending quick decks (only for own profile)
+  useEffect(() => {
+    const loadPendingDecks = async () => {
+      if (!isOwnProfile) {
+        setPendingDecks([]);
+        return;
+      }
+      try {
+        setPendingDecksLoading(true);
+        const decks = await deckApi.getPending();
+        setPendingDecks(decks);
+      } catch (err) {
+        console.error('Error loading pending decks:', err);
+        setPendingDecks([]);
+      } finally {
+        setPendingDecksLoading(false);
+      }
+    };
+
+    loadPendingDecks();
+  }, [isOwnProfile]);
 
   const loadPlayerDetail = async () => {
     if (!playerId) return;
@@ -159,6 +184,30 @@ function PlayerDetail() {
     await refreshPlayer();
     // Reload the player detail page to show updated name/avatar
     await loadPlayerDetail();
+  };
+
+  const handleAcceptPendingDeck = async (deckId: string) => {
+    try {
+      await deckApi.accept(deckId);
+      // Remove from pending list
+      setPendingDecks(prev => prev.filter(d => d.id !== deckId));
+      // Refresh player detail to show deck in main list
+      loadPlayerDetail();
+    } catch (err) {
+      console.error('Error accepting deck:', err);
+      alert('Failed to accept deck');
+    }
+  };
+
+  const handleDeletePendingDeck = async (deckId: string) => {
+    try {
+      await deckApi.delete(deckId);
+      // Remove from pending list
+      setPendingDecks(prev => prev.filter(d => d.id !== deckId));
+    } catch (err) {
+      console.error('Error deleting deck:', err);
+      alert('Failed to delete deck');
+    }
   };
 
   if (loading) {
@@ -329,6 +378,16 @@ function PlayerDetail() {
 
         {/* Main Content */}
         <div>
+          {/* Pending Deck Review Section - only shown for own profile */}
+          {isOwnProfile && pendingDecks.length > 0 && (
+            <PendingDeckReview
+              pendingDecks={pendingDecks}
+              onAccept={handleAcceptPendingDeck}
+              onDelete={handleDeletePendingDeck}
+              isLoading={pendingDecksLoading}
+            />
+          )}
+
           <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-2 md:p-8 mb-4 md:mb-6">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <div>

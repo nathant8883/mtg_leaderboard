@@ -12,6 +12,8 @@ class Deck(Document):
     commander_image_url: Optional[str] = None  # Cached Scryfall image URL
     colors: list[str] = Field(default_factory=list)  # MTG color identity (W/U/B/R/G)
     disabled: bool = False  # If True, deck won't appear in match selection or stats
+    is_quick_deck: bool = False  # True if created by another player on behalf of the owner
+    created_by_player_id: Optional[str] = None  # Who created this deck (null if owner created it)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:
