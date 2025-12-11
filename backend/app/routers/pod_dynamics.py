@@ -505,8 +505,8 @@ async def get_games_together_stats(
     qualified_partners = [p for p in partners if p["games_together"] >= 4]
     best_partner = max(qualified_partners, key=lambda x: x["my_win_rate"]) if qualified_partners else None
 
-    # Find nemesis (lowest win rate when they're in game, min 4 games)
-    nemesis = min(qualified_partners, key=lambda x: x["my_win_rate"]) if qualified_partners else None
+    # Find nemesis (player who has beaten you the most, min 4 games)
+    nemesis = max(qualified_partners, key=lambda x: x["their_wins"]) if qualified_partners else None
 
     return {
         "total_games": len(player_matches),
