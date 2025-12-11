@@ -8,7 +8,6 @@ import {
   IconCrown,
   IconBolt,
 } from '@tabler/icons-react';
-import ColorPips from './ColorPips';
 import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DashboardStats } from '../services/api';
 
