@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatsCards from '../components/StatsCards';
+import FeaturedMetric from '../components/FeaturedMetric';
 import TopPlayers from '../components/TopPlayers';
 import TopDecks from '../components/TopDecks';
 import RecentMatches from '../components/RecentMatches';
@@ -170,6 +171,7 @@ export function Dashboard() {
   return (
     <div>
       <StatsCards />
+      <FeaturedMetric />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <TopPlayers

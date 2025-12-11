@@ -245,7 +245,7 @@ function StatsCards() {
 
   if (loading) {
     return (
-      <div className="stats-carousel-container mb-8">
+      <div className="stats-carousel-container mb-4">
         <div className="stats-carousel-track">
           <SkeletonPill />
           <SkeletonPill />
@@ -437,7 +437,7 @@ function StatsCards() {
 
   return (
     <div
-      className={`stats-carousel-container mb-8 ${isPaused ? 'scrollable' : ''}`}
+      className={`stats-carousel-container mb-4 ${isPaused ? 'scrollable' : ''}`}
       onMouseEnter={handleInteractionStart}
       onTouchStart={handleInteractionStart}
     >
