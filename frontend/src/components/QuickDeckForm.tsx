@@ -1,7 +1,12 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { deckApi, type Deck } from '../services/api';
 import CommanderAutocomplete from './CommanderAutocomplete';
 import ColorPips from './ColorPips';
+
+// Detect if we're in landscape mobile mode
+// Most phones in landscape are under 1000px wide, tablets can be larger
+const isLandscapeMobile = () =>
+  window.innerWidth > window.innerHeight && window.innerHeight < 500;
 
 interface QuickDeckFormProps {
   targetPlayerId: string;
@@ -17,6 +22,18 @@ function QuickDeckForm({ targetPlayerId, targetPlayerName, onSubmit, onCancel }:
   const [colors, setColors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [isLandscape, setIsLandscape] = useState(isLandscapeMobile);
+
+  // Update landscape state on resize/orientation change
+  useEffect(() => {
+    const handleResize = () => setIsLandscape(isLandscapeMobile());
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
 
   const handleCommanderChange = (
     commanderName: string,
@@ -54,6 +71,70 @@ function QuickDeckForm({ targetPlayerId, targetPlayerName, onSubmit, onCancel }:
     }
   };
 
+  // Landscape mobile: compact bottom bar layout
+  if (isLandscape) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-[1001]" onClick={onCancel}>
+        <form
+          onSubmit={handleSubmit}
+          className="quick-deck-landscape"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Compact header row */}
+          <div className="quick-deck-header-compact">
+            <span>
+              Quick Add for <strong className="text-white">{targetPlayerName}</strong>
+            </span>
+            <button
+              type="button"
+              className="bg-transparent border-none text-[#909296] text-lg cursor-pointer p-1 rounded-[4px] hover:text-white"
+              onClick={onCancel}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Horizontal inputs row */}
+          <div className="quick-deck-inputs-row">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Deck Name"
+              className="quick-deck-input-compact"
+              disabled={isSubmitting}
+              autoFocus
+            />
+            <div className="quick-deck-commander-wrapper">
+              <CommanderAutocomplete
+                value={commander}
+                onChange={handleCommanderChange}
+                disabled={isSubmitting}
+                dropdownDirection="down"
+              />
+            </div>
+            <button
+              type="submit"
+              className={`quick-deck-submit-compact ${isSubmitting ? 'disabled' : ''}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '...' : 'Create'}
+            </button>
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="text-[#FF6B6B] text-xs mt-2 px-1">
+              {error}
+            </div>
+          )}
+        </form>
+      </div>
+    );
+  }
+
+  // Portrait/Desktop: original vertical modal layout
   return (
     <div className="fixed inset-0 bg-black/70 flex items-start md:items-center justify-center z-[1001] p-3 md:p-6" onClick={onCancel}>
       <div className="bg-gradient-card rounded-[16px] md:rounded-[12px] p-0 md:p-6 w-full max-w-full md:max-w-[450px] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-h-0 max-h-[calc(100vh-24px)] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>

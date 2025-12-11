@@ -6,9 +6,10 @@ interface CommanderAutocompleteProps {
   value: string;
   onChange: (commander: string, imageUrl?: string, colors?: string[]) => void;
   disabled?: boolean;
+  dropdownDirection?: 'up' | 'down';
 }
 
-function CommanderAutocomplete({ value, onChange, disabled = false }: CommanderAutocompleteProps) {
+function CommanderAutocomplete({ value, onChange, disabled = false, dropdownDirection = 'down' }: CommanderAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<CommanderCard[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +125,10 @@ function CommanderAutocomplete({ value, onChange, disabled = false }: CommanderA
       )}
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="commander-suggestions">
+        <div
+          className="commander-suggestions"
+          style={dropdownDirection === 'up' ? { bottom: '100%', top: 'auto', marginBottom: '4px' } : undefined}
+        >
           {suggestions.map((commander, index) => (
             <div
               key={`${commander.name}-${index}`}
