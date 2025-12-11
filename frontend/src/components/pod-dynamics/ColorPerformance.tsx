@@ -150,8 +150,8 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
       {metaData.length > 0 && (
         <div>
           <h4 className="text-white font-medium mb-3 text-sm">Meta Composition</h4>
-          <div className="flex items-center gap-4">
-            <div className="w-[120px] h-[120px]">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+            <div className="w-[200px] h-[200px] sm:w-[120px] sm:h-[120px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -160,8 +160,8 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                     nameKey="identity"
                     cx="50%"
                     cy="50%"
-                    innerRadius={30}
-                    outerRadius={50}
+                    innerRadius={40}
+                    outerRadius={80}
                     strokeWidth={1}
                     stroke="#1A1B1E"
                   >
@@ -172,22 +172,22 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex-1 space-y-1">
-              {metaData.slice(0, 5).map((item, index) => (
-                <div key={item.identity} className="flex items-center gap-2 text-sm">
-                  <div
-                    className="w-3 h-3 rounded-sm"
-                    style={{ backgroundColor: COLOR_COUNT_COLORS[index % COLOR_COUNT_COLORS.length] }}
-                  />
-                  <span className="text-white font-medium">{item.identity}</span>
-                  <span className="text-[#909296] text-xs">{item.percentage}%</span>
-                </div>
-              ))}
-              {metaData.length > 5 && (
-                <div className="text-xs text-[#909296]">
-                  +{metaData.length - 5} more
-                </div>
-              )}
+            <div className="flex-1 w-full sm:w-auto">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1">
+                {metaData.slice(0, 5).map((item, index) => (
+                  <div key={item.identity} className="flex items-center gap-1.5 text-sm">
+                    <div
+                      className="w-3 h-3 rounded-sm"
+                      style={{ backgroundColor: COLOR_COUNT_COLORS[index % COLOR_COUNT_COLORS.length] }}
+                    />
+                    <span className="text-white font-medium">{item.identity}</span>
+                    <span className="text-[#909296] text-xs">{item.percentage}%</span>
+                  </div>
+                ))}
+                {metaData.length > 5 && (
+                  <span className="text-xs text-[#909296]">+{metaData.length - 5} more</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
