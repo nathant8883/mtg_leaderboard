@@ -28,7 +28,10 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
   // Helper function to get rotation for a position based on player count
   const getRotationForPosition = (position: number): number => {
-    if (playerCount === 3 || playerCount === 4) {
+    if (playerCount === 2) {
+      // 2 players: position 1 is rotated 180° (top), position 2 is normal (bottom)
+      return position === 1 ? 180 : 0;
+    } else if (playerCount === 3 || playerCount === 4) {
       // 3-4 players: positions 1-2 are rotated 180°
       return position <= 2 ? 180 : 0;
     } else if (playerCount === 5 || playerCount === 6) {
@@ -199,9 +202,10 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
           const isDisabled = !slot.playerId && filledCount >= playerCount;
 
           // Determine if this slot should be rotated (top row)
+          // For 2 players: position 1 is top (rotated), position 2 is bottom
           // For 3 players with 4 slots: positions 1, 2 are top row (rotated)
           // For 5 players with 6 slots: positions 1, 2, 3 are top row (rotated)
-          const slotsPerRow = playerCount === 3 ? 2 : 3;
+          const slotsPerRow = playerCount === 2 ? 1 : playerCount <= 4 ? 2 : 3;
           const isTopRow = slot.position <= slotsPerRow;
 
           return (

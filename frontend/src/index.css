@@ -964,6 +964,12 @@
 
   /* Table Layout - Optimized for landscape orientation (phone sideways) */
 
+  /* Table Layout - 2 players: 1 on top (rotated), 1 on bottom */
+  .players-grid.layout-table.players-2 {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
   /* Table Layout - 3 players: 2x2 grid with one blank quadrant */
   .players-grid.layout-table.players-3 {
     grid-template-columns: 1fr 1fr;
@@ -994,6 +1000,21 @@
   }
 
   /* ==================== ROTATION TRANSFORMS ==================== */
+
+  /* Table Layout Rotations - 2 players */
+  .players-grid.layout-table.players-2 .player-slot:nth-child(1) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-2 .player-slot:nth-child(1) * {
+    transform: rotate(180deg);
+  }
+
+  /* Override SVG rotation - keep SVGs aligned with their container (not doubly rotated) */
+  /* Exclude .crown-badge and .revive-btn svgs since they have their own rotation rules */
+  .players-grid.layout-table.players-2 .player-slot:nth-child(1) svg:not(.crown-badge svg):not(.revive-btn svg) {
+    transform: rotate(0deg) !important;
+  }
 
   /* Table Layout Rotations - 3 players */
   .players-grid.layout-table.players-3 .player-slot:nth-child(1),
@@ -1074,6 +1095,7 @@
   }
 
   /* Fix vertical order for rotated content - reverse flex direction */
+  .players-grid.layout-table.players-2 .player-slot:nth-child(1) .vertical-stack,
   .players-grid.layout-table.players-3 .player-slot:nth-child(1) .vertical-stack,
   .players-grid.layout-table.players-3 .player-slot:nth-child(2) .vertical-stack,
   .players-grid.layout-table.players-4 .player-slot:nth-child(1) .vertical-stack,
@@ -1342,6 +1364,7 @@
   }
 
   /* Apply shake with rotation preserved for rotated positions */
+  .players-grid.layout-table.players-2 .player-slot:nth-child(1) .commander-indicator-content.shake,
   .players-grid.layout-table.players-3 .player-slot:nth-child(1) .commander-indicator-content.shake,
   .players-grid.layout-table.players-3 .player-slot:nth-child(2) .commander-indicator-content.shake,
   .players-grid.layout-table.players-4 .player-slot:nth-child(1) .commander-indicator-content.shake,
@@ -1388,6 +1411,15 @@
   .player-card.swipe-transition {
     animation: swipeTransition 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
     transform-style: preserve-3d;
+  }
+
+  /* Player Card Rotations - 2 players */
+  .players-grid.layout-table.players-2 .player-card:nth-child(1) {
+    transform: rotate(180deg);
+  }
+
+  .players-grid.layout-table.players-2 .player-card:nth-child(1) * {
+    transform: rotate(180deg);
   }
 
   /* Player Card Rotations - 3 players */
@@ -1859,6 +1891,11 @@
     transform-style: preserve-3d;
   }
 
+  /* Use rotated animation for top-row positions (2 player games) */
+  .players-grid.layout-table.players-2 .player-card:nth-child(1) .commander-damage-indicator {
+    animation: swipeTransitionRotated 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+
   /* Use rotated animation for top-row positions (3-4 player games) */
   .players-grid.layout-table.players-3 .player-card:nth-child(1) .commander-damage-indicator,
   .players-grid.layout-table.players-3 .player-card:nth-child(2) .commander-damage-indicator,
@@ -1887,6 +1924,7 @@
   }
 
   /* Override flex-direction for rotated positions */
+  .players-grid.layout-table.players-2 .player-slot:nth-child(1) .commander-indicator-content.vertical-stack,
   .players-grid.layout-table.players-3 .player-slot:nth-child(1) .commander-indicator-content.vertical-stack,
   .players-grid.layout-table.players-3 .player-slot:nth-child(2) .commander-indicator-content.vertical-stack,
   .players-grid.layout-table.players-4 .player-slot:nth-child(1) .commander-indicator-content.vertical-stack,
@@ -2085,6 +2123,7 @@
   }
 
   /* Top quadrant revive button SVGs - rotate 180deg and translate to center */
+  .players-grid.players-2 .player-card.player-slot:nth-child(1) .revive-btn svg,
   .players-grid.players-3 .player-card.player-slot:nth-child(1) .revive-btn svg,
   .players-grid.players-3 .player-card.player-slot:nth-child(2) .revive-btn svg,
   .players-grid.players-4 .player-card.player-slot:nth-child(1) .revive-btn svg,
@@ -2100,6 +2139,7 @@
   }
 
   /* Top quadrant specific positioning */
+  .players-grid.players-2 .player-card:nth-child(1) .revive-btn,
   .players-grid.players-3 .player-card:nth-child(1) .revive-btn,
   .players-grid.players-3 .player-card:nth-child(2) .revive-btn,
   .players-grid.players-4 .player-card:nth-child(1) .revive-btn,
@@ -2137,6 +2177,7 @@
   }
 
   /* For rotated top positions, rotate crown SVG 180deg and translate to center */
+  .players-grid.players-2 .player-card.player-slot:nth-child(1) .crown-badge svg,
   .players-grid.players-3 .player-card.player-slot:nth-child(1) .crown-badge svg,
   .players-grid.players-3 .player-card.player-slot:nth-child(2) .crown-badge svg,
   .players-grid.players-4 .player-card.player-slot:nth-child(1) .crown-badge svg,

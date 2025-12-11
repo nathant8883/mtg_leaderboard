@@ -59,8 +59,8 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
   };
 
   const isFormValid = (): boolean => {
-    // Need 3-6 players
-    if (selectedPlayerIds.length < 3 || selectedPlayerIds.length > 6) return false;
+    // Need 2-6 players
+    if (selectedPlayerIds.length < 2 || selectedPlayerIds.length > 6) return false;
     // All players need decks selected
     if (selectedPlayerIds.some(id => !playerDeckMap[id])) return false;
     // Winner must be selected
@@ -112,7 +112,7 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
           {/* Player Selection */}
           <div className="mb-5">
             <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">
-              Select Players (3-6) - Selected: {selectedPlayerIds.length}/6
+              Select Players (2-6) - Selected: {selectedPlayerIds.length}/6
             </label>
             <div className="flex gap-3 flex-wrap">
               {players.sort((a, b) => a.name.localeCompare(b.name)).map((player) => (
@@ -141,8 +141,8 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
             </div>
           </div>
 
-          {/* Deck Selection & Winner - Only show when 3+ players selected */}
-          {selectedPlayerIds.length >= 3 && (
+          {/* Deck Selection & Winner - Only show when 2+ players selected */}
+          {selectedPlayerIds.length >= 2 && (
             <div className="mb-5">
               <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">Select Decks & Winner</label>
               {selectedPlayerIds.map((playerId) => {
@@ -187,8 +187,8 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
             </div>
           )}
 
-          {/* Match Date - Only show when 3+ players selected */}
-          {selectedPlayerIds.length >= 3 && (
+          {/* Match Date - Only show when 2+ players selected */}
+          {selectedPlayerIds.length >= 2 && (
             <div className="mb-5">
               <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="matchDate">
                 Match Date

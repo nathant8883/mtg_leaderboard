@@ -120,10 +120,10 @@ async def create_match(
     players are in the same pod and assigns match to that pod.
     """
     # Validate player count
-    if len(request.player_deck_pairs) < 3:
+    if len(request.player_deck_pairs) < 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Match must have at least 3 players"
+            detail="Match must have at least 2 players"
         )
     if len(request.player_deck_pairs) > 6:
         raise HTTPException(
@@ -263,10 +263,10 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
     # Update player/deck pairs if provided
     if request.player_deck_pairs is not None:
         # Validate player count
-        if len(request.player_deck_pairs) < 3:
+        if len(request.player_deck_pairs) < 2:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Match must have at least 3 players"
+                detail="Match must have at least 2 players"
             )
         if len(request.player_deck_pairs) > 6:
             raise HTTPException(

@@ -582,8 +582,14 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // Calculate badge position classes to avoid center hexagon overlap
   // Badges are positioned on outer edges based on grid layout
   const getBadgePositionClasses = (position: number): string => {
+    // For 2 player games (1x2 grid - 1 column, 2 rows)
+    if (playerCount === 2) {
+      // Position 1 is top (rotated 180°), position 2 is bottom
+      if (position === 1) return 'top-2 right-2'; // top card (rotated)
+      if (position === 2) return 'top-2 left-2'; // bottom card
+    }
     // For 3-4 player games (2x2 grid)
-    if (playerCount <= 4) {
+    else if (playerCount <= 4) {
       // Top row (positions 1-2): cards rotated 180°, badge at rotate(0) via CSS
       // Since badge doesn't rotate, we use top/right for visual top-left corner
       // Bottom row (positions 3-4): cards not rotated, normal positioning
@@ -608,8 +614,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   };
 
   // Determine total grid slots based on player count (to match PlayerAssignment layout)
-  // 3 players use 4 slots (2x2), 5 players use 6 slots (3x2), others use exact count
-  const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
+  // 2 players use 2 slots (1x2), 3 players use 4 slots (2x2), 5 players use 6 slots (3x2), others use exact count
+  const totalSlots = playerCount === 2 ? 2 : playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
   const allSlots = Array.from({ length: totalSlots }, (_, i) => i + 1);
 
   return (

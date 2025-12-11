@@ -16,8 +16,8 @@ class MatchPlayer(BaseModel):
 
 
 class Match(Document):
-    """Match document - records a game between 3-6 players"""
-    players: list[MatchPlayer] = Field(min_length=3, max_length=6)
+    """Match document - records a game between 2-6 players"""
+    players: list[MatchPlayer] = Field(min_length=2, max_length=6)
     winner_player_id: str
     winner_deck_id: str
     pod_id: Optional[str] = None  # Pod where match was played (snapshot)
@@ -29,8 +29,8 @@ class Match(Document):
     @field_validator('players')
     @classmethod
     def validate_player_count(cls, v):
-        if len(v) < 3:
-            raise ValueError('Match must have at least 3 players')
+        if len(v) < 2:
+            raise ValueError('Match must have at least 2 players')
         if len(v) > 6:
             raise ValueError('Match cannot have more than 6 players')
         return v

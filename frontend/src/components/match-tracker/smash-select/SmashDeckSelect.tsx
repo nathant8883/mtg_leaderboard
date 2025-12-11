@@ -40,7 +40,9 @@ function SmashDeckSelect({
 
   // Determine if this seat should be rotated (top row faces opposite direction)
   const shouldRotate = (() => {
-    if (playerCount === 3 || playerCount === 4) {
+    if (playerCount === 2) {
+      return seatNumber === 1; // Position 1 is top (rotated)
+    } else if (playerCount === 3 || playerCount === 4) {
       return seatNumber <= 2; // Positions 1-2 are top row
     } else if (playerCount === 5 || playerCount === 6) {
       return seatNumber <= 3; // Positions 1-3 are top row

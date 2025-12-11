@@ -195,9 +195,10 @@ function MatchTracker() {
       // Normal mode - go to player assignment
       // Initialize empty player slots
       // For odd player counts (3, 5), create extra slots so players can choose their positions
+      // 2 players -> create 2 slots (1x2 grid)
       // 3 players -> create 4 slots (2x2 grid)
       // 5 players -> create 6 slots (3x2 grid)
-      const totalSlots = playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
+      const totalSlots = playerCount === 2 ? 2 : playerCount === 3 ? 4 : playerCount === 5 ? 6 : playerCount;
 
       const emptyPlayers: PlayerSlot[] = Array.from({ length: totalSlots }, (_, i) => ({
         position: i + 1,
@@ -280,8 +281,8 @@ function MatchTracker() {
           deck_id: p.deckId!,
         }));
 
-      if (playerDeckPairs.length < 3) {
-        toast.error('At least 3 registered players required to save match (guests cannot be saved)');
+      if (playerDeckPairs.length < 2) {
+        toast.error('At least 2 registered players required to save match (guests cannot be saved)');
         return;
       }
 
@@ -378,8 +379,8 @@ function MatchTracker() {
           deck_id: p.deckId!,
         }));
 
-      if (playerDeckPairs.length < 3) {
-        toast.error('At least 3 registered players required to save match (guests cannot be saved)');
+      if (playerDeckPairs.length < 2) {
+        toast.error('At least 2 registered players required to save match (guests cannot be saved)');
         return;
       }
 

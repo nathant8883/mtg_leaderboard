@@ -16,7 +16,7 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
   const [playerCount, setPlayerCount] = useState<number>(initialPlayerCount);
   const [startingLife, setStartingLife] = useState<number>(initialStartingLife);
 
-  const playerCountOptions = [3, 4, 5, 6];
+  const playerCountOptions = [2, 3, 4, 5, 6];
 
   const handleStartingLifeChange = (delta: number) => {
     const newLife = startingLife + delta;
