@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface GameSetupProps {
   initialPlayerCount: number;
   initialStartingLife: number;
-  onComplete: (playerCount: number, startingLife: number) => void;
+  onComplete: (playerCount: number, startingLife: number, quickPlay?: boolean) => void;
   onExit: () => void;
   isQuickPlay?: boolean;
 }
@@ -30,8 +31,8 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
   };
 
   return (
-    <div className="min-h-screen max-h-screen p-4 pb-20 overflow-y-hidden box-border flex flex-col">
-      <div className="text-center mb-6 relative">
+    <div className="min-h-screen max-h-screen p-4 overflow-y-hidden box-border flex flex-col">
+      <div className="text-center mb-4 relative">
         <button
           className="absolute left-0 top-0 w-11 h-11 bg-[rgba(255,255,255,0.1)] border-2 border-[rgba(255,255,255,0.2)] rounded-[8px] text-white text-2xl cursor-pointer transition-all flex items-center justify-center p-0 hover:bg-[rgba(255,255,255,0.15)] hover:border-[rgba(255,255,255,0.3)] hover:scale-105"
           onClick={() => {
@@ -54,8 +55,8 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
       </div>
 
       {/* Player Count Selector */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-[#9ca3af] m-0 mb-3 uppercase tracking-[0.5px]">Number of Players</h3>
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-[#9ca3af] m-0 mb-2 uppercase tracking-[0.5px]">Number of Players</h3>
         <div className="flex gap-2">
           {playerCountOptions.map((count) => (
             <button
@@ -74,9 +75,9 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
       </div>
 
       {/* Starting Life Selector */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-[#9ca3af] m-0 mb-3 uppercase tracking-[0.5px]">Starting Life</h3>
-        <div className="flex items-center justify-center gap-6 mb-4">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-[#9ca3af] m-0 mb-2 uppercase tracking-[0.5px]">Starting Life</h3>
+        <div className="flex items-center justify-center gap-6 mb-3">
           <button
             className="w-16 h-16 bg-[#2c2e33] border-2 border-[#3c3e43] rounded-[12px] text-white text-[32px] font-bold cursor-pointer transition-all flex items-center justify-center hover:bg-[#667eea] hover:border-[#667eea] hover:scale-105 active:scale-95"
             onClick={() => handleStartingLifeChange(-1)}
@@ -108,13 +109,35 @@ function GameSetup({ initialPlayerCount, initialStartingLife, onComplete, onExit
         </div>
       </div>
 
-      {/* Next Button */}
-      <button
-        className="w-full py-4 px-8 bg-gradient-to-br from-[#10b981] to-[#059669] border-none rounded-[8px] text-white text-base font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.4)]"
-        onClick={handleNext}
-      >
-        {isQuickPlay ? '🎮 Start Game' : 'Next'}
-      </button>
+      {/* Action Buttons - pushed to bottom */}
+      <div className="mt-auto">
+      {isQuickPlay ? (
+        <button
+          className="w-full py-4 px-8 bg-gradient-to-br from-[#10b981] to-[#059669] border-none rounded-[8px] text-white text-base font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(16,185,129,0.4)]"
+          onClick={handleNext}
+        >
+          Start Game
+        </button>
+      ) : (
+        <div className="flex gap-2">
+          <button
+            className="flex-1 py-4 px-4 bg-gradient-to-br from-[#667eea] to-[#764ba2] border-none rounded-[8px] text-white text-base font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(102,126,234,0.4)]"
+            onClick={handleNext}
+          >
+            Next
+          </button>
+          {!isQuickPlay && (
+            <button
+              className="w-14 py-4 bg-[#2c2e33] border-2 border-[#3c3e43] rounded-[8px] text-[#9ca3af] cursor-pointer transition-all hover:border-[#10b981] hover:text-[#10b981] flex items-center justify-center"
+              onClick={() => onComplete(playerCount, startingLife, true)}
+              title="Quick Play - Skip player selection"
+            >
+              <Zap size={20} />
+            </button>
+          )}
+        </div>
+      )}
+      </div>
     </div>
   );
 }

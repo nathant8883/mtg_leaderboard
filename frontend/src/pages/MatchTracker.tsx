@@ -151,9 +151,10 @@ function MatchTracker() {
     loadData();
   }, []);
 
-  const handleGameConfig = (playerCount: number, startingLife: number) => {
+  const handleGameConfig = (playerCount: number, startingLife: number, quickPlay?: boolean) => {
     // In quick play mode, skip assignment and auto-generate players
-    if (matchState.isQuickPlay) {
+    const isQuickPlayGame = quickPlay || matchState.isQuickPlay;
+    if (isQuickPlayGame) {
       // Create guest players with numbered names
       const quickPlayers: PlayerSlot[] = Array.from({ length: playerCount }, (_, i) => ({
         position: i + 1,
@@ -190,6 +191,7 @@ function MatchTracker() {
         startingLife,
         currentStep: 'game',
         gameState,
+        isQuickPlay: true,
       });
     } else {
       // Normal mode - go to player assignment
@@ -453,7 +455,9 @@ function MatchTracker() {
       layout: 'table',
       startingLife: 40,
       currentStep: 'setup',
-      isQuickPlay: matchState.isQuickPlay, // Preserve quick play mode
+      // Only preserve quick play mode for guests (who came from login quick play)
+      // Logged-in users should go back to normal setup to choose again
+      isQuickPlay: isGuest ? matchState.isQuickPlay : false,
     });
   };
 
@@ -485,6 +489,7 @@ function MatchTracker() {
     // Exit from setup screen - no confirmation needed since no game started yet
     navigate('/');
   };
+
 
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 min-h-screen max-h-screen bg-gradient-to-br from-[#1a1b1e] to-[#2c2e33] text-white p-0 m-0 overflow-hidden">
