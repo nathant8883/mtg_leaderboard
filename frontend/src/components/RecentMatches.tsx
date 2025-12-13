@@ -24,6 +24,7 @@ interface RecentMatchesProps {
   deckMap?: Map<string, Deck>;
   eloHistoryByPlayer?: Map<string, EloHistoryPoint[]>;
   loading?: boolean;
+  onViewAll?: () => void;
 }
 
 /**
@@ -391,6 +392,7 @@ function RecentMatches({
   deckMap,
   eloHistoryByPlayer,
   loading = false,
+  onViewAll,
 }: RecentMatchesProps) {
   const navigate = useNavigate();
 
@@ -435,10 +437,25 @@ function RecentMatches({
     navigate(`/matches/${matchId}`);
   };
 
+  // Header with optional "View All" link
+  const Header = () => (
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-white m-0 text-2xl font-semibold">Recent Matches</h2>
+      {onViewAll && (
+        <button
+          onClick={onViewAll}
+          className="text-[#667eea] text-sm font-medium hover:text-[#764ba2] transition-colors"
+        >
+          View All
+        </button>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-        <h2 className="text-white m-0 text-2xl font-semibold mb-4">Recent Matches</h2>
+        <Header />
         <div className="text-center py-[60px] px-5">
           <div className="loading-spinner"></div>
           <p className="text-[#909296] text-sm">Loading matches...</p>
@@ -450,7 +467,7 @@ function RecentMatches({
   if (matches.length === 0) {
     return (
       <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-        <h2 className="text-white m-0 text-2xl font-semibold mb-4">Recent Matches</h2>
+        <Header />
         <div className="text-center py-[60px] px-5">
           <div className="text-[64px] mb-4">🏆</div>
           <h3 className="text-white text-xl mb-2">No matches yet</h3>
@@ -462,7 +479,7 @@ function RecentMatches({
 
   return (
     <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-      <h2 className="text-white m-0 text-2xl font-semibold mb-4">Recent Matches</h2>
+      <Header />
       <div className="flex flex-col gap-4">
         {matches.map((match) => {
           const isPending = isPendingMatch(match);

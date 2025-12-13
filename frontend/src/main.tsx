@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import './index.css'
 import { Login } from './pages/Login.tsx'
 import { Dashboard } from './pages/Dashboard.tsx'
+import { MatchHistory } from './pages/MatchHistory.tsx'
 import { PodDynamics } from './pages/PodDynamics.tsx'
 import MatchTracker from './pages/MatchTracker.tsx'
 import { NotFound } from './pages/NotFound.tsx'
@@ -64,6 +65,7 @@ createRoot(document.getElementById('root')!).render(
             {/* Main app routes with shared layout */}
             <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
+              <Route path="matches" element={<MatchHistory />} />
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="pod-dynamics" element={<PodDynamics />} />
               <Route path="players/:playerId" element={<PlayerDetail />} />

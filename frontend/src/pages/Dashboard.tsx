@@ -187,6 +187,7 @@ export function Dashboard() {
         deckMap={deckMap}
         eloHistoryByPlayer={eloHistoryByPlayer}
         loading={loadingMatches}
+        onViewAll={() => navigate('/matches')}
       />
     </div>
   );

@@ -70,12 +70,12 @@ async def get_all_matches(
     """Get all matches from current pod (or all matches if no pod context)"""
     # If no current player or no current pod, return all matches (backward compatibility)
     if not current_player or not current_player.current_pod_id:
-        matches = await Match.find_all().skip(skip).limit(limit).sort(-Match.match_date).to_list()
+        matches = await Match.find_all().sort(-Match.match_date, -Match.created_at).skip(skip).limit(limit).to_list()
     else:
         # Filter matches by current pod
         matches = await Match.find(
             Match.pod_id == current_player.current_pod_id
-        ).skip(skip).limit(limit).sort(-Match.match_date).to_list()
+        ).sort(-Match.match_date, -Match.created_at).skip(skip).limit(limit).to_list()
 
     return [serialize_match(match) for match in matches]
 
@@ -88,12 +88,12 @@ async def get_recent_matches(
     """Get recent matches from current pod (or all recent if no pod context)"""
     # If no current player or no current pod, return all recent matches (backward compatibility)
     if not current_player or not current_player.current_pod_id:
-        matches = await Match.find_all().limit(limit).sort(-Match.match_date).to_list()
+        matches = await Match.find_all().sort(-Match.match_date, -Match.created_at).limit(limit).to_list()
     else:
         # Filter matches by current pod
         matches = await Match.find(
             Match.pod_id == current_player.current_pod_id
-        ).limit(limit).sort(-Match.match_date).to_list()
+        ).sort(-Match.match_date, -Match.created_at).limit(limit).to_list()
 
     return [serialize_match(match) for match in matches]
 

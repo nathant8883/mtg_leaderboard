@@ -107,7 +107,7 @@ async def get_player_trends(
     # Get all matches in pod where this player participated
     all_matches = await Match.find(
         Match.pod_id == current_player.current_pod_id
-    ).sort(-Match.match_date).to_list()
+    ).sort(-Match.match_date, -Match.created_at).to_list()
 
     # Filter to matches where target player participated
     player_matches = []
@@ -762,7 +762,7 @@ async def get_auto_insights(
 
     matches = await Match.find(
         Match.pod_id == current_player.current_pod_id
-    ).sort(-Match.match_date).to_list()
+    ).sort(-Match.match_date, -Match.created_at).to_list()
 
     if not matches:
         return {"insights": [], "pod_health": {}}
