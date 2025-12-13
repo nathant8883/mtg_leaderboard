@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { MatchupsData, MatchupStats } from '../../services/api';
+import { getWinRateTierColor, getWinRateTierBgColor } from '../../utils/winRateTier';
 
 // Updated: 4-game minimum for stats display
 interface MatchupMatrixProps {
@@ -24,20 +25,15 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
     );
   }
 
-  // Get win rate color based on percentage
+  // Get win rate color based on tier thresholds (matching TopDecks)
   const getWinRateColor = (winRate: number, games: number) => {
     if (games === 0 || games < 4) return 'bg-[#141517]';
-    if (winRate >= 60) return 'bg-[#33D9B2]/30';
-    if (winRate >= 50) return 'bg-[#33D9B2]/15';
-    if (winRate >= 40) return 'bg-[#FF6B6B]/15';
-    return 'bg-[#FF6B6B]/30';
+    return getWinRateTierBgColor(winRate);
   };
 
   const getWinRateTextColor = (winRate: number, games: number) => {
     if (games === 0 || games < 4) return 'text-[#909296]';
-    if (winRate >= 55) return 'text-[#33D9B2]';
-    if (winRate >= 45) return 'text-white';
-    return 'text-[#FF6B6B]';
+    return getWinRateTierColor(winRate);
   };
 
   return (
@@ -182,22 +178,22 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
 
       {/* Legend */}
       <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-center gap-4 text-xs text-[#909296]">
+        <div className="flex items-center justify-center gap-4 text-xs text-[#909296] flex-wrap">
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded bg-[#33D9B2]/30" />
-            <span>&gt;60%</span>
+            <div className="w-4 h-4 rounded bg-[#FFD700]/20" />
+            <span className="text-[#FFD700]">S &ge;35%</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded bg-[#33D9B2]/15" />
-            <span>50-60%</span>
+            <div className="w-4 h-4 rounded bg-[#33D9B2]/20" />
+            <span className="text-[#33D9B2]">A 28-34%</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded bg-[#FF6B6B]/15" />
-            <span>40-50%</span>
+            <div className="w-4 h-4 rounded bg-[#4FACFE]/20" />
+            <span className="text-[#4FACFE]">B 22-27%</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded bg-[#FF6B6B]/30" />
-            <span>&lt;40%</span>
+            <div className="w-4 h-4 rounded bg-[#FF6B6B]/20" />
+            <span className="text-[#FF6B6B]">D &lt;22%</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 rounded bg-[#141517] border border-[#2C2E33]" />

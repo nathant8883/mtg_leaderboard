@@ -1,5 +1,6 @@
 import { Heart, Skull, Trophy } from 'lucide-react';
 import type { GamesTogetherData, PartnerStats } from '../../services/api';
+import { getWinRateTierColor } from '../../utils/winRateTier';
 
 interface GamesTogetherStatsProps {
   data: GamesTogetherData;
@@ -114,9 +115,7 @@ export function GamesTogetherStats({ data }: GamesTogetherStatsProps) {
               </div>
               <div className="text-right">
                 <div
-                  className={`font-bold ${
-                    partner.my_win_rate >= 50 ? 'text-[#33D9B2]' : 'text-[#FF6B6B]'
-                  }`}
+                  className={`font-bold ${getWinRateTierColor(partner.my_win_rate)}`}
                 >
                   {partner.my_win_rate.toFixed(0)}%
                 </div>
