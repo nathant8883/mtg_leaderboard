@@ -122,6 +122,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           ...currentState.playerStates[position],
           life: newLife,
           eliminated: shouldEliminate,
+          eliminatedAt: shouldEliminate ? Date.now() : currentState.playerStates[position].eliminatedAt,
         },
       },
     };
@@ -305,6 +306,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             [fromOpponentPosition]: newDamage,
           },
           eliminated: shouldEliminate,
+          eliminatedAt: shouldEliminate ? Date.now() : currentState.playerStates[trackingPlayerPosition].eliminatedAt,
         },
       },
     };
@@ -436,6 +438,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         [position]: {
           ...currentState.playerStates[position],
           eliminated: false,
+          eliminatedAt: null, // Clear timestamp on revive
           revived: true,
           // Keep current life value (0 or whatever it was)
         },
@@ -458,6 +461,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         [position]: {
           ...currentState.playerStates[position],
           eliminated: true,
+          eliminatedAt: Date.now(),
           forceEliminated: true,
         },
       },

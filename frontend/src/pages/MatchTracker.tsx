@@ -31,6 +31,7 @@ export interface PlayerSlot {
 export interface PlayerGameState {
   life: number;
   eliminated: boolean;
+  eliminatedAt: number | null; // timestamp when eliminated (for placement order)
   revived: boolean; // player has been revived after hitting 0 life
   forceEliminated: boolean; // player was manually eliminated (cannot be revived)
   eliminatedBy?: string; // player position who eliminated them
@@ -178,6 +179,7 @@ function MatchTracker() {
         gameState.playerStates[player.position] = {
           life: startingLife,
           eliminated: false,
+          eliminatedAt: null,
           revived: false,
           forceEliminated: false,
           commanderDamage: {},
@@ -239,6 +241,7 @@ function MatchTracker() {
       gameState.playerStates[player.position] = {
         life: matchState.startingLife,
         eliminated: false,
+        eliminatedAt: null,
         revived: false,
         forceEliminated: false,
         commanderDamage: {},
@@ -301,6 +304,29 @@ function MatchTracker() {
         }
       }
 
+      // Calculate elimination orders from timestamps
+      // Winner = 1, last eliminated = 2, second-last = 3, etc.
+      const eliminationOrders: Record<string, number> = {};
+      const playerStates = matchState.gameState.playerStates;
+
+      // Get eliminated players with timestamps, sorted by timestamp descending (most recent first = better placement)
+      const eliminatedWithTimestamps = matchState.players
+        .filter(p => p.playerId && playerStates[p.position]?.eliminated && playerStates[p.position]?.eliminatedAt)
+        .map(p => ({ playerId: p.playerId!, eliminatedAt: playerStates[p.position].eliminatedAt! }))
+        .sort((a, b) => b.eliminatedAt - a.eliminatedAt);
+
+      // Winner gets placement 1
+      if (winner.playerId) {
+        eliminationOrders[winner.playerId] = 1;
+      }
+
+      // Assign placements to eliminated players: most recently eliminated = 2nd, etc.
+      eliminatedWithTimestamps.forEach((player, idx) => {
+        if (player.playerId !== winner.playerId) {
+          eliminationOrders[player.playerId] = idx + 2; // 2nd, 3rd, 4th...
+        }
+      });
+
       const matchRequest = {
         player_deck_pairs: playerDeckPairs,
         winner_player_id: winner.playerId,
@@ -308,6 +334,7 @@ function MatchTracker() {
         match_date: matchDate,
         duration_seconds: matchState.gameState.elapsedSeconds,
         first_player_position: firstPlayerPosition,
+        elimination_orders: Object.keys(eliminationOrders).length > 0 ? eliminationOrders : undefined,
       };
 
       // Add to IndexedDB queue (offline-first approach)
@@ -398,6 +425,29 @@ function MatchTracker() {
         }
       }
 
+      // Calculate elimination orders from timestamps
+      // Winner = 1, last eliminated = 2, second-last = 3, etc.
+      const eliminationOrders: Record<string, number> = {};
+      const playerStates = matchState.gameState.playerStates;
+
+      // Get eliminated players with timestamps, sorted by timestamp descending (most recent first = better placement)
+      const eliminatedWithTimestamps = matchState.players
+        .filter(p => p.playerId && playerStates[p.position]?.eliminated && playerStates[p.position]?.eliminatedAt)
+        .map(p => ({ playerId: p.playerId!, eliminatedAt: playerStates[p.position].eliminatedAt! }))
+        .sort((a, b) => b.eliminatedAt - a.eliminatedAt);
+
+      // Winner gets placement 1
+      if (winner.playerId) {
+        eliminationOrders[winner.playerId] = 1;
+      }
+
+      // Assign placements to eliminated players: most recently eliminated = 2nd, etc.
+      eliminatedWithTimestamps.forEach((player, idx) => {
+        if (player.playerId !== winner.playerId) {
+          eliminationOrders[player.playerId] = idx + 2; // 2nd, 3rd, 4th...
+        }
+      });
+
       const matchRequest = {
         player_deck_pairs: playerDeckPairs,
         winner_player_id: winner.playerId,
@@ -405,6 +455,7 @@ function MatchTracker() {
         match_date: matchDate,
         duration_seconds: matchState.gameState.elapsedSeconds,
         first_player_position: firstPlayerPosition,
+        elimination_orders: Object.keys(eliminationOrders).length > 0 ? eliminationOrders : undefined,
       };
 
       // Add to IndexedDB queue (offline-first approach)
