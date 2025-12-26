@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X, ArrowLeft } from 'lucide-react';
 import { playerApi, deckApi, type Player, type Deck } from '../../services/api';
 import type { PlayerSlot, LayoutType } from '../../pages/MatchTracker';
 import { SmashPlayerSelect, SmashDeckSelect } from './smash-select';
@@ -24,7 +25,24 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [guestName, setGuestName] = useState('');
   const [creatingGuest, setCreatingGuest] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+  const [menuState, setMenuState] = useState<'closed' | 'spinning' | 'open' | 'closing'>('closed');
+
+  // Handle menu button click with spin animation
+  const handleMenuButtonClick = () => {
+    if (menuState === 'closed') {
+      setMenuState('spinning');
+      setTimeout(() => setMenuState('open'), 350);
+    } else if (menuState === 'open') {
+      setMenuState('closing');
+      setTimeout(() => setMenuState('closed'), 250);
+    }
+  };
+
+  // Helper to close menu
+  const closeMenu = () => {
+    setMenuState('closing');
+    setTimeout(() => setMenuState('closed'), 250);
+  };
 
   // Helper function to get rotation for a position based on player count
   const getRotationForPosition = (position: number): number => {
@@ -157,43 +175,45 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
 
   return (
     <div className="h-screen flex flex-col bg-[#141517] relative">
-      {/* Centered Menu/GO Button */}
-      <div className="floating-menu-btn-wrapper">
+      {/* Menu Backdrop */}
+      {(menuState === 'open' || menuState === 'closing') && (
+        <div
+          className="radial-menu-backdrop"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Radial Pill Menu */}
+      <div className={`radial-menu ${menuState === 'open' ? 'open' : ''} ${menuState === 'closing' ? 'closing' : ''}`}>
+        {/* Back - Top */}
         <button
-          className={`floating-menu-btn ${allSlotsFilled ? 'ready-to-start' : ''}`}
-          onClick={() => allSlotsFilled ? handleStartGame() : setShowMenu(!showMenu)}
+          className="radial-pill"
+          onClick={() => {
+            closeMenu();
+            onBack();
+          }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
         >
-          {allSlotsFilled ? <span className="go-text">GO</span> : '☰'}
+          <ArrowLeft className="w-4 h-4" /> Back
         </button>
       </div>
 
-      {/* Menu Overlay */}
-      {showMenu && (
-        <>
-          <div className="fixed inset-0 bg-black/70 z-[250]" onClick={() => setShowMenu(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1b1e] border border-[#2c2e33] rounded-xl p-2 z-[300] min-w-[200px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-            <button
-              className="w-full py-3 px-4 bg-transparent border-none rounded-lg text-white text-sm font-semibold cursor-pointer transition-all duration-200 text-left mb-1 hover:bg-white/10"
-              onClick={() => {
-                setShowMenu(false);
-                onBack();
-              }}
-            >
-              ← Back to Setup
-            </button>
-            <button
-              className="w-full py-3 px-4 border-none rounded-lg text-white text-sm font-semibold cursor-pointer transition-all duration-200 text-center bg-[linear-gradient(135deg,#10b981_0%,#059669_100%)] hover:bg-[linear-gradient(135deg,#059669_0%,#047857_100%)] disabled:opacity-30 disabled:cursor-not-allowed"
-              onClick={() => {
-                setShowMenu(false);
-                handleStartGame();
-              }}
-              disabled={!allSlotsFilled}
-            >
-              Start Game
-            </button>
-          </div>
-        </>
-      )}
+      {/* Centered Menu/GO Button */}
+      <div className="floating-menu-btn-wrapper">
+        <button
+          className={`floating-menu-btn ${allSlotsFilled ? 'ready-to-start' : ''} ${menuState === 'spinning' ? 'spinning' : ''} ${menuState === 'open' || menuState === 'closing' ? 'menu-open' : ''}`}
+          onClick={() => allSlotsFilled ? handleStartGame() : handleMenuButtonClick()}
+        >
+          {allSlotsFilled ? (
+            <span className="go-text">GO</span>
+          ) : (
+            <>
+              <img src="/logo.png" alt="" className="menu-logo" />
+              <X className="w-8 h-8 menu-close-icon" />
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Player Slots in Game Layout */}
       <div className={`players-grid layout-${layout} players-${playerCount}`}>

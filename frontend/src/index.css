@@ -741,37 +741,33 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90px;
-    height: 90px;
+    width: 76px;
+    height: 76px;
     z-index: 200;
-    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.8)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.9));
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
   }
 
-  /* Outer hexagon dark border */
+  /* Outer circle dark border */
   .floating-menu-btn-wrapper::before {
     content: '';
     position: absolute;
-    inset: 0;
+    inset: -2px;
     background: rgba(0, 0, 0, 0.35);
-    clip-path: polygon(
-      25% 5%, 30% 0%, 70% 0%, 75% 5%,
-      95% 35%, 100% 50%, 95% 65%,
-      75% 95%, 70% 100%, 30% 100%, 25% 95%,
-      5% 65%, 0% 50%, 5% 35%
-    );
+    border-radius: 50%;
     z-index: -1;
   }
 
-  /* Floating Hamburger Menu Button - Lotus Style */
+  /* Floating Menu Button - Circle Style */
   .floating-menu-btn {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 80px;
-    height: 80px;
+    width: 68px;
+    height: 68px;
     background: transparent;
     border: none;
+    border-radius: 50%;
     color: #fff;
     font-size: 28px;
     font-weight: 700;
@@ -783,58 +779,44 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Hexagon gradient border with breathing glow */
+  /* Circle gradient border with breathing glow */
   .floating-menu-btn::before {
     content: '';
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, #8fd3f4 0%, #667eea 50%, #c471ed 100%);
-    clip-path: polygon(
-      25% 5%, 30% 0%, 70% 0%, 75% 5%,
-      95% 35%, 100% 50%, 95% 65%,
-      75% 95%, 70% 100%, 30% 100%, 25% 95%,
-      5% 65%, 0% 50%, 5% 35%
-    );
+    border-radius: 50%;
     z-index: -1;
     transition: all 0.3s ease;
     animation: glowBreathe 3.5s ease-in-out infinite;
   }
 
-  /* Breathing animation - glow intensity pulse only */
+  /* Breathing animation - subtle glow pulse */
   @keyframes glowBreathe {
     0%, 100% {
       filter:
-        drop-shadow(0 0 8px rgba(143, 211, 244, 0.4))
-        drop-shadow(0 0 16px rgba(102, 126, 234, 0.3))
-        drop-shadow(0 0 24px rgba(196, 113, 237, 0.2))
-        drop-shadow(0 6px 16px rgba(0, 0, 0, 0.9))
-        drop-shadow(0 2px 4px rgba(0, 0, 0, 1));
-      opacity: 0.9;
+        drop-shadow(0 0 4px rgba(143, 211, 244, 0.2))
+        drop-shadow(0 0 8px rgba(102, 126, 234, 0.15))
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+      opacity: 0.95;
     }
     50% {
       filter:
-        drop-shadow(0 0 12px rgba(143, 211, 244, 0.5))
-        drop-shadow(0 0 20px rgba(102, 126, 234, 0.4))
-        drop-shadow(0 0 28px rgba(196, 113, 237, 0.3))
-        drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
-        drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+        drop-shadow(0 0 6px rgba(143, 211, 244, 0.3))
+        drop-shadow(0 0 12px rgba(102, 126, 234, 0.2))
+        drop-shadow(0 5px 12px rgba(0, 0, 0, 0.7));
       opacity: 1;
     }
   }
 
-  /* Hexagon inner background with depth */
+  /* Circle inner background with depth */
   .floating-menu-btn::after {
     content: '';
     position: absolute;
-    inset: 5px;
+    inset: 4px;
     background: linear-gradient(145deg, rgba(5, 5, 5, 0.98), rgba(0, 0, 0, 0.98));
     backdrop-filter: blur(12px);
-    clip-path: polygon(
-      25% 5%, 30% 0%, 70% 0%, 75% 5%,
-      95% 35%, 100% 50%, 95% 65%,
-      75% 95%, 70% 100%, 30% 100%, 25% 95%,
-      5% 65%, 0% 50%, 5% 35%
-    );
+    border-radius: 50%;
     z-index: -1;
     box-shadow:
       0 0 4px rgba(255, 255, 255, 0.15) inset,
@@ -844,22 +826,19 @@
 
   /* Hover state */
   .floating-menu-btn-wrapper:hover {
-    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.85)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.95));
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.6));
   }
 
   .floating-menu-btn:hover {
     animation: none;
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1.05);
   }
 
   .floating-menu-btn:hover::before {
     filter:
-      brightness(1.15)
-      drop-shadow(0 0 12px rgba(143, 211, 244, 0.5))
-      drop-shadow(0 0 20px rgba(102, 126, 234, 0.4))
-      drop-shadow(0 0 28px rgba(196, 113, 237, 0.3))
-      drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
-      drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+      brightness(1.1)
+      drop-shadow(0 0 6px rgba(143, 211, 244, 0.25))
+      drop-shadow(0 0 10px rgba(102, 126, 234, 0.2));
   }
 
   .floating-menu-btn:hover::after {
@@ -881,6 +860,264 @@
     outline: none;
   }
 
+  /* ==================== RADIAL MENU STYLES ==================== */
+
+  /* Spin animation for button press */
+  @keyframes menuButtonSpin {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  .floating-menu-btn.spinning {
+    animation: menuButtonSpin 0.35s ease-in-out forwards;
+  }
+
+  /* Logo inside button */
+  .floating-menu-btn .menu-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    transition: opacity 0.2s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Hide logo when menu is open */
+  .floating-menu-btn.menu-open .menu-logo {
+    opacity: 0;
+  }
+
+  /* X icon styling (hidden by default) */
+  .floating-menu-btn .menu-close-icon {
+    position: absolute;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1;
+  }
+
+  /* Show X icon when menu is open */
+  .floating-menu-btn.menu-open .menu-close-icon {
+    opacity: 1;
+  }
+
+  /* Radial menu container */
+  .radial-menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 199;
+    pointer-events: none;
+  }
+
+  .radial-menu.open {
+    pointer-events: auto;
+    z-index: 201;
+  }
+
+  /* Individual pill button */
+  .radial-pill {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    padding: 12px 22px;
+    min-width: 110px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+    border: 1px solid rgba(143, 211, 244, 0.3);
+    border-radius: 25px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow:
+      0 4px 15px rgba(0, 0, 0, 0.4),
+      0 0 10px rgba(102, 126, 234, 0.3);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .radial-pill:hover {
+    background: linear-gradient(135deg, rgba(118, 75, 162, 0.95) 0%, rgba(143, 113, 237, 0.95) 100%);
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.5),
+      0 0 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .radial-pill:active {
+    filter: brightness(0.9);
+  }
+
+  /* Timer pill special styling */
+  .radial-pill.timer-pill {
+    background: linear-gradient(135deg, rgba(45, 45, 55, 0.95) 0%, rgba(30, 30, 40, 0.95) 100%);
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .radial-pill.timer-pill .timer-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.8;
+  }
+
+  .radial-pill.timer-pill .timer-value {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Pill fan-out animations */
+  /* Pill 1 (Timer): Top - horizontal */
+  @keyframes pillFanOut1 {
+    from {
+      transform: translate(-50%, -50%) scale(0) rotate(0deg);
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, calc(-50% - 80px)) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  /* Pill 2 (End Game): Bottom-left - text faces outward */
+  @keyframes pillFanOut2 {
+    from {
+      transform: translate(-50%, -50%) scale(0) rotate(60deg);
+      opacity: 0;
+    }
+    to {
+      transform: translate(calc(-50% - 68px), calc(-50% + 46px)) scale(1) rotate(60deg);
+      opacity: 1;
+    }
+  }
+
+  /* Pill 3 (Exit Game): Bottom-right - text faces outward */
+  @keyframes pillFanOut3 {
+    from {
+      transform: translate(-50%, -50%) scale(0) rotate(-60deg);
+      opacity: 0;
+    }
+    to {
+      transform: translate(calc(-50% + 68px), calc(-50% + 46px)) scale(1) rotate(-60deg);
+      opacity: 1;
+    }
+  }
+
+  /* Pill fan-in animations */
+  @keyframes pillFanIn1 {
+    from {
+      transform: translate(-50%, calc(-50% - 80px)) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(0) rotate(0deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes pillFanIn2 {
+    from {
+      transform: translate(calc(-50% - 68px), calc(-50% + 46px)) scale(1) rotate(60deg);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(0) rotate(60deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes pillFanIn3 {
+    from {
+      transform: translate(calc(-50% + 68px), calc(-50% + 46px)) scale(1) rotate(-60deg);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(0) rotate(-60deg);
+      opacity: 0;
+    }
+  }
+
+  /* Apply fan-out animations when menu opens */
+  .radial-menu.open .radial-pill:nth-child(1) {
+    animation: pillFanOut1 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: 0s;
+  }
+
+  .radial-menu.open .radial-pill:nth-child(2) {
+    animation: pillFanOut2 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: 0.05s;
+  }
+
+  .radial-menu.open .radial-pill:nth-child(3) {
+    animation: pillFanOut3 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: 0.1s;
+  }
+
+  /* Apply fan-in animations when menu closes */
+  .radial-menu.closing .radial-pill:nth-child(1) {
+    animation: pillFanIn1 0.2s ease-in forwards;
+  }
+
+  .radial-menu.closing .radial-pill:nth-child(2) {
+    animation: pillFanIn2 0.2s ease-in forwards;
+    animation-delay: 0.03s;
+  }
+
+  .radial-menu.closing .radial-pill:nth-child(3) {
+    animation: pillFanIn3 0.2s ease-in forwards;
+    animation-delay: 0.06s;
+  }
+
+  /* Menu backdrop */
+  .radial-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 198;
+  }
+
+  /* 2-pill layout variant - pill 2 centered at bottom */
+  .radial-menu.two-pills.open .radial-pill:nth-child(2) {
+    animation: pillFanOut2Center 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: 0.05s;
+  }
+
+  .radial-menu.two-pills.closing .radial-pill:nth-child(2) {
+    animation: pillFanIn2Center 0.2s ease-in forwards;
+    animation-delay: 0.03s;
+  }
+
+  @keyframes pillFanOut2Center {
+    from {
+      transform: translate(-50%, -50%) scale(0) rotate(0deg);
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, calc(-50% + 80px)) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pillFanIn2Center {
+    from {
+      transform: translate(-50%, calc(-50% + 80px)) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(0) rotate(0deg);
+      opacity: 0;
+    }
+  }
+
+  /* ==================== END RADIAL MENU STYLES ==================== */
+
   /* GO text styling */
   .go-text {
     font-size: 32px;
@@ -898,20 +1135,16 @@
   @keyframes glowBreatheReady {
     0%, 100% {
       filter:
-        drop-shadow(0 0 12px rgba(16, 185, 129, 0.6))
-        drop-shadow(0 0 24px rgba(16, 185, 129, 0.45))
-        drop-shadow(0 0 36px rgba(16, 185, 129, 0.3))
-        drop-shadow(0 6px 16px rgba(0, 0, 0, 0.9))
-        drop-shadow(0 2px 4px rgba(0, 0, 0, 1));
+        drop-shadow(0 0 8px rgba(16, 185, 129, 0.45))
+        drop-shadow(0 0 16px rgba(16, 185, 129, 0.3))
+        drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
       opacity: 0.95;
     }
     50% {
       filter:
-        drop-shadow(0 0 16px rgba(16, 185, 129, 0.75))
-        drop-shadow(0 0 32px rgba(16, 185, 129, 0.6))
-        drop-shadow(0 0 48px rgba(16, 185, 129, 0.4))
-        drop-shadow(0 8px 20px rgba(0, 0, 0, 0.95))
-        drop-shadow(0 3px 6px rgba(0, 0, 0, 1));
+        drop-shadow(0 0 12px rgba(16, 185, 129, 0.55))
+        drop-shadow(0 0 22px rgba(16, 185, 129, 0.4))
+        drop-shadow(0 5px 14px rgba(0, 0, 0, 0.7));
       opacity: 1;
     }
   }

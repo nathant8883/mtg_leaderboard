@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Crown, Sword, Menu, Heart, Skull } from 'lucide-react';
+import { Crown, Sword, Heart, Skull, X, Clock } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
 
 interface ActiveGameProps {
@@ -15,7 +15,7 @@ interface ActiveGameProps {
 
 function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState, isQuickPlay, onReset }: ActiveGameProps) {
   const [timer, setTimer] = useState(gameState.elapsedSeconds || 0);
-  const [showMenu, setShowMenu] = useState(false);
+  const [menuState, setMenuState] = useState<'closed' | 'spinning' | 'open' | 'closing'>('closed');
   const [commanderDamageMode, setCommanderDamageMode] = useState(false);
   const [trackingPlayerPosition, setTrackingPlayerPosition] = useState<number | null>(null);
   const [showWinnerSelect, setShowWinnerSelect] = useState(false);
@@ -87,6 +87,27 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Handle menu button click with spin animation
+  const handleMenuButtonClick = () => {
+    if (commanderDamageMode) {
+      exitCommanderDamageMode();
+    } else if (menuState === 'closed') {
+      setMenuState('spinning');
+      // After spin animation completes, open menu
+      setTimeout(() => setMenuState('open'), 350);
+    } else if (menuState === 'open') {
+      setMenuState('closing');
+      // After closing animation completes, set to closed
+      setTimeout(() => setMenuState('closed'), 250);
+    }
+  };
+
+  // Helper to close menu (used by pills and backdrop)
+  const closeMenu = () => {
+    setMenuState('closing');
+    setTimeout(() => setMenuState('closed'), 250);
   };
 
   // Handle first player selection
@@ -624,49 +645,61 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Floating Center Button - Hamburger Menu or Exit Commander Damage Mode */}
-      <div className="floating-menu-btn-wrapper">
+      {/* Menu Backdrop */}
+      {(menuState === 'open' || menuState === 'closing') && (
+        <div
+          className="radial-menu-backdrop"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Radial Pill Menu */}
+      <div className={`radial-menu ${menuState === 'open' ? 'open' : ''} ${menuState === 'closing' ? 'closing' : ''}`}>
+        {/* Timer - Top */}
+        <div className="radial-pill timer-pill">
+          <Clock className="timer-icon" />
+          <span className="timer-value">{formatTime(timer)}</span>
+        </div>
+
+        {/* End Game - Bottom Left */}
         <button
-          className={`floating-menu-btn ${commanderDamageMode ? 'commander-mode-exit' : ''}`}
+          className="radial-pill"
           onClick={() => {
-            if (commanderDamageMode) {
-              exitCommanderDamageMode();
-            } else {
-              setShowMenu(!showMenu);
-            }
+            closeMenu();
+            setShowWinnerSelect(true);
           }}
         >
-          {commanderDamageMode ? <Sword className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+          End Game
+        </button>
+
+        {/* Exit Game - Bottom Right */}
+        <button
+          className="radial-pill"
+          onClick={() => {
+            closeMenu();
+            onExit();
+          }}
+        >
+          Exit Game
         </button>
       </div>
 
-      {/* Menu Overlay */}
-      {showMenu && (
-        <>
-          <div className="fixed inset-0 bg-black/70 z-[250]" onClick={() => setShowMenu(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1a1b1e] border border-[#2c2e33] rounded-[12px] p-2 z-[300] min-w-[200px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
-            <div className="text-center p-3 border-b border-[#2c2e33]">
-              <div className="text-xs text-[#909296]">Game Time</div>
-              <div className="text-lg font-bold mt-1">{formatTime(timer)}</div>
-            </div>
-            <button
-              className="menu-option"
-              onClick={() => {
-                setShowMenu(false);
-                setShowWinnerSelect(true);
-              }}
-            >
-              🏆 End Game
-            </button>
-            <button className="menu-option" onClick={() => {
-              setShowMenu(false);
-              onExit();
-            }}>
-              ← Exit Game
-            </button>
-          </div>
-        </>
-      )}
+      {/* Floating Center Button - Logo/X or Exit Commander Damage Mode */}
+      <div className="floating-menu-btn-wrapper">
+        <button
+          className={`floating-menu-btn ${commanderDamageMode ? 'commander-mode-exit' : ''} ${menuState === 'spinning' ? 'spinning' : ''} ${menuState === 'open' || menuState === 'closing' ? 'menu-open' : ''}`}
+          onClick={handleMenuButtonClick}
+        >
+          {commanderDamageMode ? (
+            <Sword className="w-8 h-8" />
+          ) : (
+            <>
+              <img src="/logo.png" alt="" className="menu-logo" />
+              <X className="w-8 h-8 menu-close-icon" />
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Player Cards in Game Layout */}
       <div className={`players-grid layout-${layout} players-${playerCount}`}>
