@@ -13,6 +13,8 @@ class MatchPlayer(BaseModel):
     deck_colors: list[str] = []  # Deck color identity (W/U/B/R/G), snapshotted at match creation
     elimination_order: Optional[int] = None  # Player placement (1=winner, 2=2nd, 3=3rd, 4=4th). None if only winner is known
     is_winner: bool = False
+    eliminated_by_player_id: Optional[str] = None  # player_id of who eliminated this player (null if scooped or winner)
+    elimination_type: Optional[str] = None  # "kill" | "scoop" | None (winner has None)
 
 
 class Match(Document):

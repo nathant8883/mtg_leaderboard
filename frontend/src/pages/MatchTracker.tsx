@@ -34,8 +34,12 @@ export interface PlayerGameState {
   eliminatedAt: number | null; // timestamp when eliminated (for placement order)
   revived: boolean; // player has been revived after hitting 0 life
   forceEliminated: boolean; // player was manually eliminated (cannot be revived)
-  eliminatedBy?: string; // player position who eliminated them
+  eliminatedBy?: string; // player position who eliminated them (legacy, unused)
   commanderDamage: Record<string, number>; // damage from each opponent position
+  // Kill/scoop tracking
+  eliminatedByPlayerId?: string; // player_id of who killed this player (null if scooped)
+  eliminationType?: 'kill' | 'scoop'; // Type of elimination
+  eliminationConfirmed: boolean; // Whether elimination has been confirmed with killer selection
 }
 
 export interface ActiveGameState {
@@ -183,6 +187,7 @@ function MatchTracker() {
           revived: false,
           forceEliminated: false,
           commanderDamage: {},
+          eliminationConfirmed: false,
         };
       });
 
@@ -245,6 +250,7 @@ function MatchTracker() {
         revived: false,
         forceEliminated: false,
         commanderDamage: {},
+        eliminationConfirmed: false,
       };
     });
 
@@ -327,6 +333,22 @@ function MatchTracker() {
         }
       });
 
+      // Build elimination details (who killed whom / scoops)
+      const eliminationDetails: Record<string, { eliminated_by_player_id?: string; elimination_type: 'kill' | 'scoop' }> = {};
+      for (const player of matchState.players) {
+        if (!player.playerId) continue; // Skip guests
+
+        const state = playerStates[player.position];
+
+        // Only include if elimination was confirmed (killed or scooped)
+        if (state?.eliminationConfirmed && state.eliminationType) {
+          eliminationDetails[player.playerId] = {
+            eliminated_by_player_id: state.eliminatedByPlayerId || undefined,
+            elimination_type: state.eliminationType,
+          };
+        }
+      }
+
       const matchRequest = {
         player_deck_pairs: playerDeckPairs,
         winner_player_id: winner.playerId,
@@ -335,6 +357,7 @@ function MatchTracker() {
         duration_seconds: matchState.gameState.elapsedSeconds,
         first_player_position: firstPlayerPosition,
         elimination_orders: Object.keys(eliminationOrders).length > 0 ? eliminationOrders : undefined,
+        elimination_details: Object.keys(eliminationDetails).length > 0 ? eliminationDetails : undefined,
       };
 
       // Add to IndexedDB queue (offline-first approach)
@@ -448,6 +471,22 @@ function MatchTracker() {
         }
       });
 
+      // Build elimination details (who killed whom / scoops)
+      const eliminationDetails: Record<string, { eliminated_by_player_id?: string; elimination_type: 'kill' | 'scoop' }> = {};
+      for (const player of matchState.players) {
+        if (!player.playerId) continue; // Skip guests
+
+        const state = playerStates[player.position];
+
+        // Only include if elimination was confirmed (killed or scooped)
+        if (state?.eliminationConfirmed && state.eliminationType) {
+          eliminationDetails[player.playerId] = {
+            eliminated_by_player_id: state.eliminatedByPlayerId || undefined,
+            elimination_type: state.eliminationType,
+          };
+        }
+      }
+
       const matchRequest = {
         player_deck_pairs: playerDeckPairs,
         winner_player_id: winner.playerId,
@@ -456,6 +495,7 @@ function MatchTracker() {
         duration_seconds: matchState.gameState.elapsedSeconds,
         first_player_position: firstPlayerPosition,
         elimination_orders: Object.keys(eliminationOrders).length > 0 ? eliminationOrders : undefined,
+        elimination_details: Object.keys(eliminationDetails).length > 0 ? eliminationDetails : undefined,
       };
 
       // Add to IndexedDB queue (offline-first approach)

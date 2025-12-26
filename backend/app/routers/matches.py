@@ -22,6 +22,7 @@ class CreateMatchRequest(BaseModel):
     duration_seconds: int | None = None  # Game duration in seconds
     first_player_position: int | None = None  # Index of player who went first (0-based position in players list)
     elimination_orders: dict[str, int] | None = None  # Maps player_id to placement (1=winner, 2=2nd, 3=3rd, 4=4th)
+    elimination_details: dict[str, dict] | None = None  # Maps player_id to {eliminated_by_player_id?, elimination_type}
 
 
 class UpdateMatchRequest(BaseModel):
@@ -33,6 +34,7 @@ class UpdateMatchRequest(BaseModel):
     duration_seconds: int | None = None
     first_player_position: int | None = None
     elimination_orders: dict[str, int] | None = None
+    elimination_details: dict[str, dict] | None = None  # Maps player_id to {eliminated_by_player_id?, elimination_type}
 
 
 def serialize_match(match: Match) -> dict:
@@ -47,7 +49,9 @@ def serialize_match(match: Match) -> dict:
                 "deck_name": p.deck_name,
                 "deck_colors": p.deck_colors,
                 "elimination_order": p.elimination_order,
-                "is_winner": p.is_winner
+                "is_winner": p.is_winner,
+                "eliminated_by_player_id": p.eliminated_by_player_id,
+                "elimination_type": p.elimination_type
             }
             for p in match.players
         ],
@@ -158,6 +162,10 @@ async def create_match(
         # Create MatchPlayer with snapshot data
         is_winner = (player_id == request.winner_player_id and deck_id == request.winner_deck_id)
         elimination_order = request.elimination_orders.get(player_id) if request.elimination_orders else None
+
+        # Get elimination details for this player (who killed them / did they scoop)
+        elim_detail = request.elimination_details.get(player_id, {}) if request.elimination_details else {}
+
         match_players.append(MatchPlayer(
             player_id=player_id,
             player_name=player.name,
@@ -165,7 +173,9 @@ async def create_match(
             deck_name=deck.name,
             deck_colors=deck.colors,  # Snapshot deck colors for historical accuracy
             elimination_order=elimination_order,  # Player placement (1=winner, 2=2nd, etc.)
-            is_winner=is_winner
+            is_winner=is_winner,
+            eliminated_by_player_id=elim_detail.get('eliminated_by_player_id'),
+            elimination_type=elim_detail.get('elimination_type')
         ))
 
     # Validate winner is in the match
@@ -213,28 +223,7 @@ async def create_match(
         await process_match_elo(match)
 
     # Return serialized match
-    return {
-        "id": str(match.id),
-        "players": [
-            {
-                "player_id": p.player_id,
-                "player_name": p.player_name,
-                "deck_id": p.deck_id,
-                "deck_name": p.deck_name,
-                "deck_colors": p.deck_colors,
-                "elimination_order": p.elimination_order,
-                "is_winner": p.is_winner
-            }
-            for p in match.players
-        ],
-        "winner_player_id": match.winner_player_id,
-        "winner_deck_id": match.winner_deck_id,
-        "pod_id": match.pod_id,
-        "match_date": match.match_date.isoformat(),
-        "duration_seconds": match.duration_seconds,
-        "first_player_position": match.first_player_position,
-        "created_at": match.created_at.isoformat()
-    }
+    return serialize_match(match)
 
 
 @router.put("/{match_id}")
@@ -305,6 +294,10 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
             # Create MatchPlayer with snapshot data
             is_winner = (player_id == winner_player_id and deck_id == winner_deck_id)
             elimination_order = request.elimination_orders.get(player_id) if request.elimination_orders else None
+
+            # Get elimination details for this player (who killed them / did they scoop)
+            elim_detail = request.elimination_details.get(player_id, {}) if request.elimination_details else {}
+
             match_players.append(MatchPlayer(
                 player_id=player_id,
                 player_name=player.name,
@@ -312,7 +305,9 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
                 deck_name=deck.name,
                 deck_colors=deck.colors,
                 elimination_order=elimination_order,
-                is_winner=is_winner
+                is_winner=is_winner,
+                eliminated_by_player_id=elim_detail.get('eliminated_by_player_id'),
+                elimination_type=elim_detail.get('elimination_type')
             ))
 
         # Validate winner is in the match

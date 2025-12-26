@@ -148,6 +148,8 @@ export interface MatchPlayer {
   deck_colors: string[];  // Deck color identity (W/U/B/R/G)
   elimination_order?: number;  // Player placement (1=winner, 2=2nd, 3=3rd, 4=4th). Undefined if only winner is known
   is_winner: boolean;
+  eliminated_by_player_id?: string;  // player_id of who eliminated this player (null if scooped)
+  elimination_type?: 'kill' | 'scoop';  // Type of elimination
 }
 
 export interface Match {
@@ -167,6 +169,13 @@ export interface CreateMatchRequest {
   winner_player_id: string;
   winner_deck_id: string;
   match_date: string;  // ISO date string (YYYY-MM-DD)
+  duration_seconds?: number;
+  first_player_position?: number;
+  elimination_orders?: Record<string, number>;  // Maps player_id to placement (1=winner, 2=2nd, etc.)
+  elimination_details?: Record<string, {
+    eliminated_by_player_id?: string;
+    elimination_type: 'kill' | 'scoop';
+  }>;
 }
 
 // Leaderboard Types

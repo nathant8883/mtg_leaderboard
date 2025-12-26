@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Crown, Sword, Heart, Skull, X, Clock, Dices } from 'lucide-react';
+import { Crown, Sword, Heart, Skull, X, Clock, Dices, Flag } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
+import { getSeatColor } from './smash-select';
 
 interface ActiveGameProps {
   players: PlayerSlot[];
@@ -12,6 +13,20 @@ interface ActiveGameProps {
   isQuickPlay?: boolean;
   onReset?: () => void;
 }
+
+// Fun phrases for when a player scoops (concedes)
+const SCOOP_PHRASES = [
+  "Couldn't take the heat",
+  "Folded under pressure",
+  "Left the table early",
+  "Threw in the towel",
+  "Waved the white flag",
+  "Called it quits",
+  "Tapped out",
+  "Rage quit? Never.",
+  "Strategic retreat",
+  "Lived to fight another day",
+];
 
 function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState, isQuickPlay, onReset }: ActiveGameProps) {
   const [timer, setTimer] = useState(gameState.elapsedSeconds || 0);
@@ -671,11 +686,58 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           eliminatedAt: null, // Clear timestamp on revive
           revived: true,
           // Keep current life value (0 or whatever it was)
+          // Clear elimination tracking
+          eliminatedByPlayerId: undefined,
+          eliminationType: undefined,
+          eliminationConfirmed: false,
         },
       },
     };
 
     onUpdateGameState(updatedState);
+  };
+
+  // Handle selecting who killed an eliminated player
+  const handleSelectKiller = (eliminatedPosition: number, killerPlayerId: string) => {
+    const currentState = gameStateRef.current;
+    const updatedState = {
+      ...currentState,
+      playerStates: {
+        ...currentState.playerStates,
+        [eliminatedPosition]: {
+          ...currentState.playerStates[eliminatedPosition],
+          eliminatedByPlayerId: killerPlayerId,
+          eliminationType: 'kill' as const,
+          eliminationConfirmed: true,
+        },
+      },
+    };
+    onUpdateGameState(updatedState);
+  };
+
+  // Handle when a player scoops (concedes)
+  const handleSelectScoop = (position: number) => {
+    const currentState = gameStateRef.current;
+    const updatedState = {
+      ...currentState,
+      playerStates: {
+        ...currentState.playerStates,
+        [position]: {
+          ...currentState.playerStates[position],
+          eliminatedByPlayerId: undefined,
+          eliminationType: 'scoop' as const,
+          eliminationConfirmed: true,
+        },
+      },
+    };
+    onUpdateGameState(updatedState);
+  };
+
+  // Helper to get player name by ID
+  const getPlayerNameById = (playerId: string | undefined): string => {
+    if (!playerId) return '';
+    const player = players.find(p => p.playerId === playerId);
+    return player?.playerName || '';
   };
 
   // Force eliminate a player (with confirmation)
@@ -952,7 +1014,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           return (
             <div
               key={player.position}
-              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${selectingFirstPlayer && diceRollPhase === 'idle' ? 'cursor-pointer' : ''}`}
+              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${playerState.eliminated && playerState.eliminationConfirmed ? 'elimination-confirmed' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${selectingFirstPlayer && diceRollPhase === 'idle' ? 'cursor-pointer' : ''}`}
               onTouchStart={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchStart(e, player)}
               onTouchMove={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchMove(e)}
               onTouchEnd={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchEnd(e, player)}
@@ -960,19 +1022,78 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
             >
               {playerState.eliminated && (
                 <div className="eliminated-overlay">
-                  Eliminated
-                  {/* Revive button - only show if not force eliminated */}
-                  {!playerState.forceEliminated && (
-                    <button
-                      className="revive-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRevive(player.position);
-                      }}
-                      title="Revive Player"
-                    >
-                      <Heart className="w-5 h-5" strokeWidth={2} absoluteStrokeWidth />
-                    </button>
+                  {!playerState.eliminationConfirmed ? (
+                    // Phase 1: Selection card (NOT greyed out)
+                    <div className="elimination-selection-card">
+                      {/* Revive button in corner */}
+                      {!playerState.forceEliminated && (
+                        <button
+                          className="revive-btn-corner"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRevive(player.position);
+                          }}
+                          title="Revive Player"
+                        >
+                          <Heart />
+                        </button>
+                      )}
+
+                      <div className="elimination-title">ELIMINATED</div>
+                      <div className="elimination-prompt">Who took them out?</div>
+
+                      <div className="killer-selection-grid">
+                        {/* Buttons for each remaining non-eliminated player */}
+                        {players
+                          .filter(p => p.position !== player.position && !gameState.playerStates[p.position].eliminated && p.playerId)
+                          .map(p => {
+                            const seatColor = getSeatColor(p.position);
+                            return (
+                              <button
+                                key={p.position}
+                                className="killer-btn-with-color"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (p.playerId) handleSelectKiller(player.position, p.playerId);
+                                }}
+                              >
+                                <div
+                                  className="killer-color-square"
+                                  style={{ backgroundColor: seatColor.primary }}
+                                />
+                                {p.playerName}
+                              </button>
+                            );
+                          })}
+                        {/* Scoop button */}
+                        <button
+                          className="killer-btn-with-color scoop-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectScoop(player.position);
+                          }}
+                        >
+                          <Flag className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : playerState.eliminationType === 'scoop' ? (
+                    // Phase 2B: Scooped card (no revive button - selection is final)
+                    <div className="scoop-card">
+                      <div className="scoop-icon">
+                        <Flag />
+                      </div>
+                      <div className="scoop-title">SCOOPED</div>
+                      <div className="scoop-phrase">
+                        {SCOOP_PHRASES[player.position % SCOOP_PHRASES.length]}
+                      </div>
+                    </div>
+                  ) : (
+                    // Phase 2A: Killed confirmation (no revive button - selection is final)
+                    <div className="elimination-confirmed-card">
+                      <div className="elimination-title">ELIMINATED</div>
+                      <div className="elimination-info">by {getPlayerNameById(playerState.eliminatedByPlayerId)}</div>
+                    </div>
                   )}
                 </div>
               )}
