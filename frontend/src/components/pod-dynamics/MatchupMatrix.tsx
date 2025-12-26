@@ -203,6 +203,9 @@ export function MatchupMatrix({ data, currentPlayerId }: MatchupMatrixProps) {
         <p className="text-center text-[10px] text-[#909296]">
           Win rates shown only for matchups with 4+ games played
         </p>
+        <p className="text-center text-[10px] text-[#909296] mt-1">
+          Each cell shows games played between those two specific players
+        </p>
       </div>
     </div>
   );

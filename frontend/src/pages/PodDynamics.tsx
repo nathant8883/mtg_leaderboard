@@ -68,7 +68,7 @@ export function PodDynamics() {
       {overview && !loadingOverview && (
         <div className="grid grid-cols-4 gap-2 mb-4">
           <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center">
-            <div className="text-[#909296] text-[10px] mb-0.5">Games</div>
+            <div className="text-[#909296] text-[10px] mb-0.5">Pod Games</div>
             <div className="text-white text-lg font-bold">{overview.total_games}</div>
           </div>
           <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-2 py-1.5 text-center">

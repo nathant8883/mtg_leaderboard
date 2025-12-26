@@ -89,7 +89,7 @@ export function TrendsTab({ playerId }: TrendsTabProps) {
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
           <div className="flex items-center gap-2 text-[#909296] text-xs mb-1">
             <Users size={14} />
-            <span>Total Games</span>
+            <span>Your Games</span>
           </div>
           <div className="text-white text-2xl font-bold">{trendsData.total_games}</div>
         </div>
