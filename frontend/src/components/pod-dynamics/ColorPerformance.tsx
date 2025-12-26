@@ -1,6 +1,6 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
 import type { ColorStatsData } from '../../services/api';
-import { getBlendedColor, getColorIdentityName } from '../../utils/manaColors';
+import { getColorGradientStops, getColorGradientCSS, getColorIdentityName } from '../../utils/manaColors';
 
 interface ColorPerformanceProps {
   data: ColorStatsData;
@@ -157,6 +157,19 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
             <div className="w-[200px] h-[200px] sm:w-[120px] sm:h-[120px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
+                  <defs>
+                    {metaData.slice(0, 6).map((entry) => {
+                      const stops = getColorGradientStops(entry.identity);
+                      const gradientId = `gradient-${entry.identity.replace(/[^a-zA-Z]/g, '')}`;
+                      return (
+                        <linearGradient key={gradientId} id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                          {stops.map((stop, i) => (
+                            <stop key={i} offset={stop.offset} stopColor={stop.color} />
+                          ))}
+                        </linearGradient>
+                      );
+                    })}
+                  </defs>
                   <Pie
                     data={metaData.slice(0, 6)}
                     dataKey="count"
@@ -168,9 +181,10 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                     strokeWidth={1}
                     stroke="#1A1B1E"
                   >
-                    {metaData.slice(0, 6).map((entry) => (
-                      <Cell key={entry.identity} fill={getBlendedColor(entry.identity)} />
-                    ))}
+                    {metaData.slice(0, 6).map((entry) => {
+                      const gradientId = `gradient-${entry.identity.replace(/[^a-zA-Z]/g, '')}`;
+                      return <Cell key={entry.identity} fill={`url(#${gradientId})`} />;
+                    })}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
@@ -181,7 +195,7 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                   <div key={item.identity} className="flex items-center gap-1.5 text-sm">
                     <div
                       className="w-3 h-3 rounded-sm"
-                      style={{ backgroundColor: getBlendedColor(item.identity) }}
+                      style={{ background: getColorGradientCSS(item.identity) }}
                     />
                     <span className="text-white font-medium">{getColorIdentityName(item.identity)}</span>
                     <span className="text-[#909296] text-xs">{item.percentage}%</span>

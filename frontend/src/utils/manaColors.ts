@@ -129,32 +129,45 @@ export function getColorIdentityName(identity: string): string {
 }
 
 /**
- * Get a blended color for multi-color identities (for pie charts, etc.)
+ * Get gradient stops for multi-color identities (for SVG gradients)
+ * Returns array of { offset: string, color: string }
  */
-export function getBlendedColor(identity: string): string {
+export function getColorGradientStops(identity: string): { offset: string; color: string }[] {
   if (!identity || identity === 'C' || identity === 'Colorless') {
-    return COLORLESS.primary;
+    return [
+      { offset: '0%', color: COLORLESS.primary },
+      { offset: '100%', color: '#4B5563' },
+    ];
   }
 
-  const colors = identity.split('').filter((c): c is ManaColor => c in MANA_COLORS);
-  if (colors.length === 0) return COLORLESS.primary;
-  if (colors.length === 1) return MANA_COLORS[colors[0]].primary;
+  const colors = sortColors(identity.split(''));
+  if (colors.length === 0) {
+    return [
+      { offset: '0%', color: COLORLESS.primary },
+      { offset: '100%', color: '#4B5563' },
+    ];
+  }
 
-  // Average RGB values for multi-color
-  const rgbValues = colors.map(c => {
-    const hex = MANA_COLORS[c].primary;
-    return {
-      r: parseInt(hex.slice(1, 3), 16),
-      g: parseInt(hex.slice(3, 5), 16),
-      b: parseInt(hex.slice(5, 7), 16),
-    };
-  });
+  if (colors.length === 1) {
+    const color = MANA_COLORS[colors[0]].primary;
+    return [
+      { offset: '0%', color },
+      { offset: '100%', color },
+    ];
+  }
 
-  const avg = {
-    r: Math.round(rgbValues.reduce((sum, c) => sum + c.r, 0) / rgbValues.length),
-    g: Math.round(rgbValues.reduce((sum, c) => sum + c.g, 0) / rgbValues.length),
-    b: Math.round(rgbValues.reduce((sum, c) => sum + c.b, 0) / rgbValues.length),
-  };
+  // Multi-color - create gradient stops
+  return colors.map((c, i) => ({
+    offset: `${(i / (colors.length - 1)) * 100}%`,
+    color: MANA_COLORS[c].primary,
+  }));
+}
 
-  return `#${avg.r.toString(16).padStart(2, '0')}${avg.g.toString(16).padStart(2, '0')}${avg.b.toString(16).padStart(2, '0')}`;
+/**
+ * Get CSS linear-gradient string for multi-color identities
+ */
+export function getColorGradientCSS(identity: string): string {
+  const stops = getColorGradientStops(identity);
+  const stopsStr = stops.map(s => `${s.color} ${s.offset}`).join(', ');
+  return `linear-gradient(135deg, ${stopsStr})`;
 }
