@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Crown, Sword, Heart, Skull, X, Clock } from 'lucide-react';
+import { Crown, Sword, Heart, Skull, X, Clock, Dices } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
 
 interface ActiveGameProps {
@@ -24,6 +24,19 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   // First player selection state
   const [selectingFirstPlayer, setSelectingFirstPlayer] = useState(!gameState.firstPlayerPosition);
   const [firstPlayerPosition, setFirstPlayerPosition] = useState<number | null>(gameState.firstPlayerPosition ?? null);
+
+  // Dice roll state for first player selection
+  type DiceRollPhase = 'idle' | 'rolling' | 'stopping' | 'revealing' | 'tiebreaker';
+  interface DieState {
+    currentValue: number;
+    finalValue: number | null;
+    isStopped: boolean;
+    isWinner: boolean;
+    isTied: boolean;
+  }
+  const [diceRollPhase, setDiceRollPhase] = useState<DiceRollPhase>('idle');
+  const [diceStates, setDiceStates] = useState<Record<number, DieState>>({});
+  const rollIntervalRef = useRef<number | null>(null);
 
   // Track active button presses for visual feedback
   const [activeButton, setActiveButton] = useState<{ position: number; type: 'minus' | 'plus' } | null>(null);
@@ -114,6 +127,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const handleSelectFirstPlayer = (position: number) => {
     setFirstPlayerPosition(position);
     setSelectingFirstPlayer(false);
+    setDiceRollPhase('idle');
+    setDiceStates({});
 
     // Update game state with first player position
     const updatedState = {
@@ -121,6 +136,200 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       firstPlayerPosition: position,
     };
     onUpdateGameState(updatedState);
+  };
+
+  // Dice roll functions for first player selection
+  const startRolling = (positionsToRoll?: number[]) => {
+    const positions = positionsToRoll || players.map(p => p.position);
+
+    rollIntervalRef.current = window.setInterval(() => {
+      setDiceStates(prev => {
+        const updated = { ...prev };
+        positions.forEach(pos => {
+          if (updated[pos] && !updated[pos].isStopped) {
+            updated[pos] = {
+              ...updated[pos],
+              currentValue: Math.floor(Math.random() * 10) + 1,
+            };
+          }
+        });
+        return updated;
+      });
+    }, 50);
+  };
+
+  const handleStartRoll = () => {
+    if (diceRollPhase !== 'idle') return;
+
+    // Initialize dice states for all players
+    const initialDiceStates: Record<number, DieState> = {};
+    players.forEach(player => {
+      initialDiceStates[player.position] = {
+        currentValue: Math.floor(Math.random() * 10) + 1,
+        finalValue: null,
+        isStopped: false,
+        isWinner: false,
+        isTied: false,
+      };
+    });
+
+    setDiceStates(initialDiceStates);
+    setDiceRollPhase('rolling');
+
+    startRolling();
+
+    // After 1.5s, start stopping dice sequentially
+    setTimeout(() => {
+      stopDiceSequentially();
+    }, 1500);
+  };
+
+  const stopDiceSequentially = (positionsToStop?: number[]) => {
+    if (rollIntervalRef.current) {
+      clearInterval(rollIntervalRef.current);
+      rollIntervalRef.current = null;
+    }
+
+    setDiceRollPhase('stopping');
+
+    const positions = positionsToStop || players.map(p => p.position);
+    // Shuffle for random stop order
+    const shuffledPositions = [...positions].sort(() => Math.random() - 0.5);
+
+    shuffledPositions.forEach((position, index) => {
+      setTimeout(() => {
+        const finalValue = Math.floor(Math.random() * 10) + 1;
+
+        setDiceStates(prev => ({
+          ...prev,
+          [position]: {
+            ...prev[position],
+            currentValue: finalValue,
+            finalValue: finalValue,
+            isStopped: true,
+          },
+        }));
+
+        // After last die stops, determine winner
+        if (index === shuffledPositions.length - 1) {
+          setTimeout(() => {
+            determineWinner(positions);
+          }, 300);
+        }
+      }, index * 200);
+    });
+  };
+
+  const determineWinner = (positionsToCheck?: number[]) => {
+    setDiceRollPhase('revealing');
+
+    setDiceStates(prev => {
+      const positions = positionsToCheck || Object.keys(prev).map(Number);
+      const values = positions.map(pos => ({
+        position: pos,
+        value: prev[pos]?.finalValue || 0,
+      }));
+
+      const maxValue = Math.max(...values.map(v => v.value));
+      const winners = values.filter(v => v.value === maxValue);
+
+      const updated = { ...prev };
+
+      if (winners.length === 1) {
+        // Single winner
+        updated[winners[0].position] = {
+          ...updated[winners[0].position],
+          isWinner: true,
+        };
+
+        // Celebrate then select
+        setTimeout(() => {
+          handleSelectFirstPlayer(winners[0].position);
+        }, 1500);
+      } else {
+        // Tie - mark tied dice
+        winners.forEach(w => {
+          updated[w.position] = {
+            ...updated[w.position],
+            isTied: true,
+          };
+        });
+
+        // Auto re-roll after brief pause
+        setTimeout(() => {
+          handleTiebreakerRoll(winners.map(w => w.position));
+        }, 1000);
+      }
+
+      return updated;
+    });
+  };
+
+  const handleTiebreakerRoll = (tiedPositions: number[]) => {
+    setDiceRollPhase('tiebreaker');
+
+    // Reset only tied dice
+    setDiceStates(prev => {
+      const updated = { ...prev };
+      tiedPositions.forEach(pos => {
+        updated[pos] = {
+          currentValue: Math.floor(Math.random() * 10) + 1,
+          finalValue: null,
+          isStopped: false,
+          isWinner: false,
+          isTied: false,
+        };
+      });
+      // Mark non-tied dice as not in play (keep their final values visible)
+      Object.keys(updated).forEach(posKey => {
+        const pos = Number(posKey);
+        if (!tiedPositions.includes(pos)) {
+          updated[pos] = {
+            ...updated[pos],
+            isTied: false,
+          };
+        }
+      });
+      return updated;
+    });
+
+    setDiceRollPhase('rolling');
+    startRolling(tiedPositions);
+
+    // Shorter roll time for tiebreaker
+    setTimeout(() => {
+      stopDiceSequentially(tiedPositions);
+    }, 1200);
+  };
+
+  // Cleanup dice roll interval on unmount
+  useEffect(() => {
+    return () => {
+      if (rollIntervalRef.current) {
+        clearInterval(rollIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Re-roll for first player (accessible from menu)
+  const handleRerollFirstPlayer = () => {
+    // Reset first player state and enter selection mode
+    setFirstPlayerPosition(null);
+    setSelectingFirstPlayer(true);
+    setDiceRollPhase('idle');
+    setDiceStates({});
+
+    // Clear from game state
+    const updatedState = {
+      ...gameState,
+      firstPlayerPosition: undefined,
+    };
+    onUpdateGameState(updatedState);
+
+    // Start rolling immediately
+    setTimeout(() => {
+      handleStartRoll();
+    }, 100);
   };
 
   const handleLifeChange = (position: number, delta: number) => {
@@ -682,15 +891,36 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
         >
           Exit Game
         </button>
+
+        {/* Re-roll First Player - Bottom-right */}
+        <button
+          className="radial-pill reroll-pill"
+          onClick={() => {
+            closeMenu();
+            handleRerollFirstPlayer();
+          }}
+        >
+          <Dices className="w-4 h-4 inline-block mr-1" />
+          Re-roll
+        </button>
       </div>
 
-      {/* Floating Center Button - Logo/X or Exit Commander Damage Mode */}
+      {/* Floating Center Button - Roll/Logo/X or Exit Commander Damage Mode */}
       <div className="floating-menu-btn-wrapper">
         <button
-          className={`floating-menu-btn ${commanderDamageMode ? 'commander-mode-exit' : ''} ${menuState === 'spinning' ? 'spinning' : ''} ${menuState === 'open' || menuState === 'closing' ? 'menu-open' : ''}`}
-          onClick={handleMenuButtonClick}
+          className={`floating-menu-btn ${selectingFirstPlayer && diceRollPhase === 'idle' ? 'roll-mode' : ''} ${commanderDamageMode ? 'commander-mode-exit' : ''} ${menuState === 'spinning' ? 'spinning' : ''} ${menuState === 'open' || menuState === 'closing' ? 'menu-open' : ''}`}
+          onClick={() => {
+            if (selectingFirstPlayer && diceRollPhase === 'idle') {
+              handleStartRoll();
+            } else {
+              handleMenuButtonClick();
+            }
+          }}
+          disabled={selectingFirstPlayer && diceRollPhase !== 'idle'}
         >
-          {commanderDamageMode ? (
+          {selectingFirstPlayer && diceRollPhase === 'idle' ? (
+            <Dices className="w-8 h-8" />
+          ) : commanderDamageMode ? (
             <Sword className="w-8 h-8" />
           ) : (
             <>
@@ -722,11 +952,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           return (
             <div
               key={player.position}
-              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${selectingFirstPlayer ? 'cursor-pointer' : ''}`}
+              className={`player-card player-slot ${playerState.eliminated ? 'eliminated' : ''} ${commanderDamageMode ? 'commander-damage-mode' : ''} ${isTrackingPlayer ? 'tracking-player' : ''} ${selectingFirstPlayer && diceRollPhase === 'idle' ? 'cursor-pointer' : ''}`}
               onTouchStart={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchStart(e, player)}
               onTouchMove={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchMove(e)}
               onTouchEnd={(e) => !commanderDamageMode && !selectingFirstPlayer && handleTouchEnd(e, player)}
-              onClick={() => selectingFirstPlayer && handleSelectFirstPlayer(player.position)}
+              onClick={() => selectingFirstPlayer && diceRollPhase === 'idle' && handleSelectFirstPlayer(player.position)}
             >
               {playerState.eliminated && (
                 <div className="eliminated-overlay">
@@ -770,14 +1000,31 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <div className="text-xs opacity-90 text-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">{player.deckName}</div>
               </div>
 
-              {/* First Player Selection Mode - Show selection overlay */}
+              {/* First Player Selection Mode - Show selection overlay or dice block */}
               {selectingFirstPlayer && (
                 <>
                   <div className="absolute inset-0 bg-black/50 z-[5]" />
-                  <div className="absolute top-1/2 left-0 right-0 z-[6] -translate-y-1/2 text-center pointer-events-none flex flex-col vertical-stack">
-                    <div className="text-lg font-bold text-white mb-1">Tap To Choose</div>
-                    <div className="text-base font-semibold text-white">First Player</div>
-                  </div>
+                  {diceRollPhase === 'idle' ? (
+                    // Show tap to choose text when waiting for roll
+                    <div className="absolute top-1/2 left-0 right-0 z-[6] -translate-y-1/2 text-center pointer-events-none flex flex-col vertical-stack">
+                      <div className="text-lg font-bold text-white mb-1">Tap or Roll To Choose</div>
+                      <div className="text-base font-semibold text-white">First Player</div>
+                    </div>
+                  ) : diceStates[player.position] ? (
+                    // Show dice block when rolling
+                    <div
+                      className={`dice-block ${
+                        diceStates[player.position].isWinner ? 'winner' :
+                        diceStates[player.position].isTied ? 'tied' :
+                        diceStates[player.position].isStopped ? 'stopped' :
+                        'rolling'
+                      }`}
+                    >
+                      <span className="dice-number">
+                        {diceStates[player.position].currentValue}
+                      </span>
+                    </div>
+                  ) : null}
                 </>
               )}
 
