@@ -6,6 +6,7 @@ import PlayerAssignment from '../components/match-tracker/PlayerAssignment';
 import ActiveGame from '../components/match-tracker/ActiveGame';
 import WinnerScreen from '../components/match-tracker/WinnerScreen';
 import LandscapePrompt from '../components/LandscapePrompt';
+import ExitConfirmModal from '../components/match-tracker/ExitConfirmModal';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { playerApi, deckApi, Player, Deck } from '../services/api';
@@ -121,6 +122,7 @@ function MatchTracker() {
   });
 
   const [showResumeModal, setShowResumeModal] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Check for saved match on mount
   useEffect(() => {
@@ -571,9 +573,16 @@ function MatchTracker() {
   };
 
   const handleExitGame = () => {
-    if (window.confirm('Are you sure you want to exit? Unsaved progress will be lost.')) {
-      handleMatchDiscard();
-    }
+    setShowExitModal(true);
+  };
+
+  const handleExitCancel = () => {
+    setShowExitModal(false);
+  };
+
+  const handleExitConfirm = () => {
+    setShowExitModal(false);
+    handleMatchDiscard();
   };
 
   const onExitToHome = () => {
@@ -586,6 +595,12 @@ function MatchTracker() {
     <div className="fixed top-0 left-0 right-0 bottom-0 min-h-screen max-h-screen bg-gradient-to-br from-[#1a1b1e] to-[#2c2e33] text-white p-0 m-0 overflow-hidden">
       {/* Landscape orientation prompt - only visible in portrait mode */}
       <LandscapePrompt isOrientationLocked={orientationLockStatus === 'locked'} />
+
+      <ExitConfirmModal
+        isOpen={showExitModal}
+        onCancel={handleExitCancel}
+        onConfirm={handleExitConfirm}
+      />
 
       {showResumeModal && (
         <div className="fixed top-0 left-0 right-0 bottom-0 bg-[rgba(0,0,0,0.8)] flex items-center justify-center z-[1000] p-4">

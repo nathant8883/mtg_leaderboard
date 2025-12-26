@@ -1,0 +1,139 @@
+/* Exit Confirm Modal - iOS-style action sheet */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.exit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.exit-modal-overlay.closing {
+  animation: fadeOut 0.2s ease-out forwards;
+}
+
+.exit-modal-content {
+  background: #1a1b1e;
+  border-top: 1px solid #2c2e33;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 500px;
+  padding: 12px 24px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideInFromBottom 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.exit-modal-overlay.closing .exit-modal-content {
+  animation: slideOutToBottom 0.25s ease-in forwards;
+}
+
+.exit-modal-handle {
+  width: 36px;
+  height: 4px;
+  background: #3c3e43;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.exit-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.exit-modal-message {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0 0 24px 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.exit-modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.exit-modal-cancel,
+.exit-modal-confirm {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.exit-modal-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  border: 1px solid #2c2e33;
+}
+
+.exit-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.exit-modal-cancel:active {
+  transform: scale(0.98);
+}
+
+.exit-modal-confirm {
+  background: #ef4444;
+  color: white;
+}
+
+.exit-modal-confirm:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.exit-modal-confirm:active {
+  transform: scale(0.98);
+}
