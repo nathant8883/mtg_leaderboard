@@ -404,9 +404,6 @@ export function MainLayout() {
           >
             <BarChart3 size={24} />
             <span className="text-[11px]">Stats</span>
-            <span className="absolute top-1 right-1 px-1 py-0.5 bg-[#33D9B2] text-[#0a0a0b] text-[7px] font-bold rounded-full uppercase tracking-wide">
-              Beta
-            </span>
           </button>
           <button
             className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
