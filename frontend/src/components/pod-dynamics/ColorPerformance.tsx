@@ -1,5 +1,6 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from 'recharts';
 import type { ColorStatsData } from '../../services/api';
+import { getBlendedColor, getColorIdentityName } from '../../utils/manaColors';
 
 interface ColorPerformanceProps {
   data: ColorStatsData;
@@ -13,7 +14,9 @@ const COLOR_MAP: Record<string, { name: string; hex: string }> = {
   'G': { name: 'Green', hex: '#00733E' },
 };
 
-const COLOR_COUNT_COLORS = ['#909296', '#667eea', '#33D9B2', '#FFA500', '#FF6B6B', '#FFD700'];
+// Simple palette for color count section (1-color, 2-color, etc.)
+const COLOR_COUNT_PALETTE = ['#909296', '#667eea', '#33D9B2', '#FFA500', '#FF6B6B', '#FFD700'];
+
 
 export function ColorPerformance({ data }: ColorPerformanceProps) {
   const { by_color, by_color_count, meta_composition } = data;
@@ -135,7 +138,7 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                 <div className="text-xs text-[#909296] mb-1">{item.label}</div>
                 <div
                   className="text-lg font-bold"
-                  style={{ color: COLOR_COUNT_COLORS[index % COLOR_COUNT_COLORS.length] }}
+                  style={{ color: COLOR_COUNT_PALETTE[index % COLOR_COUNT_PALETTE.length] }}
                 >
                   {item.win_rate.toFixed(0)}%
                 </div>
@@ -165,8 +168,8 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                     strokeWidth={1}
                     stroke="#1A1B1E"
                   >
-                    {metaData.slice(0, 6).map((_, index) => (
-                      <Cell key={index} fill={COLOR_COUNT_COLORS[index % COLOR_COUNT_COLORS.length]} />
+                    {metaData.slice(0, 6).map((entry) => (
+                      <Cell key={entry.identity} fill={getBlendedColor(entry.identity)} />
                     ))}
                   </Pie>
                 </PieChart>
@@ -174,13 +177,13 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
             </div>
             <div className="flex-1 w-full sm:w-auto">
               <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1">
-                {metaData.slice(0, 5).map((item, index) => (
+                {metaData.slice(0, 5).map((item) => (
                   <div key={item.identity} className="flex items-center gap-1.5 text-sm">
                     <div
                       className="w-3 h-3 rounded-sm"
-                      style={{ backgroundColor: COLOR_COUNT_COLORS[index % COLOR_COUNT_COLORS.length] }}
+                      style={{ backgroundColor: getBlendedColor(item.identity) }}
                     />
-                    <span className="text-white font-medium">{item.identity}</span>
+                    <span className="text-white font-medium">{getColorIdentityName(item.identity)}</span>
                     <span className="text-[#909296] text-xs">{item.percentage}%</span>
                   </div>
                 ))}
