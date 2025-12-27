@@ -105,12 +105,12 @@ export function CombatTab() {
         </div>
       )}
 
-      {/* Scoop Shaming */}
+      {/* Scoops */}
       {hasScoopData && (
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
           <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
             <Flag size={18} className="text-[#667eea]" />
-            Scoop Shaming
+            Scoops
           </h3>
           <p className="text-[#909296] text-xs mb-4">Who gives up the fight?</p>
           <ScoopShame players={data.scoop_leaders} />
