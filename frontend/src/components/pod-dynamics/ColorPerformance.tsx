@@ -96,7 +96,7 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                   borderRadius: '8px',
                   padding: '8px 12px',
                 }}
-                formatter={(value: number | undefined, _name: string | undefined, props: any) => {
+                formatter={((value: any, _name: any, props: any) => {
                   const item = props.payload;
                   return [
                     <div key="tooltip" className="text-white">
@@ -105,7 +105,7 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                     </div>,
                     ''
                   ];
-                }}
+                }) as any}
               />
               <Bar dataKey="win_rate" radius={[0, 4, 4, 0]}>
                 {colorData.map((entry) => (

@@ -79,12 +79,12 @@ export function EloChart({ data }: EloChartProps) {
                 padding: '8px 12px',
               }}
               labelStyle={{ color: '#909296', fontSize: 12, marginBottom: 4 }}
-              formatter={(value: number | undefined, name: string | undefined) => {
+              formatter={((value: any, name: any) => {
                 if (name === 'elo') {
                   return [<span className="text-white font-semibold">{value ?? 0}</span>, 'Elo'];
                 }
                 return [value ?? 0, name ?? ''];
-              }}
+              }) as any}
               labelFormatter={(label) => label}
             />
             {/* Reference line at 1000 (starting Elo) */}

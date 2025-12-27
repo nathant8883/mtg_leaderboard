@@ -66,7 +66,7 @@ export function PodSizeChart({ data }: PodSizeChartProps) {
                 borderRadius: '8px',
                 padding: '8px 12px',
               }}
-              formatter={(value: number | undefined, _name: string | undefined, props: any) => {
+              formatter={((value: any, _name: any, props: any) => {
                 const item = props.payload;
                 return [
                   <div key="tooltip" className="text-white">
@@ -75,7 +75,7 @@ export function PodSizeChart({ data }: PodSizeChartProps) {
                   </div>,
                   ''
                 ];
-              }}
+              }) as any}
               labelFormatter={(label) => `${label} games`}
             />
             {/* Reference line for expected win rate */}

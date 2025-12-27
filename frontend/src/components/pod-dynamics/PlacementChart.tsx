@@ -69,10 +69,10 @@ export function PlacementChart({ data }: PlacementChartProps) {
                 borderRadius: '8px',
                 padding: '8px 12px',
               }}
-              formatter={(value: number | undefined, name: string | undefined, props: any) => [
+              formatter={((value: any, name: any, props: any) => [
                 `${value ?? 0} games (${props.payload.percentage.toFixed(1)}%)`,
                 name ?? ''
-              ]}
+              ]) as any}
             />
           </PieChart>
         </ResponsiveContainer>
