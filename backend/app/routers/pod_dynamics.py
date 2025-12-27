@@ -1038,3 +1038,247 @@ async def get_play_frequency_calendar(
         "calendar": calendar_data,
         "stats": stats
     }
+
+
+@router.get("/elimination-stats")
+async def get_elimination_stats(
+    current_player: Optional[Player] = Depends(get_optional_player)
+) -> Dict[str, Any]:
+    """
+    Get elimination/scoop statistics for the pod.
+
+    Returns:
+    - Kill leaderboard (players with most kills)
+    - Scoop rate leaderboard
+    - Average placement leaderboard
+    - Nemesis pairs (who kills who most)
+    - Kill streak highlights
+    """
+    if not current_player or not current_player.current_pod_id:
+        return {
+            "kill_leaders": [],
+            "scoop_leaders": [],
+            "placement_leaders": [],
+            "nemesis_pairs": [],
+            "top_kill_streaks": [],
+            "total_kills": 0,
+            "total_scoops": 0,
+            "total_games_with_elimination_data": 0,
+            "scoop_rate_pod": 0,
+            "avg_kills_per_game": 0
+        }
+
+    matches = await Match.find(
+        Match.pod_id == current_player.current_pod_id
+    ).to_list()
+
+    if not matches:
+        return {
+            "kill_leaders": [],
+            "scoop_leaders": [],
+            "placement_leaders": [],
+            "nemesis_pairs": [],
+            "top_kill_streaks": [],
+            "total_kills": 0,
+            "total_scoops": 0,
+            "total_games_with_elimination_data": 0,
+            "scoop_rate_pod": 0,
+            "avg_kills_per_game": 0
+        }
+
+    # Fetch all players to get avatars
+    all_players = await Player.find(
+        Player.current_pod_id == current_player.current_pod_id
+    ).to_list()
+    player_avatars = {str(p.id): (p.custom_avatar or p.picture) for p in all_players}
+
+    # Filter to matches with elimination data
+    matches_with_data = [
+        m for m in matches
+        if any(
+            p.elimination_order is not None or p.elimination_type is not None
+            for p in m.players
+        )
+    ]
+
+    if not matches_with_data:
+        return {
+            "kill_leaders": [],
+            "scoop_leaders": [],
+            "placement_leaders": [],
+            "nemesis_pairs": [],
+            "top_kill_streaks": [],
+            "total_kills": 0,
+            "total_scoops": 0,
+            "total_games_with_elimination_data": 0,
+            "scoop_rate_pod": 0,
+            "avg_kills_per_game": 0
+        }
+
+    # Track per-player stats
+    player_stats: Dict[str, Dict[str, Any]] = defaultdict(lambda: {
+        "name": "",
+        "total_kills": 0,
+        "times_killed": 0,
+        "times_scooped": 0,
+        "placements": [],
+        "games_played": 0,
+        "max_kills_in_game": 0
+    })
+
+    # Track nemesis pairs (killer_id, victim_id) -> count
+    kill_pairs: Counter = Counter()
+
+    # Track kills per match per player for kill streaks
+    match_kill_records: List[Dict[str, Any]] = []
+
+    # Pod-wide totals
+    total_kills = 0
+    total_scoops = 0
+
+    for match in matches_with_data:
+        # Track kills in this specific match
+        match_kills_by_player: Dict[str, List[str]] = defaultdict(list)
+
+        for p in match.players:
+            player_id = p.player_id
+            player_stats[player_id]["name"] = p.player_name
+            player_stats[player_id]["games_played"] += 1
+
+            # Track placements
+            if p.elimination_order is not None:
+                player_stats[player_id]["placements"].append(p.elimination_order)
+
+            # Track being eliminated
+            if p.elimination_type == "kill":
+                player_stats[player_id]["times_killed"] += 1
+                total_kills += 1
+
+                # Credit the killer
+                if p.eliminated_by_player_id:
+                    killer_id = p.eliminated_by_player_id
+                    player_stats[killer_id]["total_kills"] += 1
+                    kill_pairs[(killer_id, player_id)] += 1
+                    match_kills_by_player[killer_id].append(p.player_name)
+
+            elif p.elimination_type == "scoop":
+                player_stats[player_id]["times_scooped"] += 1
+                total_scoops += 1
+
+        # Record kill streaks for this match
+        for killer_id, victims in match_kills_by_player.items():
+            if len(victims) >= 1:
+                kills_count = len(victims)
+                # Update max kills in game for this player
+                if kills_count > player_stats[killer_id]["max_kills_in_game"]:
+                    player_stats[killer_id]["max_kills_in_game"] = kills_count
+
+                match_kill_records.append({
+                    "player_id": killer_id,
+                    "player_name": player_stats[killer_id]["name"],
+                    "avatar": player_avatars.get(killer_id),
+                    "kills_in_game": kills_count,
+                    "match_id": str(match.id),
+                    "match_date": match.match_date.isoformat(),
+                    "victims": victims
+                })
+
+    # Build leaderboards
+    kill_leaders = []
+    scoop_leaders = []
+    placement_leaders = []
+
+    for player_id, stats in player_stats.items():
+        games = stats["games_played"]
+        if games == 0:
+            continue
+
+        total_deaths = stats["times_killed"] + stats["times_scooped"]
+        scoop_rate = round(stats["times_scooped"] / total_deaths * 100, 1) if total_deaths > 0 else 0
+        kill_rate = round(stats["total_kills"] / games, 2)
+
+        # Placement stats
+        placements = stats["placements"]
+        avg_placement = round(sum(placements) / len(placements), 2) if placements else 0
+        first_place = placements.count(1)
+        second_place = placements.count(2)
+        third_place = placements.count(3)
+        fourth_plus = sum(1 for p in placements if p >= 4)
+
+        player_entry = {
+            "player_id": player_id,
+            "player_name": stats["name"],
+            "avatar": player_avatars.get(player_id),
+            "total_kills": stats["total_kills"],
+            "kill_rate": kill_rate,
+            "max_kills_in_game": stats["max_kills_in_game"],
+            "total_deaths": total_deaths,
+            "times_scooped": stats["times_scooped"],
+            "times_killed": stats["times_killed"],
+            "scoop_rate": scoop_rate,
+            "average_placement": avg_placement,
+            "games_with_placement": len(placements),
+            "first_place": first_place,
+            "second_place": second_place,
+            "third_place": third_place,
+            "fourth_plus": fourth_plus,
+            "games_played": games
+        }
+
+        kill_leaders.append(player_entry)
+        scoop_leaders.append(player_entry)
+        placement_leaders.append(player_entry)
+
+    # Sort leaderboards
+    kill_leaders.sort(key=lambda x: (-x["total_kills"], -x["kill_rate"]))
+    scoop_leaders.sort(key=lambda x: (-x["scoop_rate"], -x["times_scooped"]))
+    placement_leaders.sort(key=lambda x: (x["average_placement"] if x["average_placement"] > 0 else 999, -x["games_with_placement"]))
+
+    # Build nemesis pairs (top killer-victim relationships)
+    nemesis_pairs = []
+    for (killer_id, victim_id), kill_count in kill_pairs.most_common(10):
+        if kill_count >= 2:  # Only show meaningful rivalries
+            # Calculate games together
+            games_together = sum(
+                1 for m in matches_with_data
+                if killer_id in [p.player_id for p in m.players]
+                and victim_id in [p.player_id for p in m.players]
+            )
+            kill_rate = round(kill_count / games_together * 100, 1) if games_together > 0 else 0
+
+            nemesis_pairs.append({
+                "killer_id": killer_id,
+                "killer_name": player_stats[killer_id]["name"],
+                "killer_avatar": player_avatars.get(killer_id),
+                "victim_id": victim_id,
+                "victim_name": player_stats[victim_id]["name"],
+                "victim_avatar": player_avatars.get(victim_id),
+                "kill_count": kill_count,
+                "games_together": games_together,
+                "kill_rate": kill_rate
+            })
+
+    # Get top kill streaks (multi-kill games, 2+ kills)
+    top_kill_streaks = sorted(
+        [r for r in match_kill_records if r["kills_in_game"] >= 2],
+        key=lambda x: (-x["kills_in_game"], x["match_date"]),
+    )[:10]
+
+    # Pod-wide calculations
+    total_games = len(matches_with_data)
+    total_eliminations = total_kills + total_scoops
+    scoop_rate_pod = round(total_scoops / total_eliminations * 100, 1) if total_eliminations > 0 else 0
+    avg_kills_per_game = round(total_kills / total_games, 2) if total_games > 0 else 0
+
+    return {
+        "kill_leaders": kill_leaders,
+        "scoop_leaders": scoop_leaders,
+        "placement_leaders": placement_leaders,
+        "nemesis_pairs": nemesis_pairs,
+        "top_kill_streaks": top_kill_streaks,
+        "total_kills": total_kills,
+        "total_scoops": total_scoops,
+        "total_games_with_elimination_data": total_games,
+        "scoop_rate_pod": scoop_rate_pod,
+        "avg_kills_per_game": avg_kills_per_game
+    }

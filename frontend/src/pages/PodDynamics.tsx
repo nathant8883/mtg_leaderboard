@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendsTab } from '../components/pod-dynamics/TrendsTab';
 import { RelationshipsTab } from '../components/pod-dynamics/RelationshipsTab';
+import { CombatTab } from '../components/pod-dynamics/CombatTab';
 import { DecksTab } from '../components/pod-dynamics/DecksTab';
 import { InsightsTab } from '../components/pod-dynamics/InsightsTab';
 import { podDynamicsApi } from '../services/api';
@@ -8,9 +9,9 @@ import type { PodDynamicsOverview } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
-import { TrendingUp, GitBranch, Lightbulb, BarChart3 } from 'lucide-react';
+import { TrendingUp, GitBranch, Lightbulb, BarChart3, Swords } from 'lucide-react';
 
-type TabId = 'trends' | 'relationships' | 'decks' | 'insights';
+type TabId = 'trends' | 'relationships' | 'combat' | 'decks' | 'insights';
 
 interface Tab {
   id: TabId;
@@ -21,6 +22,7 @@ interface Tab {
 const TABS: Tab[] = [
   { id: 'trends', label: 'Trends', icon: <TrendingUp size={16} /> },
   { id: 'relationships', label: 'Relationships', icon: <GitBranch size={16} /> },
+  { id: 'combat', label: 'Combat', icon: <Swords size={16} /> },
   { id: 'decks', label: 'Decks & Meta', icon: <BarChart3 size={16} /> },
   { id: 'insights', label: 'Insights', icon: <Lightbulb size={16} /> },
 ];
@@ -140,6 +142,9 @@ export function PodDynamics() {
         )}
         {activeTab === 'relationships' && (
           <RelationshipsTab playerId={currentPlayer?.id} />
+        )}
+        {activeTab === 'combat' && (
+          <CombatTab />
         )}
         {activeTab === 'decks' && (
           <DecksTab playerName={currentPlayer?.name} />

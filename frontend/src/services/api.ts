@@ -807,6 +807,69 @@ export interface CalendarData {
   stats: CalendarStats;
 }
 
+// Elimination Stats Types
+export interface PlayerEliminationStats {
+  player_id: string;
+  player_name: string;
+  avatar?: string | null;
+
+  // Kill stats
+  total_kills: number;
+  kill_rate: number;
+  max_kills_in_game: number;
+
+  // Death stats
+  total_deaths: number;
+  times_scooped: number;
+  times_killed: number;
+  scoop_rate: number;
+
+  // Placement stats
+  average_placement: number;
+  games_with_placement: number;
+  first_place: number;
+  second_place: number;
+  third_place: number;
+  fourth_plus: number;
+
+  games_played: number;
+}
+
+export interface NemesisPair {
+  killer_id: string;
+  killer_name: string;
+  killer_avatar?: string | null;
+  victim_id: string;
+  victim_name: string;
+  victim_avatar?: string | null;
+  kill_count: number;
+  games_together: number;
+  kill_rate: number;
+}
+
+export interface KillStreak {
+  player_id: string;
+  player_name: string;
+  avatar?: string | null;
+  kills_in_game: number;
+  match_id: string;
+  match_date: string;
+  victims: string[];
+}
+
+export interface EliminationStatsData {
+  kill_leaders: PlayerEliminationStats[];
+  scoop_leaders: PlayerEliminationStats[];
+  placement_leaders: PlayerEliminationStats[];
+  nemesis_pairs: NemesisPair[];
+  top_kill_streaks: KillStreak[];
+  total_kills: number;
+  total_scoops: number;
+  total_games_with_elimination_data: number;
+  scoop_rate_pod: number;
+  avg_kills_per_game: number;
+}
+
 // Pod Dynamics API Functions
 export const podDynamicsApi = {
   getEloHistory: async (playerId?: string): Promise<EloHistoryData> => {
@@ -857,6 +920,11 @@ export const podDynamicsApi = {
 
   getCalendar: async (): Promise<CalendarData> => {
     const response = await api.get('/pod-dynamics/calendar');
+    return response.data;
+  },
+
+  getEliminationStats: async (): Promise<EliminationStatsData> => {
+    const response = await api.get('/pod-dynamics/elimination-stats');
     return response.data;
   },
 };
