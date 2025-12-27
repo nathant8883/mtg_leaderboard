@@ -71,7 +71,7 @@ export function PlacementChart({ data }: PlacementChartProps) {
               }}
               formatter={(value: number | undefined, name: string | undefined, props: any) => [
                 `${value ?? 0} games (${props.payload.percentage.toFixed(1)}%)`,
-                name
+                name ?? ''
               ]}
             />
           </PieChart>

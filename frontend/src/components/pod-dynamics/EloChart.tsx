@@ -83,7 +83,7 @@ export function EloChart({ data }: EloChartProps) {
                 if (name === 'elo') {
                   return [<span className="text-white font-semibold">{value ?? 0}</span>, 'Elo'];
                 }
-                return [value ?? 0, name];
+                return [value ?? 0, name ?? ''];
               }}
               labelFormatter={(label) => label}
             />
