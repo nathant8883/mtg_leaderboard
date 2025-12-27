@@ -44,7 +44,7 @@ export function KillStreakHighlights({ streaks }: KillStreakHighlightsProps) {
 
   return (
     <div className="space-y-3">
-      {streaks.map((streak, index) => {
+      {streaks.map((streak, _index) => {
         const { label, color, icon } = getStreakLabel(streak.kills_in_game);
 
         return (

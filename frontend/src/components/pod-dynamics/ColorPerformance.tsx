@@ -96,11 +96,11 @@ export function ColorPerformance({ data }: ColorPerformanceProps) {
                   borderRadius: '8px',
                   padding: '8px 12px',
                 }}
-                formatter={(value: number, _name: string, props: any) => {
+                formatter={(value: number | undefined, _name: string | undefined, props: any) => {
                   const item = props.payload;
                   return [
                     <div key="tooltip" className="text-white">
-                      <div className="font-semibold">{value.toFixed(1)}% win rate</div>
+                      <div className="font-semibold">{(value ?? 0).toFixed(1)}% win rate</div>
                       <div className="text-xs text-[#909296]">{item.wins} wins / {item.games} games</div>
                     </div>,
                     ''

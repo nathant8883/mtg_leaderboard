@@ -16,7 +16,7 @@ export function NemesisList({ pairs }: NemesisListProps) {
 
   return (
     <div className="space-y-3">
-      {pairs.map((pair, index) => (
+      {pairs.map((pair, _index) => (
         <div
           key={`${pair.killer_id}-${pair.victim_id}`}
           className="p-3 rounded-lg bg-[#141517] hover:bg-[#1A1B1E] transition-colors"

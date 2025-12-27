@@ -37,7 +37,7 @@ export function ScoopShame({ players }: ScoopShameProps) {
 
   return (
     <div className="space-y-2">
-      {scoopPlayers.map((player, index) => (
+      {scoopPlayers.map((player, _index) => (
         <div
           key={player.player_id}
           className="flex items-center justify-between p-3 rounded-lg bg-[#141517] hover:bg-[#1A1B1E] transition-colors"
