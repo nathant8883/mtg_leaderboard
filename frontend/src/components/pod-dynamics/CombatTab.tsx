@@ -74,14 +74,14 @@ export function CombatTab() {
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-3 py-2 text-center">
           <div className="flex items-center justify-center gap-1.5 text-[#909296] text-[10px] mb-0.5">
             <Skull size={12} className="text-[#FF6B6B]" />
-            Total Kills
+            Pod Kills
           </div>
           <div className="text-white text-lg font-bold">{data.total_kills}</div>
         </div>
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-lg px-3 py-2 text-center">
           <div className="flex items-center justify-center gap-1.5 text-[#909296] text-[10px] mb-0.5">
             <Flag size={12} className="text-[#667eea]" />
-            Total Scoops
+            Pod Scoops
           </div>
           <div className="text-white text-lg font-bold">{data.total_scoops}</div>
         </div>
