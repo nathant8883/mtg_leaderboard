@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import type { Deck, Player } from '../services/api';
 import CommanderAutocomplete from './CommanderAutocomplete';
 import ColorPips from './ColorPips';
@@ -80,15 +81,63 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-start md:items-center justify-center z-[1000] p-3 md:p-6" onClick={onCancel}>
-      <div className="bg-gradient-card rounded-[16px] md:rounded-[12px] p-0 md:p-8 w-full max-w-full md:max-w-[500px] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-h-[calc(100vh-24px)] md:min-h-0 max-h-[calc(100vh-24px)] md:max-h-none flex flex-col md:block overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        {/* Sticky Header */}
-        <div className="mb-0 md:mb-6 flex items-center justify-between sticky md:static top-0 bg-gradient-card border-b border-[#2C2E33] md:border-b-0 p-4 px-5 md:p-0 z-10 flex-shrink-0">
-          <h2 className="text-white m-0 text-xl md:text-2xl font-semibold flex-1">{isEdit ? 'Edit Deck' : 'Add New Deck'}</h2>
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        paddingTop: '48px',
+        zIndex: 1000,
+        backdropFilter: 'blur(4px)',
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          background: '#1a1b1e',
+          border: '1px solid #2c2e33',
+          borderRadius: '16px',
+          width: '95%',
+          maxWidth: '500px',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+          maxHeight: 'calc(100vh - 48px)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 24px',
+          borderBottom: '1px solid #2c2e33',
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', margin: 0 }}>
+            {isEdit ? 'Edit Deck' : 'Add New Deck'}
+          </h2>
           <button
             type="button"
-            className="flex md:hidden bg-transparent border-none text-[#909296] text-2xl cursor-pointer p-1 px-2 items-center justify-center rounded-[6px] transition-all hover:bg-[rgba(144,146,150,0.1)] hover:text-white active:scale-95 ml-3"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#9ca3af',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+            }}
             onClick={onCancel}
             aria-label="Close"
           >
@@ -96,8 +145,8 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
           </button>
         </div>
 
-        {/* Scrollable Form Content */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto md:overflow-y-visible p-5 md:p-0 pb-3 md:pb-0 flex flex-col md:block">
+        {/* Form Content */}
+        <form onSubmit={handleSubmit} style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="mb-5">
             <label className="text-[#C1C2C5] text-sm font-semibold block mb-2" htmlFor="deckName">
               Deck Name *
@@ -215,30 +264,51 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
           )}
         </form>
 
-        {/* Sticky Action Buttons (Mobile) / Regular Buttons (Desktop) */}
-        <div className="sticky md:static bottom-0 bg-gradient-card border-t border-[#2C2E33] md:border-t-0 p-4 px-5 md:p-0 z-10 flex-shrink-0 md:mt-6">
-          <div className="flex gap-2 md:gap-3 justify-end">
-            <button
-              type="button"
-              className="py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] bg-transparent border border-[#2C2E33] text-[#C1C2C5] cursor-pointer font-medium text-sm transition-all hover:bg-[#25262B] disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              className={`py-2.5 md:py-3 px-5 md:px-6 rounded-[6px] border-none text-white font-semibold text-sm transition-all ${
-                isSubmitting
-                  ? 'bg-[#2C2E33] cursor-not-allowed opacity-50'
-                  : 'bg-gradient-purple cursor-pointer opacity-100 hover:-translate-y-0.5'
-              }`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : (isEdit ? 'Update Deck' : 'Create Deck')}
-            </button>
-          </div>
+        {/* Action Buttons */}
+        <div style={{
+          padding: '16px 24px',
+          borderTop: '1px solid #2c2e33',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: '12px',
+        }}>
+          <button
+            type="button"
+            style={{
+              padding: '10px 20px',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              background: 'rgba(239, 68, 68, 0.15)',
+              color: '#ef4444',
+              opacity: isSubmitting ? 0.5 : 1,
+            }}
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            style={{
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              opacity: isSubmitting ? 0.5 : 1,
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Saving...' : (isEdit ? 'Update Deck' : 'Create Deck')}
+          </button>
         </div>
       </div>
 
@@ -251,7 +321,8 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
           onClose={() => setShowArtSelector(false)}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
 
