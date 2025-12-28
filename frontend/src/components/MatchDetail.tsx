@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, Users, Calendar } from 'lucide-react';
+import { Clock, Users, Calendar, Trophy, Crown, Medal, Skull, Flag, Swords, XCircle } from 'lucide-react';
 import ColorPips from './ColorPips';
 import { matchApi, type Match, type MatchPlayer } from '../services/api';
 
@@ -53,9 +53,28 @@ function MatchDetail() {
     return `${minutes}m`;
   };
 
-  const getPlacementBadge = (placement: number): string => {
-    const badges = ['🥇', '🥈', '🥉', '4️⃣'];
-    return badges[placement - 1] || '';
+  const getPlacementIcon = (placement: number): React.ReactNode => {
+    switch (placement) {
+      case 1:
+        return <Crown size={20} className="text-[#FFD700]" />;
+      case 2:
+        return <Medal size={20} className="text-[#C0C0C0]" />;
+      case 3:
+        return <Medal size={20} className="text-[#CD7F32]" />;
+      default:
+        return <span className="text-sm font-bold text-[#909296]">{placement}th</span>;
+    }
+  };
+
+  const getPlayerKills = (playerId: string): number => {
+    if (!match) return 0;
+    return match.players.filter(p => p.eliminated_by_player_id === playerId).length;
+  };
+
+  const getEliminatorName = (eliminatedByPlayerId: string): string => {
+    if (!match) return '';
+    const eliminator = match.players.find(p => p.player_id === eliminatedByPlayerId);
+    return eliminator?.player_name || 'Unknown';
   };
 
   const getPlacementText = (placement: number): string => {
@@ -102,7 +121,9 @@ function MatchDetail() {
     return (
       <div className="w-full min-h-screen">
         <div className="text-center py-[60px] px-5">
-          <div className="text-[64px] mb-4">❌</div>
+          <div className="flex justify-center mb-4">
+            <XCircle size={64} className="text-[#EF4444]" />
+          </div>
           <h3 className="text-white text-xl mb-2">Match not found</h3>
           <button className="back-btn" onClick={() => navigate('/')}>
             ← Back
@@ -172,13 +193,13 @@ function MatchDetail() {
             >
               {hasEliminationOrder && player.elimination_order && (
                 <div className="flex items-center gap-2 mb-4 py-2 px-4 rounded-[8px] bg-[rgba(102,126,234,0.1)] border border-[rgba(102,126,234,0.2)]">
-                  <span className="text-2xl">{getPlacementBadge(player.elimination_order)}</span>
+                  {getPlacementIcon(player.elimination_order)}
                   <span className="text-sm font-semibold text-[#667eea] uppercase tracking-[0.5px]">{getPlacementText(player.elimination_order)}</span>
                 </div>
               )}
               {!hasEliminationOrder && player.is_winner && (
                 <div className="flex items-center gap-2 mb-4 py-2 px-4 rounded-[8px] bg-[rgba(255,165,0,0.1)] border border-[rgba(255,165,0,0.3)]">
-                  <span className="text-2xl">🏆</span>
+                  <Trophy size={20} className="text-[#FFA500]" />
                   <span className="text-sm font-semibold text-[#FFA500] uppercase tracking-[0.5px]">Winner</span>
                 </div>
               )}
@@ -195,6 +216,44 @@ function MatchDetail() {
                   <ColorPips colors={player.deck_colors} />
                 </div>
               </div>
+
+              {/* Elimination Details */}
+              {hasEliminationOrder && (
+                <div className="mt-4 pt-4 border-t border-[#2C2E33] flex flex-wrap gap-3">
+                  {/* Kill count */}
+                  {getPlayerKills(player.player_id) > 0 && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)]">
+                      <Skull size={14} className="text-[#EF4444]" />
+                      <span className="text-xs font-medium text-[#EF4444]">
+                        {getPlayerKills(player.player_id)} {getPlayerKills(player.player_id) === 1 ? 'Kill' : 'Kills'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Elimination info (only for non-winners) */}
+                  {!player.is_winner && player.elimination_type && (
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] ${
+                      player.elimination_type === 'scoop'
+                        ? 'bg-[rgba(96,165,250,0.1)] border border-[rgba(96,165,250,0.2)]'
+                        : 'bg-[rgba(156,163,175,0.1)] border border-[rgba(156,163,175,0.2)]'
+                    }`}>
+                      {player.elimination_type === 'scoop' ? (
+                        <>
+                          <Flag size={14} className="text-[#60A5FA]" />
+                          <span className="text-xs font-medium text-[#60A5FA]">Scooped</span>
+                        </>
+                      ) : (
+                        <>
+                          <Swords size={14} className="text-[#9CA3AF]" />
+                          <span className="text-xs font-medium text-[#9CA3AF]">
+                            Eliminated by {player.eliminated_by_player_id ? getEliminatorName(player.eliminated_by_player_id) : 'Unknown'}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
