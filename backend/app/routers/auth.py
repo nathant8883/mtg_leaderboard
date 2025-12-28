@@ -21,9 +21,10 @@ SUPERUSER_EMAILS = ["nathant8883@yahoo.com"]
 
 
 class PlayerProfileUpdate(BaseModel):
-    """Schema for updating player profile (name and custom avatar)"""
+    """Schema for updating player profile (name, custom avatar, kill messages)"""
     name: str = Field(..., min_length=3, max_length=50)
     custom_avatar: str | None = None
+    kill_messages: list[str] | None = None
 
     @field_validator('name')
     @classmethod
@@ -62,6 +63,27 @@ class PlayerProfileUpdate(BaseModel):
             return v  # Return original value (with data URI if present)
         except Exception:
             raise ValueError("Invalid base64 image data")
+
+    @field_validator('kill_messages')
+    @classmethod
+    def validate_kill_messages(cls, v: list[str] | None) -> list[str] | None:
+        """Validate kill messages: max 5 messages, 50 chars each"""
+        if v is None:
+            return None
+
+        # Strip whitespace and filter empty strings
+        cleaned = [msg.strip() for msg in v if msg and msg.strip()]
+
+        # Max 5 messages
+        if len(cleaned) > 5:
+            raise ValueError("Maximum 5 kill messages allowed")
+
+        # Each message max 50 characters
+        for msg in cleaned:
+            if len(msg) > 50:
+                raise ValueError("Each kill message must be 50 characters or less")
+
+        return cleaned
 
 
 # Initialize OAuth client
@@ -169,6 +191,7 @@ async def get_me(current_player: Player = Depends(get_current_player)):
         "avatar": current_player.avatar,
         "picture": current_player.picture,
         "custom_avatar": current_player.custom_avatar,
+        "kill_messages": current_player.kill_messages,
         "deck_ids": current_player.deck_ids,
         "is_superuser": current_player.is_superuser,
         "pod_ids": current_player.pod_ids,
@@ -182,7 +205,7 @@ async def update_profile(
     profile_update: PlayerProfileUpdate,
     current_player: Player = Depends(get_current_player)
 ):
-    """Update current player's profile (name and/or custom avatar)"""
+    """Update current player's profile (name, custom avatar, and/or kill messages)"""
     update_data = {}
 
     # Update name if provided
@@ -197,6 +220,10 @@ async def update_profile(
         else:
             update_data[Player.custom_avatar] = profile_update.custom_avatar
 
+    # Update kill_messages if provided
+    if profile_update.kill_messages is not None:
+        update_data[Player.kill_messages] = profile_update.kill_messages
+
     # Apply updates if any
     if update_data:
         await current_player.set(update_data)
@@ -209,6 +236,7 @@ async def update_profile(
         "avatar": current_player.avatar,
         "picture": current_player.picture,
         "custom_avatar": current_player.custom_avatar,
+        "kill_messages": current_player.kill_messages,
         "deck_ids": current_player.deck_ids,
         "is_superuser": current_player.is_superuser,
         "created_at": current_player.created_at

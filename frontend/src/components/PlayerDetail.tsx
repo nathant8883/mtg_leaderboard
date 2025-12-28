@@ -595,6 +595,7 @@ function PlayerDetail() {
           currentName={currentPlayer.name}
           currentPicture={currentPlayer.picture}
           currentCustomAvatar={currentPlayer.custom_avatar}
+          currentKillMessages={currentPlayer.kill_messages}
           onClose={() => setShowProfileEditModal(false)}
           onSuccess={handleProfileUpdateSuccess}
         />

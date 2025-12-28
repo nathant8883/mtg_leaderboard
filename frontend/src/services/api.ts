@@ -31,6 +31,7 @@ export interface Player {
   google_id?: string;
   picture?: string;
   custom_avatar?: string;
+  kill_messages?: string[];  // Custom messages displayed when this player eliminates someone (max 5, 50 chars each)
   pod_ids?: string[];
   current_pod_id?: string;
   is_superuser?: boolean;
@@ -86,10 +87,11 @@ export const playerApi = {
     return response.data;
   },
 
-  updateProfile: async (name: string, customAvatar: string | null): Promise<Player> => {
+  updateProfile: async (name: string, customAvatar: string | null, killMessages?: string[]): Promise<Player> => {
     const response = await api.put('/auth/profile', {
       name,
-      custom_avatar: customAvatar
+      custom_avatar: customAvatar,
+      kill_messages: killMessages
     });
     return response.data;
   },

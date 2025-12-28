@@ -41,6 +41,9 @@ class Player(Document):
     picture: Optional[str] = None  # Google profile picture URL
     custom_avatar: Optional[str] = None  # Base64-encoded custom avatar image (overrides picture)
 
+    # Custom kill messages (displayed when this player eliminates someone)
+    kill_messages: list[str] = Field(default_factory=list)  # Max 5 messages, 50 chars each
+
     # Admin/permissions
     is_superuser: bool = False  # Can access admin panel and manage all data
     is_guest: bool = False  # Guest players for one-time match tracking

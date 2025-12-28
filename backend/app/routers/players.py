@@ -58,6 +58,7 @@ async def get_all_players(current_player: Optional[Player] = Depends(get_optiona
             "avatar": player.avatar,
             "picture": player.picture,
             "custom_avatar": player.custom_avatar,
+            "kill_messages": player.kill_messages,
             "deck_ids": player.deck_ids,
             "created_at": player.created_at
         }

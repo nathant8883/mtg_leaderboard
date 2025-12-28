@@ -1,10 +1,15 @@
 import React, { useState, useRef } from 'react';
+import { X, Plus } from 'lucide-react';
 import { playerApi } from '../services/api';
+
+const MAX_KILL_MESSAGES = 5;
+const MAX_MESSAGE_LENGTH = 50;
 
 interface ProfileEditModalProps {
   currentName: string;
   currentPicture?: string;
   currentCustomAvatar?: string;
+  currentKillMessages?: string[];
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -13,12 +18,15 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   currentName,
   currentPicture,
   currentCustomAvatar,
+  currentKillMessages,
   onClose,
   onSuccess,
 }) => {
   const [name, setName] = useState(currentName);
   const [customAvatar, setCustomAvatar] = useState<string | null>(currentCustomAvatar || null);
   const [previewImage, setPreviewImage] = useState<string | null>(currentCustomAvatar || null);
+  const [killMessages, setKillMessages] = useState<string[]>(currentKillMessages || []);
+  const [newKillMessage, setNewKillMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -82,6 +90,27 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     }
   };
 
+  const handleAddKillMessage = () => {
+    const trimmed = newKillMessage.trim();
+    if (!trimmed) return;
+    if (killMessages.length >= MAX_KILL_MESSAGES) return;
+    if (trimmed.length > MAX_MESSAGE_LENGTH) return;
+
+    setKillMessages([...killMessages, trimmed]);
+    setNewKillMessage('');
+  };
+
+  const handleRemoveKillMessage = (index: number) => {
+    setKillMessages(killMessages.filter((_, i) => i !== index));
+  };
+
+  const handleKillMessageKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddKillMessage();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -93,7 +122,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     setError(null);
 
     try {
-      await playerApi.updateProfile(name.trim(), customAvatar);
+      await playerApi.updateProfile(name.trim(), customAvatar, killMessages);
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -218,6 +247,68 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
               <p className="text-[#909296] text-xs m-0">
                 Supported formats: JPG, PNG, GIF, WebP. Max size: 2MB
+              </p>
+            </div>
+
+            {/* Kill Messages Section */}
+            <div className="mb-5">
+              <label className="text-[#C1C2C5] text-sm font-semibold block mb-2">
+                Kill Messages ({killMessages.length}/{MAX_KILL_MESSAGES})
+              </label>
+
+              {/* Existing messages list */}
+              {killMessages.length > 0 && (
+                <div className="flex flex-col gap-2 mb-3">
+                  {killMessages.map((message, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 p-2 bg-[#25262B] rounded-[6px] border border-[#2C2E33]"
+                    >
+                      <span className="flex-1 text-[#C1C2C5] text-sm truncate">"{message}"</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveKillMessage(index)}
+                        className="p-1 text-[#909296] hover:text-red-400 transition-colors"
+                        disabled={loading}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add new message input */}
+              {killMessages.length < MAX_KILL_MESSAGES && (
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={newKillMessage}
+                      onChange={(e) => setNewKillMessage(e.target.value.slice(0, MAX_MESSAGE_LENGTH))}
+                      onKeyDown={handleKillMessageKeyDown}
+                      className="w-full p-3 pr-12 rounded-[6px] bg-[#25262B] border border-[#2C2E33] text-[#C1C2C5] text-sm font-[inherit] transition-colors focus:outline-none focus:border-[#667eea] disabled:opacity-50 disabled:cursor-not-allowed"
+                      placeholder="Enter a kill message..."
+                      maxLength={MAX_MESSAGE_LENGTH}
+                      disabled={loading}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#909296] text-xs">
+                      {newKillMessage.length}/{MAX_MESSAGE_LENGTH}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddKillMessage}
+                    disabled={loading || !newKillMessage.trim()}
+                    className="p-3 bg-[#667eea] text-white border-none rounded-[6px] cursor-pointer transition-all hover:bg-[#5568d3] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
+              <p className="text-[#909296] text-xs mt-2 m-0">
+                These messages randomly appear when you eliminate a player.
               </p>
             </div>
 

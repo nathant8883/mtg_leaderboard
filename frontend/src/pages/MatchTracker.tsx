@@ -27,6 +27,7 @@ export interface PlayerSlot {
   commanderName: string;
   commanderImageUrl: string;
   isGuest: boolean;
+  killMessages?: string[];  // Custom messages displayed when this player eliminates someone
 }
 
 export interface PlayerGameState {

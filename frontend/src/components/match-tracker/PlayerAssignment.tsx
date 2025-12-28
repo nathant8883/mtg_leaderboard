@@ -17,7 +17,7 @@ type SelectionPhase =
   | { type: 'grid' }
   | { type: 'player-select'; position: number }
   | { type: 'guest-name'; position: number }
-  | { type: 'deck-select'; position: number; playerId: string; playerName: string };
+  | { type: 'deck-select'; position: number; playerId: string; playerName: string; killMessages?: string[] };
 
 function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack }: PlayerAssignmentProps) {
   const [players, setPlayers] = useState<PlayerSlot[]>(initialPlayers);
@@ -110,6 +110,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
       position: selectionPhase.position,
       playerId: player.id!,
       playerName: player.name,
+      killMessages: player.kill_messages,
     });
   };
 
@@ -151,7 +152,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   const handleDeckSelect = (deck: Deck) => {
     if (selectionPhase.type !== 'deck-select') return;
 
-    const { position, playerId, playerName } = selectionPhase;
+    const { position, playerId, playerName, killMessages } = selectionPhase;
     const updatedPlayers = [...players];
     updatedPlayers[position - 1] = {
       position,
@@ -162,6 +163,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
       commanderName: deck.commander,
       commanderImageUrl: deck.commander_image_url || '',
       isGuest: false,
+      killMessages,
     };
     setPlayers(updatedPlayers);
     setSelectionPhase({ type: 'grid' });

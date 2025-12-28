@@ -1739,8 +1739,8 @@
   /* Eliminated state */
   /* Only grey out the card after elimination is confirmed (killer/scoop selected) */
   .player-card.elimination-confirmed {
-    opacity: 0.3;
-    filter: grayscale(100%);
+    opacity: 0.6;
+    filter: grayscale(50%);
   }
 
   /* ==================== ELIMINATION OVERLAY REDESIGN ==================== */
@@ -1848,7 +1848,7 @@
   .elimination-info {
     font-size: 18px;
     font-weight: 600;
-    color: #9ca3af;
+    color: #ffffff;
     text-transform: none;
     letter-spacing: normal;
   }

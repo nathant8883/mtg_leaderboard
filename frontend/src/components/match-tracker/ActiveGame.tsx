@@ -733,11 +733,22 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     onUpdateGameState(updatedState);
   };
 
-  // Helper to get player name by ID
-  const getPlayerNameById = (playerId: string | undefined): string => {
-    if (!playerId) return '';
-    const player = players.find(p => p.playerId === playerId);
-    return player?.playerName || '';
+  // Helper to get a kill message from the killer (or fall back to "by {name}")
+  const getKillDisplay = (killerId: string | undefined, victimPosition?: number): string => {
+    if (!killerId) return '';
+    const killer = players.find(p => p.playerId === killerId);
+    if (!killer) return '';
+
+    // If killer has custom kill messages, return one based on victim position for variety
+    if (killer.killMessages && killer.killMessages.length > 0) {
+      // Use a combination of killer ID and victim position for variety across different kills
+      const seed = killerId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + (victimPosition || 0);
+      const index = seed % killer.killMessages.length;
+      return killer.killMessages[index];
+    }
+
+    // Fall back to showing killer name
+    return `by ${killer.playerName}`;
   };
 
   // Force eliminate a player (with confirmation)
@@ -1092,7 +1103,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     // Phase 2A: Killed confirmation (no revive button - selection is final)
                     <div className="elimination-confirmed-card">
                       <div className="elimination-title">ELIMINATED</div>
-                      <div className="elimination-info">by {getPlayerNameById(playerState.eliminatedByPlayerId)}</div>
+                      <div className="elimination-info">{getKillDisplay(playerState.eliminatedByPlayerId, player.position)}</div>
                     </div>
                   )}
                 </div>

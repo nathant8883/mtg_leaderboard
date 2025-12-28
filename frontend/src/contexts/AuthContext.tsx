@@ -8,6 +8,7 @@ interface Player {
   avatar?: string;
   picture?: string;
   custom_avatar?: string;
+  kill_messages?: string[];
   deck_ids: string[];
   pod_ids?: string[];
   current_pod_id?: string;
