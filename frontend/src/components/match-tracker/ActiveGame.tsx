@@ -347,6 +347,30 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     }, 100);
   };
 
+  // Helper function to check if match should complete
+  // Match ends when only 1 player remains AND all eliminations have been confirmed (killer selected)
+  const checkMatchCompletion = (state: ActiveGameState) => {
+    const remainingPlayers = Object.values(state.playerStates).filter((p) => !p.eliminated);
+    const eliminatedPlayers = Object.values(state.playerStates).filter((p) => p.eliminated);
+    const allEliminationsConfirmed = eliminatedPlayers.every((p) => p.eliminationConfirmed);
+
+    if (remainingPlayers.length === 1 && allEliminationsConfirmed) {
+      const winnerPosition = Object.keys(state.playerStates).find(
+        (pos) => !state.playerStates[parseInt(pos)].eliminated
+      );
+      if (winnerPosition) {
+        const winner = players.find(p => p.position === parseInt(winnerPosition));
+
+        if (isQuickPlay && winner) {
+          setQuickPlayWinner(winner);
+        } else {
+          const finalState = { ...state, elapsedSeconds: timer };
+          onGameComplete(parseInt(winnerPosition), finalState);
+        }
+      }
+    }
+  };
+
   const handleLifeChange = (position: number, delta: number) => {
     // Read from ref to get the latest state
     const currentState = gameStateRef.current;
@@ -395,26 +419,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       delete lifeChangeDeltaTimeouts.current[position];
     }, 1000);
 
-    // Check if only one player remains
-    const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
-    if (remainingPlayers.length === 1) {
-      const winnerPosition = Object.keys(updatedState.playerStates).find(
-        (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
-      );
-      if (winnerPosition) {
-        // Find the winner player object
-        const winner = players.find(p => p.position === parseInt(winnerPosition));
-
-        // In quick play mode, show winner modal then auto-reset
-        if (isQuickPlay && winner) {
-          setQuickPlayWinner(winner);
-        } else {
-          // Normal mode: save match and go to winner screen
-          const finalState = { ...updatedState, elapsedSeconds: timer };
-          onGameComplete(parseInt(winnerPosition), finalState);
-        }
-      }
-    }
+    // Check if match should complete (only 1 remaining AND all eliminations confirmed)
+    checkMatchCompletion(updatedState);
   };
 
   const clearHoldTimers = () => {
@@ -583,26 +589,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       }, 1000);
     }
 
-    // Check if only one player remains
-    const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
-    if (remainingPlayers.length === 1) {
-      const winnerPosition = Object.keys(updatedState.playerStates).find(
-        (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
-      );
-      if (winnerPosition) {
-        // Find the winner player object
-        const winner = players.find(p => p.position === parseInt(winnerPosition));
-
-        // In quick play mode, show winner modal then auto-reset
-        if (isQuickPlay && winner) {
-          setQuickPlayWinner(winner);
-        } else {
-          // Normal mode: save match and go to winner screen
-          const finalState = { ...updatedState, elapsedSeconds: timer };
-          onGameComplete(parseInt(winnerPosition), finalState);
-        }
-      }
-    }
+    // Check if match should complete (only 1 remaining AND all eliminations confirmed)
+    checkMatchCompletion(updatedState);
   };
 
   // Commander damage button handlers (reuse hold-to-increment pattern)
@@ -713,6 +701,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       },
     };
     onUpdateGameState(updatedState);
+
+    // Check if match should complete (this may be the final elimination being confirmed)
+    checkMatchCompletion(updatedState);
   };
 
   // Handle when a player scoops (concedes)
@@ -731,6 +722,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       },
     };
     onUpdateGameState(updatedState);
+
+    // Check if match should complete (this may be the final elimination being confirmed)
+    checkMatchCompletion(updatedState);
   };
 
   // Helper to get a kill message from the killer (or fall back to "by {name}")
@@ -773,26 +767,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     onUpdateGameState(updatedState);
     setConfirmEliminatePosition(null); // Close confirmation modal
 
-    // Check if only one player remains
-    const remainingPlayers = Object.values(updatedState.playerStates).filter((p) => !p.eliminated);
-    if (remainingPlayers.length === 1) {
-      const winnerPosition = Object.keys(updatedState.playerStates).find(
-        (pos) => !updatedState.playerStates[parseInt(pos)].eliminated
-      );
-      if (winnerPosition) {
-        // Find the winner player object
-        const winner = players.find(p => p.position === parseInt(winnerPosition));
-
-        // In quick play mode, show winner modal then auto-reset
-        if (isQuickPlay && winner) {
-          setQuickPlayWinner(winner);
-        } else {
-          // Normal mode: save match and go to winner screen
-          const finalState = { ...updatedState, elapsedSeconds: timer };
-          onGameComplete(parseInt(winnerPosition), finalState);
-        }
-      }
-    }
+    // Check if match should complete (only 1 remaining AND all eliminations confirmed)
+    checkMatchCompletion(updatedState);
   };
 
   // Swipe gesture handlers - Enter commander damage mode with velocity-based intent detection
