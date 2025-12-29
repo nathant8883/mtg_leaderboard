@@ -11,6 +11,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useWakeLock } from '../hooks/useWakeLock';
+import { usePortraitLock } from '../hooks/usePortraitLock';
+import { useMobileLandscape } from '../hooks/useMobileLandscape';
 import MatchForm from './MatchForm';
 import SyncQueue from './SyncQueue';
 import UpdatePrompt from './UpdatePrompt';
@@ -35,6 +37,12 @@ export function MainLayout() {
 
   // Prevent screen timeout while app is open
   useWakeLock();
+
+  // Lock orientation to portrait on non-match-tracker views (silent failure on iOS)
+  usePortraitLock();
+
+  // Detect mobile landscape and apply CSS class for mobile-optimized view
+  useMobileLandscape();
 
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [showSyncQueue, setShowSyncQueue] = useState(false);
@@ -269,7 +277,7 @@ export function MainLayout() {
             </div>
             <div className="flex gap-3 max-md:gap-[6px]">
               <button
-                className={`relative px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden ${
+                className={`relative px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden desktop-nav-item ${
                   location.pathname === '/pod-dynamics' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
                 }`}
                 onClick={() => navigate('/pod-dynamics')}
@@ -281,7 +289,7 @@ export function MainLayout() {
                 </span>
               </button>
               <button
-                className={`px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden ${
+                className={`px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden desktop-nav-item ${
                   location.pathname === '/' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
                 }`}
                 onClick={() => navigate('/')}
@@ -290,14 +298,14 @@ export function MainLayout() {
                 <span> Launchpad</span>
               </button>
               <button
-                className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden"
+                className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden desktop-nav-item"
                 onClick={() => navigate('/match-tracker')}
               >
                 <span>🎮</span>
                 <span> Match Tracker</span>
               </button>
               <button
-                className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden"
+                className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden desktop-nav-item"
                 onClick={() => setShowMatchForm(true)}
               >
                 <span>➕</span>
@@ -306,7 +314,7 @@ export function MainLayout() {
               {pendingCount > 0 && (
                 <button
                   onClick={() => setShowSyncQueue(true)}
-                  className="relative px-4 py-2 bg-[rgba(255,165,0,0.15)] border border-[rgba(255,165,0,0.3)] rounded-[6px] text-[#FFA500] cursor-pointer font-semibold text-sm transition-all duration-200 hover:bg-[rgba(255,165,0,0.25)] max-md:hidden flex items-center gap-2"
+                  className="relative px-4 py-2 bg-[rgba(255,165,0,0.15)] border border-[rgba(255,165,0,0.3)] rounded-[6px] text-[#FFA500] cursor-pointer font-semibold text-sm transition-all duration-200 hover:bg-[rgba(255,165,0,0.25)] max-md:hidden desktop-nav-item flex items-center gap-2"
                 >
                   <List className="w-4 h-4" />
                   <span>Sync Queue</span>
@@ -322,7 +330,7 @@ export function MainLayout() {
       )}
 
       {/* Main Content - Child routes render here */}
-      <div className="px-3 pt-6 pb-24 md:pb-6 w-full flex-1">
+      <div className="px-3 pt-6 pb-24 md:pb-6 w-full flex-1 main-content-area">
         <PageTransition>
           <Outlet />
         </PageTransition>

@@ -3677,3 +3677,141 @@
     animation: none;
   }
 }
+
+/* ==================== MOBILE LANDSCAPE OVERRIDES ==================== */
+/*
+ * When .mobile-landscape class is applied to document root (via useMobileLandscape hook),
+ * these styles override the default desktop view to show mobile UI instead.
+ *
+ * This handles the case where a phone in landscape mode has viewport width > 768px
+ * but should still show the mobile-optimized layout.
+ */
+
+/* Hide desktop navigation items in mobile landscape */
+.mobile-landscape .desktop-nav-item {
+  display: none !important;
+}
+
+/* Show mobile bottom navigation in mobile landscape */
+.mobile-landscape .mobile-bottom-nav {
+  display: flex !important;
+}
+
+/* Ensure main content has proper padding for bottom nav in mobile landscape */
+.mobile-landscape .main-content-area {
+  padding-bottom: 6rem !important;
+}
+
+/* Stats carousel in mobile landscape - use horizontal scrolling like portrait mobile */
+.mobile-landscape .stats-carousel-container {
+  display: block !important;
+  overflow: hidden;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding: 0 1rem 1rem 1rem;
+}
+
+.mobile-landscape .stats-carousel-track {
+  display: flex !important;
+  gap: 1rem;
+  width: max-content;
+  animation: scrollCarousel var(--animation-duration, 60s) linear infinite;
+}
+
+.mobile-landscape .stats-carousel-track.paused {
+  animation: none;
+}
+
+.mobile-landscape .stats-carousel-track > * {
+  flex-shrink: 0;
+  min-width: 280px;
+}
+
+.mobile-landscape .stats-carousel-container.scrollable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mobile-landscape .stats-carousel-container.scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+/* TopPlayers/TopDecks - show mobile card layout instead of desktop table */
+/* Override Tailwind's md:block to hide desktop tables */
+.mobile-landscape .hidden.md\:block {
+  display: none !important;
+}
+
+/* Override Tailwind's md:hidden to show mobile card views */
+.mobile-landscape .md\:hidden {
+  display: flex !important;
+}
+
+/* Ensure flex-col direction is preserved for card stacks */
+.mobile-landscape .flex.flex-col.md\:hidden {
+  flex-direction: column !important;
+}
+
+/* Pure CSS fallback for mobile landscape detection (before JS loads) */
+@media (pointer: coarse) and (hover: none) and (orientation: landscape) and (max-height: 500px) {
+  .desktop-nav-item {
+    display: none !important;
+  }
+
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+
+  .main-content-area {
+    padding-bottom: 6rem !important;
+  }
+
+  /* Stats carousel fallback */
+  .stats-carousel-container {
+    display: block !important;
+    overflow: hidden;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem 1rem 1rem;
+  }
+
+  .stats-carousel-track {
+    display: flex !important;
+    gap: 1rem;
+    width: max-content;
+    animation: scrollCarousel var(--animation-duration, 60s) linear infinite;
+  }
+
+  .stats-carousel-track.paused {
+    animation: none;
+  }
+
+  .stats-carousel-track > * {
+    flex-shrink: 0;
+    min-width: 280px;
+  }
+
+  .stats-carousel-container.scrollable {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .stats-carousel-container.scrollable::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* TopPlayers/TopDecks - show mobile card layout instead of desktop table */
+  .hidden.md\:block {
+    display: none !important;
+  }
+
+  .md\:hidden {
+    display: flex !important;
+  }
+
+  .flex.flex-col.md\:hidden {
+    flex-direction: column !important;
+  }
+}

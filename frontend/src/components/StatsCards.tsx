@@ -417,7 +417,11 @@ function StatsCards() {
   };
 
   // For infinite carousel on mobile - duplicate cards for seamless loop
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  // Also check for mobile-landscape class (phones in landscape mode)
+  const isMobile = typeof window !== 'undefined' && (
+    window.innerWidth <= 768 ||
+    document.documentElement.classList.contains('mobile-landscape')
+  );
 
   // Render cards (duplicated on mobile for infinite animation)
   const cardsToRender = isMobile
