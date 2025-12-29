@@ -88,6 +88,145 @@
     box-shadow: var(--border-glow, 0 0 12px rgba(107, 114, 128, 0.4));
   }
 
+  /* ============================================
+     Leaderboard Card Styles - MTG Themed
+     ============================================ */
+
+  /* Color identity border wrapper for leaderboard cards */
+  .leaderboard-card-border-wrapper {
+    padding: 2px;
+    border-radius: 14px;
+    background: var(--border-gradient, linear-gradient(135deg, #6B7280 0%, #4B5563 100%));
+    box-shadow: var(--border-glow, 0 0 8px rgba(107, 114, 128, 0.3));
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+  }
+
+  .leaderboard-card-border-wrapper:hover {
+    box-shadow: var(--border-glow, 0 0 12px rgba(107, 114, 128, 0.5));
+  }
+
+  .leaderboard-card-border-wrapper:active {
+    transform: scale(0.98);
+  }
+
+  /* Main leaderboard card body */
+  .leaderboard-card {
+    background: linear-gradient(135deg, #1e1f23 0%, #25262B 100%);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* Stats micro-grid for player cards */
+  .stats-micro-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .stat-micro {
+    text-align: center;
+    padding: 8px 4px;
+    background: rgba(37, 38, 43, 0.6);
+    border-radius: 8px;
+  }
+
+  .stat-micro-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .stat-micro-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #909296;
+    margin-top: 2px;
+  }
+
+  /* Stat pills for deck cards */
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(37, 38, 43, 0.8);
+    border-radius: 6px;
+  }
+
+  .stat-pill-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .stat-pill-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #909296;
+  }
+
+  /* Commander image frame for deck cards */
+  .commander-frame-wrapper {
+    padding: 2px;
+    border-radius: 10px;
+    background: var(--border-gradient, linear-gradient(135deg, #6B7280 0%, #4B5563 100%));
+  }
+
+  .commander-frame {
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    object-fit: cover;
+    object-position: center 20%;
+  }
+
+  /* Rank overlay glow effects */
+  .rank-overlay-gold {
+    animation: shimmer-gold 2s ease-in-out infinite;
+  }
+
+  .rank-overlay-silver {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .rank-overlay-bronze {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer-gold {
+    0%, 100% {
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+      box-shadow: 0 0 18px rgba(255, 215, 0, 0.8);
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+
+  /* Elo trend arrow animation */
+  .elo-trend-arrow {
+    display: inline-block;
+    animation: bounce-subtle 1s ease-in-out infinite;
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-1px);
+    }
+  }
+
   /* Mana symbol fonts for MTG color pips */
   .color-pips {
     display: flex;

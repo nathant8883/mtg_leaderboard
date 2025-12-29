@@ -2,6 +2,7 @@ import ColorPips from './ColorPips';
 import type { DeckLeaderboardEntry } from '../services/api';
 import TierBadge from './TierBadge';
 import { getWinRateTier, TIER_CONFIG } from '../utils/tierConfig';
+import { DeckLeaderboardCard } from './leaderboard';
 
 interface DeckLeaderboardProps {
   decks: DeckLeaderboardEntry[];
@@ -38,29 +39,50 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
     );
   }
 
+  // Calculate ranks for both views
+  const decksWithRanks = (() => {
+    let rankedCount = 0;
+    return decks.map((deck) => {
+      const isRanked = deck.ranked;
+      if (isRanked) rankedCount++;
+      const rank = isRanked ? rankedCount : null;
+      return { deck, rank };
+    });
+  })();
+
   return (
-    <div className="overflow-x-auto mt-6">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Deck</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Commander</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Colors</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Games</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Wins</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Losses</th>
-            <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Win Rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(() => {
-            let rankedCount = 0;
-            return decks.map((deck) => {
+    <div className="mt-6">
+      {/* Mobile Card View */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {decksWithRanks.map(({ deck, rank }) => (
+          <DeckLeaderboardCard
+            key={deck.deck_id}
+            deck={deck}
+            rank={rank}
+            onTap={() => onPlayerClick(deck.player_id)}
+          />
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Deck</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-left uppercase border-b border-[#2C2E33]">Commander</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Colors</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Games</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Wins</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Losses</th>
+              <th className="text-[#909296] text-xs font-semibold p-3 text-center uppercase border-b border-[#2C2E33]">Win Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {decksWithRanks.map(({ deck, rank }) => {
               const isRanked = deck.ranked;
-              if (isRanked) rankedCount++;
-              const rank = isRanked ? rankedCount : null;
               const gamesNeeded = MIN_GAMES_FOR_RANKING - deck.games_played;
 
               return (
@@ -146,10 +168,10 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
                   </td>
                 </tr>
               );
-            });
-          })()}
-        </tbody>
-      </table>
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

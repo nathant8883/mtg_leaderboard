@@ -2,6 +2,7 @@ import type { PlayerLeaderboardEntry } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
 import TierBadge from './TierBadge';
 import { getEloTier } from '../utils/tierConfig';
+import { PlayerLeaderboardCard } from './leaderboard';
 
 const MIN_GAMES_FOR_RANKING = 4;
 
@@ -45,25 +46,47 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
     );
   }
 
+  // Calculate ranks for both views
+  const playersWithRanks = (() => {
+    let rankedCount = 0;
+    return players.map((player) => {
+      const isRanked = player.ranked;
+      if (isRanked) rankedCount++;
+      const rank = isRanked ? rankedCount : null;
+      return { player, rank };
+    });
+  })();
+
   return (
-    <div className="overflow-x-auto mt-6">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Elo</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Record</th>
-            <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Tier</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(() => {
-            let rankedCount = 0;
-            return players.map((player) => {
+    <div className="mt-6">
+      {/* Mobile Card View */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {playersWithRanks.map(({ player, rank }) => (
+          <PlayerLeaderboardCard
+            key={player.player_id}
+            player={player}
+            rank={rank}
+            rankedElos={rankedElos}
+            onTap={() => onPlayerClick(player.player_id)}
+          />
+        ))}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
+              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
+              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Elo</th>
+              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Record</th>
+              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            {playersWithRanks.map(({ player, rank }) => {
               const isRanked = player.ranked;
-              if (isRanked) rankedCount++;
-              const rank = isRanked ? rankedCount : null;
               const gamesNeeded = MIN_GAMES_FOR_RANKING - player.games_played;
 
               return (
@@ -125,10 +148,10 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
                   </td>
                 </tr>
               );
-            });
-          })()}
-        </tbody>
-      </table>
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
