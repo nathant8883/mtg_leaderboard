@@ -1,5 +1,7 @@
 import type { PlayerLeaderboardEntry } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
+import TierBadge from './TierBadge';
+import { getEloTier } from '../utils/tierConfig';
 
 const MIN_GAMES_FOR_RANKING = 4;
 
@@ -23,22 +25,6 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
     .filter(p => p.ranked && p.elo)
     .map(p => p.elo!)
     .sort((a, b) => b - a);
-
-  const getEloTier = (elo: number | undefined): { class: string; letter: string; icon: string } => {
-    if (!elo || rankedElos.length === 0) {
-      return { class: 'd-tier', letter: 'D', icon: '📉' };
-    }
-
-    // Find position in sorted Elos (handle ties by finding first occurrence)
-    const position = rankedElos.findIndex(e => e <= elo);
-    const percentile = position === -1 ? 1 : position / rankedElos.length;
-
-    // Top 25% = S, 25-50% = A, 50-75% = B, Bottom 25% = D
-    if (percentile < 0.25) return { class: 's-tier', letter: 'S', icon: '🏆' };
-    if (percentile < 0.50) return { class: 'a-tier', letter: 'A', icon: '⭐' };
-    if (percentile < 0.75) return { class: 'b-tier', letter: 'B', icon: '💎' };
-    return { class: 'd-tier', letter: 'D', icon: '📉' };
-  };
 
   if (loading) {
     return (
@@ -130,15 +116,7 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
                     {isRanked ? (
-                      (() => {
-                        const tier = getEloTier(player.elo);
-                        return (
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] ${tier.class}`}>
-                            <span className="text-sm">{tier.icon}</span>
-                            <span className="text-sm font-bold text-white">{tier.letter}</span>
-                          </div>
-                        );
-                      })()
+                      <TierBadge tier={getEloTier(player.elo, rankedElos)} size="md" />
                     ) : (
                       <div className="text-center">
                         <div className="text-[10px] text-[#909296] uppercase font-semibold tracking-[0.5px]">+{gamesNeeded} game{gamesNeeded !== 1 ? 's' : ''}</div>

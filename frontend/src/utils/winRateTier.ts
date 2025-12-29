@@ -1,18 +1,24 @@
 /**
  * Win rate tier color utilities matching TopDecks dashboard styling.
  * Thresholds are calibrated for 4-player commander games (25% baseline).
+ *
+ * @deprecated Import from './tierConfig' for new code.
+ * These functions are kept for backward compatibility with MatchupMatrix
+ * and other components that use the direct color class approach.
  */
 
+import { getWinRateTier, TIER_CONFIG } from './tierConfig';
+
 export function getWinRateTierColor(winRate: number): string {
-  if (winRate >= 35) return 'text-[#FFD700]';  // S-tier Gold
-  if (winRate >= 28) return 'text-[#33D9B2]';  // A-tier Cyan
-  if (winRate >= 22) return 'text-[#4FACFE]';  // B-tier Blue
-  return 'text-[#FF6B6B]';                      // D-tier Red
+  const tier = getWinRateTier(winRate);
+  return TIER_CONFIG[tier].textClass;
 }
 
 export function getWinRateTierBgColor(winRate: number): string {
-  if (winRate >= 35) return 'bg-[#FFD700]/20';  // S-tier Gold
-  if (winRate >= 28) return 'bg-[#33D9B2]/20';  // A-tier Cyan
-  if (winRate >= 22) return 'bg-[#4FACFE]/20';  // B-tier Blue
-  return 'bg-[#FF6B6B]/20';                      // D-tier Red
+  const tier = getWinRateTier(winRate);
+  return TIER_CONFIG[tier].bgClass;
 }
+
+// Re-export from tierConfig for convenience
+export { getWinRateTier, getEloTier, getTierConfig, TIER_CONFIG } from './tierConfig';
+export type { TierLetter, TierConfig } from './tierConfig';

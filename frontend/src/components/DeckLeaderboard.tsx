@@ -1,5 +1,7 @@
 import ColorPips from './ColorPips';
 import type { DeckLeaderboardEntry } from '../services/api';
+import TierBadge from './TierBadge';
+import { getWinRateTier, TIER_CONFIG } from '../utils/tierConfig';
 
 interface DeckLeaderboardProps {
   decks: DeckLeaderboardEntry[];
@@ -15,17 +17,6 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
     if (rank === 2) return 'rank-badge rank-badge-silver';
     if (rank === 3) return 'rank-badge rank-badge-bronze';
     return 'rank-badge';
-  };
-
-  const getWinRateTier = (winRate: number): { class: string; letter: string; icon: string } => {
-    // S-Tier: 35%+ (too strong)
-    if (winRate >= 0.35) return { class: 's-tier', letter: 'S', icon: '🏆' };
-    // A-Tier: 28-35% (above baseline)
-    if (winRate >= 0.28) return { class: 'a-tier', letter: 'A', icon: '⭐' };
-    // B-Tier: 22-28% (balanced, around 25% baseline)
-    if (winRate >= 0.22) return { class: 'b-tier', letter: 'B', icon: '💎' };
-    // D-Tier: Below 22% (underperforming)
-    return { class: 'd-tier', letter: 'D', icon: '📉' };
   };
 
   if (loading) {
@@ -135,11 +126,12 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
                     {isRanked ? (
                       (() => {
                         const tier = getWinRateTier(deck.win_rate / 100);
+                        const tierConfig = TIER_CONFIG[tier];
                         return (
-                          <div className={`winrate-compact ${tier.class}`}>
-                            <div className="tier-icon-compact">{tier.icon}</div>
+                          <div className={`winrate-compact ${tierConfig.cssClass}`}>
+                            <TierBadge tier={tier} variant="compact" size="lg" />
                             <div className="text-left">
-                              <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier.letter} Tier</div>
+                              <div className="text-[10px] text-[#909296] uppercase font-semibold mb-[2px] tracking-[0.5px]">{tier} Tier</div>
                               <div className="text-lg font-bold text-white">{deck.win_rate.toFixed(1)}%</div>
                             </div>
                           </div>

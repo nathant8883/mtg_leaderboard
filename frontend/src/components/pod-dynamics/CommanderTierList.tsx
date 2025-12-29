@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { CommanderStats, PlayerDeckStats } from '../../services/api';
 import ColorPips from '../ColorPips';
 import { ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import TierBadge from '../TierBadge';
+import { TIER_CONFIG, type TierLetter } from '../../utils/tierConfig';
 
 interface CommanderTierListProps {
   commanders: CommanderStats[];
@@ -9,13 +11,18 @@ interface CommanderTierListProps {
   currentPlayerName?: string;
 }
 
+// Extended tier colors including '?' for unranked
 const TIER_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  'S': { bg: 'bg-[#FFD700]/20', text: 'text-[#FFD700]', border: 'border-[#FFD700]/30' },
-  'A': { bg: 'bg-[#33D9B2]/20', text: 'text-[#33D9B2]', border: 'border-[#33D9B2]/30' },
-  'B': { bg: 'bg-[#667eea]/20', text: 'text-[#667eea]', border: 'border-[#667eea]/30' },
-  'C': { bg: 'bg-[#FFA500]/20', text: 'text-[#FFA500]', border: 'border-[#FFA500]/30' },
-  'D': { bg: 'bg-[#FF6B6B]/20', text: 'text-[#FF6B6B]', border: 'border-[#FF6B6B]/30' },
+  'S': { bg: TIER_CONFIG.S.bgClass, text: TIER_CONFIG.S.textClass, border: TIER_CONFIG.S.borderClass },
+  'A': { bg: TIER_CONFIG.A.bgClass, text: TIER_CONFIG.A.textClass, border: TIER_CONFIG.A.borderClass },
+  'B': { bg: TIER_CONFIG.B.bgClass, text: TIER_CONFIG.B.textClass, border: TIER_CONFIG.B.borderClass },
+  'C': { bg: TIER_CONFIG.C.bgClass, text: TIER_CONFIG.C.textClass, border: TIER_CONFIG.C.borderClass },
+  'D': { bg: TIER_CONFIG.D.bgClass, text: TIER_CONFIG.D.textClass, border: TIER_CONFIG.D.borderClass },
   '?': { bg: 'bg-[#909296]/20', text: 'text-[#909296]', border: 'border-[#909296]/30' },
+};
+
+const isValidTier = (tier: string): tier is TierLetter => {
+  return ['S', 'A', 'B', 'C', 'D'].includes(tier);
 };
 
 export function CommanderTierList({ commanders, playerDecks, currentPlayerName }: CommanderTierListProps) {
@@ -93,11 +100,15 @@ export function CommanderTierList({ commanders, playerDecks, currentPlayerName }
                   </div>
 
                   {/* Tier Badge */}
-                  <div
-                    className={`w-8 h-8 rounded flex items-center justify-center font-bold ${tierStyle.bg} ${tierStyle.text} ${tierStyle.border} border`}
-                  >
-                    {commander.tier}
-                  </div>
+                  {isValidTier(commander.tier) ? (
+                    <TierBadge tier={commander.tier} variant="compact" size="md" />
+                  ) : (
+                    <div
+                      className={`w-8 h-8 rounded flex items-center justify-center font-bold ${tierStyle.bg} ${tierStyle.text} ${tierStyle.border} border`}
+                    >
+                      {commander.tier}
+                    </div>
+                  )}
 
                   {/* Commander Info */}
                   <div className="flex-1 min-w-0">

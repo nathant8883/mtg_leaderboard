@@ -54,6 +54,11 @@
     --tier-color-light: #FF5252;
   }
 
+  .c-tier {
+    --tier-color: #FFA500;
+    --tier-color-light: #FF8C00;
+  }
+
   /* Tier text colors */
   .text-tier-s {
     color: #FFD700;
@@ -69,6 +74,10 @@
 
   .text-tier-d {
     color: #FF6B6B;
+  }
+
+  .text-tier-c {
+    color: #FFA500;
   }
 
   /* Deck card color identity border - wrapper approach */

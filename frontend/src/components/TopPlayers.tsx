@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { leaderboardApi, type PlayerLeaderboardEntry } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
+import TierBadge from './TierBadge';
+import { getEloTier, TIER_CONFIG } from '../utils/tierConfig';
 
 interface TopPlayersProps {
   onViewLeaderboard: () => void;
@@ -60,22 +62,6 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
     .map(p => p.elo!)
     .sort((a, b) => b - a);
 
-  const getEloTier = (elo: number | undefined): { class: string; letter: string; icon: string; color: string; eloColor: string } => {
-    if (!elo || rankedElos.length === 0) {
-      return { class: 'd-tier', letter: 'D', icon: '📉', color: 'text-tier-d', eloColor: 'text-[#FF6B6B]' };
-    }
-
-    // Find position in sorted Elos (handle ties by finding first occurrence)
-    const position = rankedElos.findIndex(e => e <= elo);
-    const percentile = position === -1 ? 1 : position / rankedElos.length;
-
-    // Top 25% = S, 25-50% = A, 50-75% = B, Bottom 25% = D
-    if (percentile < 0.25) return { class: 's-tier', letter: 'S', icon: '🏆', color: 'text-tier-s', eloColor: 'text-[#FFD700]' };
-    if (percentile < 0.50) return { class: 'a-tier', letter: 'A', icon: '⭐', color: 'text-tier-a', eloColor: 'text-[#33D9B2]' };
-    if (percentile < 0.75) return { class: 'b-tier', letter: 'B', icon: '💎', color: 'text-tier-b', eloColor: 'text-[#4FACFE]' };
-    return { class: 'd-tier', letter: 'D', icon: '📉', color: 'text-tier-d', eloColor: 'text-[#FF6B6B]' };
-  };
-
   if (loading) {
     return (
       <div className="bg-gradient-card rounded-[12px] p-4 shadow-card">
@@ -128,7 +114,7 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
           <tbody>
             {players.map((player, index) => {
               const rank = index + 1;
-              const tier = getEloTier(player.elo);
+              const tier = getEloTier(player.elo, rankedElos);
               return (
                 <tr key={player.player_id} className="transition-all hover:bg-hover-bg">
                   <td className="py-4 px-3 border-b border-[#2C2E33]">
@@ -172,10 +158,7 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                     </span>
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] ${tier.class}`}>
-                      <span className="text-sm">{tier.icon}</span>
-                      <span className="text-sm font-bold text-white">{tier.letter}</span>
-                    </div>
+                    <TierBadge tier={tier} size="md" />
                   </td>
                 </tr>
               );
@@ -188,11 +171,8 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
       <div className="flex flex-col gap-4 md:hidden">
         {players.map((player, index) => {
           const rank = index + 1;
-          const tier = getEloTier(player.elo);
-          const tierBgClass = tier.class === 's-tier' ? 'bg-[rgba(255,215,0,0.15)] border-[rgba(255,215,0,0.3)]' :
-                             tier.class === 'a-tier' ? 'bg-[rgba(51,217,178,0.15)] border-[rgba(51,217,178,0.3)]' :
-                             tier.class === 'b-tier' ? 'bg-[rgba(79,172,254,0.15)] border-[rgba(79,172,254,0.3)]' :
-                             'bg-[rgba(255,107,107,0.15)] border-[rgba(255,107,107,0.3)]';
+          const tier = getEloTier(player.elo, rankedElos);
+          const tierConfig = TIER_CONFIG[tier];
 
           return (
             <div
@@ -223,20 +203,18 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                 </div>
 
                 {/* Right column - Elo and tier */}
-                <div className="flex flex-col items-center justify-center flex-shrink-0 pl-2 ml-auto">
+                <div className="flex flex-col items-center justify-center flex-shrink-0 pl-2 pr-8 ml-auto">
                   {player.elo ? (
                     <>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`font-bold text-2xl ${tier.eloColor}`}>{player.elo}</span>
+                      <div className="relative">
+                        <span className="font-bold text-2xl tabular-nums" style={{ color: tierConfig.color }}>{player.elo}</span>
                         {player.elo_change !== undefined && player.elo_change !== 0 && (
-                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${player.elo_change > 0 ? 'text-[#33D9B2] bg-[rgba(51,217,178,0.15)]' : 'text-[#FF6B6B] bg-[rgba(255,107,107,0.15)]'}`}>
+                          <span className={`absolute -right-8 top-1/2 -translate-y-1/2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${player.elo_change > 0 ? 'text-[#33D9B2] bg-[rgba(51,217,178,0.15)]' : 'text-[#FF6B6B] bg-[rgba(255,107,107,0.15)]'}`}>
                             {player.elo_change > 0 ? '+' : ''}{player.elo_change.toFixed(0)}
                           </span>
                         )}
                       </div>
-                      <div className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border text-white ${tierBgClass}`}>
-                        {tier.icon} {tier.letter} Tier
-                      </div>
+                      <TierBadge tier={tier} size="sm" variant="pill" />
                     </>
                   ) : (
                     <span className="text-text-muted text-2xl">-</span>

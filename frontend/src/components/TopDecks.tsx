@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
 import { leaderboardApi, type DeckLeaderboardEntry } from '../services/api';
 import { getColorIdentityStyle } from '../utils/manaColors';
+import TierBadge from './TierBadge';
+import { getWinRateTier, TIER_CONFIG } from '../utils/tierConfig';
 
 interface TopDecksProps {
   onViewLeaderboard: () => void;
@@ -55,13 +57,6 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
     return `${baseStyles} bg-[#2C2E33] text-[#909296] border-[rgba(255,255,255,0.15)]`;
   };
 
-  const getWinRateTier = (winRate: number): { class: string; letter: string; icon: string } => {
-    if (winRate >= 0.35) return { class: 's-tier', letter: 'S', icon: '🏆' };
-    if (winRate >= 0.28) return { class: 'a-tier', letter: 'A', icon: '⭐' };
-    if (winRate >= 0.22) return { class: 'b-tier', letter: 'B', icon: '💎' };
-    return { class: 'd-tier', letter: 'D', icon: '📉' };
-  };
-
   if (loading) {
     return (
       <div className="bg-gradient-card rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
@@ -112,6 +107,7 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
             {decks.map((deck, index) => {
               const rank = index + 1;
               const tier = getWinRateTier(deck.win_rate / 100);
+              const tierConfig = TIER_CONFIG[tier];
               return (
                 <tr key={deck.deck_id} className="transition-all duration-200 hover:bg-[#25262B]">
                   <td className="p-4 border-b border-[#2C2E33]">
@@ -152,10 +148,10 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
                     <span className="text-[#C1C2C5] font-medium text-[15px]">{deck.wins}-{deck.losses}</span>
                   </td>
                   <td className="p-4 border-b border-[#2C2E33] text-center">
-                    <div className={`winrate-compact ${tier.class}`}>
-                      <div className="tier-icon-compact">{tier.icon}</div>
+                    <div className={`winrate-compact ${tierConfig.cssClass}`}>
+                      <TierBadge tier={tier} variant="compact" size="lg" />
                       <div className="text-left">
-                        <div className="text-[10px] text-[#909296] uppercase font-semibold mb-0.5 tracking-wider">{tier.letter} Tier</div>
+                        <div className="text-[10px] text-[#909296] uppercase font-semibold mb-0.5 tracking-wider">{tier} Tier</div>
                         <div className="text-lg font-bold text-white">{deck.win_rate.toFixed(1)}%</div>
                       </div>
                     </div>
@@ -172,14 +168,7 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
         {decks.map((deck, index) => {
           const rank = index + 1;
           const tier = getWinRateTier(deck.win_rate / 100);
-          const tierColorClass = tier.class === 's-tier' ? 'text-[#FFD700]' :
-                                 tier.class === 'a-tier' ? 'text-[#33D9B2]' :
-                                 tier.class === 'b-tier' ? 'text-[#4FACFE]' :
-                                 'text-[#FF6B6B]';
-          const tierBgClass = tier.class === 's-tier' ? 'bg-[rgba(255,215,0,0.15)]' :
-                              tier.class === 'a-tier' ? 'bg-[rgba(51,217,178,0.15)]' :
-                              tier.class === 'b-tier' ? 'bg-[rgba(79,172,254,0.15)]' :
-                              'bg-[rgba(255,107,107,0.15)]';
+          const tierConfig = TIER_CONFIG[tier];
           return (
             <div
               key={deck.deck_id}
@@ -219,12 +208,10 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
 
                 {/* Right column */}
                 <div className="flex flex-col items-center justify-center flex-shrink-0 pl-2 ml-auto">
-                  <div className={`text-2xl font-bold ${tierColorClass}`}>
+                  <div className="text-2xl font-bold" style={{ color: tierConfig.color }}>
                     {deck.win_rate.toFixed(0)}%
                   </div>
-                  <div className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border border-[rgba(255,255,255,0.15)] text-white ${tierBgClass}`}>
-                    {tier.icon} {tier.letter} Tier
-                  </div>
+                  <TierBadge tier={tier} size="sm" variant="pill" />
                 </div>
               </div>
             </div>
