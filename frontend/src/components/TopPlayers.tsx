@@ -203,13 +203,13 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                 </div>
 
                 {/* Right column - Elo and tier */}
-                <div className="flex flex-col items-center justify-center flex-shrink-0 pl-2 pr-8 ml-auto">
+                <div className="flex flex-col items-center justify-center flex-shrink-0 ml-auto w-[90px]">
                   {player.elo ? (
                     <>
-                      <div className="relative">
+                      <div className="flex items-center justify-center gap-1.5 w-full">
                         <span className="font-bold text-2xl tabular-nums" style={{ color: tierConfig.color }}>{player.elo}</span>
                         {player.elo_change !== undefined && player.elo_change !== 0 && (
-                          <span className={`absolute -right-8 top-1/2 -translate-y-1/2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${player.elo_change > 0 ? 'text-[#33D9B2] bg-[rgba(51,217,178,0.15)]' : 'text-[#FF6B6B] bg-[rgba(255,107,107,0.15)]'}`}>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap ${player.elo_change > 0 ? 'text-[#33D9B2] bg-[rgba(51,217,178,0.15)]' : 'text-[#FF6B6B] bg-[rgba(255,107,107,0.15)]'}`}>
                             {player.elo_change > 0 ? '+' : ''}{player.elo_change.toFixed(0)}
                           </span>
                         )}
