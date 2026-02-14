@@ -16,13 +16,13 @@ import MatchDetail from './components/MatchDetail.tsx'
 import Leaderboard from './components/Leaderboard.tsx'
 import AdminPanel from './components/AdminPanel.tsx'
 import { EventCreate } from './pages/EventCreate.tsx'
+import { EventDashboard } from './pages/EventDashboard.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
 import { PendingDecksProvider } from './contexts/PendingDecksContext.tsx'
 import { Toaster } from 'react-hot-toast'
 
 // Placeholder components for future event tasks
-const EventDashboard = () => <div className="flex items-center justify-center min-h-[60vh] text-[#909296]">Event Dashboard - Coming Soon</div>;
 const EventMatchTracker = () => <div className="flex items-center justify-center min-h-screen text-[#909296] bg-[#141517]">Event Match Tracker - Coming Soon</div>;
 const EventLiveView = () => <div className="flex items-center justify-center min-h-screen text-[#909296] bg-[#141517]">Event Live View - Coming Soon</div>;
 
