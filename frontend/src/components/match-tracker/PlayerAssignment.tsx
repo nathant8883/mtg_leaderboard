@@ -10,6 +10,8 @@ interface PlayerAssignmentProps {
   layout: LayoutType;
   onComplete: (players: PlayerSlot[]) => void;
   onBack: () => void;
+  allowedPlayerIds?: string[];
+  hideGuestOption?: boolean;
 }
 
 // Selection flow state machine
@@ -19,7 +21,7 @@ type SelectionPhase =
   | { type: 'guest-name'; position: number }
   | { type: 'deck-select'; position: number; playerId: string; playerName: string; killMessages?: string[] };
 
-function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack }: PlayerAssignmentProps) {
+function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack, allowedPlayerIds, hideGuestOption }: PlayerAssignmentProps) {
   const [players, setPlayers] = useState<PlayerSlot[]>(initialPlayers);
   const [selectionPhase, setSelectionPhase] = useState<SelectionPhase>({ type: 'grid' });
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
@@ -66,8 +68,11 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   const loadPlayers = async () => {
     try {
       const data = await playerApi.getAll();
-      setAvailablePlayers(data);
-      console.log(`[PlayerAssignment] Loaded ${data.length} players`);
+      const filtered = allowedPlayerIds
+        ? data.filter(p => p.id && allowedPlayerIds.includes(p.id))
+        : data;
+      setAvailablePlayers(filtered);
+      console.log(`[PlayerAssignment] Loaded ${filtered.length} players${allowedPlayerIds ? ` (filtered from ${data.length})` : ''}`);
 
       // Preload commander images for faster deck selection
       const allDecks = await deckApi.getAll();
@@ -269,6 +274,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
           onSelect={handlePlayerSelect}
           onGuestClick={handleGuestClick}
           onBack={() => setSelectionPhase({ type: 'grid' })}
+          hideGuestOption={hideGuestOption}
         />
       )}
 
