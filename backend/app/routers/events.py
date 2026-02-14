@@ -243,7 +243,7 @@ async def create_event(
         event_players.append(EventPlayer(
             player_id=pid,
             player_name=player.name,
-            avatar=player.avatar,
+            avatar=player.custom_avatar or player.picture or player.avatar,
         ))
 
     # Initialize standings

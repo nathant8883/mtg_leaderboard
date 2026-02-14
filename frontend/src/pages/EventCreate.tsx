@@ -173,6 +173,7 @@ export function EventCreate() {
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}
+          aria-label="Go back"
           className="flex items-center justify-center w-10 h-10 rounded-[10px] bg-[#25262B] border border-[#2C2E33] text-[#909296] hover:text-white hover:border-[#667eea] transition-colors"
         >
           <IconArrowLeft size={20} />
