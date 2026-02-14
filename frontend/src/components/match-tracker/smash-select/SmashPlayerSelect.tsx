@@ -11,6 +11,7 @@ interface SmashPlayerSelectProps {
   onSelect: (player: Player) => void;
   onGuestClick: () => void;
   onBack: () => void;
+  hideGuestOption?: boolean;
 }
 
 function SmashPlayerSelect({
@@ -21,6 +22,7 @@ function SmashPlayerSelect({
   onSelect,
   onGuestClick,
   onBack,
+  hideGuestOption,
 }: SmashPlayerSelectProps) {
   // Determine if this seat should be rotated (top row faces opposite direction)
   const shouldRotate = (() => {
@@ -53,7 +55,7 @@ function SmashPlayerSelect({
           title={`Player ${seatNumber}`}
           subtitle="Tap to Select"
           onBack={onBack}
-          rightAction={{
+          rightAction={hideGuestOption ? undefined : {
             label: '+ Guest',
             onClick: onGuestClick,
           }}
