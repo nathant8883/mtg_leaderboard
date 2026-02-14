@@ -162,8 +162,78 @@ export interface Match {
   match_date: string;  // ISO date string
   duration_seconds?: number;  // Game duration in seconds
   first_player_position?: number;  // Index of player who went first (0-based)
+  event_id?: string;  // Links match to a tournament event
+  event_round?: number;  // Which round of the event (1-based)
   notes?: string;
   created_at?: string;
+}
+
+// Event Types
+export interface EventPlayer {
+  player_id: string;
+  player_name: string;
+  avatar?: string;
+}
+
+export interface PodAssignment {
+  pod_index: number;
+  player_ids: string[];
+  match_id?: string;
+  match_status: 'pending' | 'in_progress' | 'completed';
+  player_decks: Record<string, string>;
+}
+
+export interface RoundResult {
+  player_id: string;
+  placement_points: number;
+  kill_points: number;
+  alt_win_points: number;
+  scoop_penalty: number;
+  total: number;
+}
+
+export interface EventRound {
+  round_number: number;
+  pods: PodAssignment[];
+  results: RoundResult[];
+  status: 'pending' | 'in_progress' | 'completed';
+}
+
+export interface StandingsEntry {
+  player_id: string;
+  player_name: string;
+  total_points: number;
+  wins: number;
+  kills: number;
+  round_points: number[];
+}
+
+export interface TournamentEvent {
+  id: string;
+  name: string;
+  event_type: string;
+  pod_id: string;
+  creator_id: string;
+  custom_image?: string;
+  player_count: number;
+  round_count: number;
+  players: EventPlayer[];
+  status: 'setup' | 'active' | 'completed';
+  current_round: number;
+  rounds: EventRound[];
+  standings: StandingsEntry[];
+  event_date: string;
+  created_at: string;
+  completed_at?: string;
+}
+
+export interface CreateEventRequest {
+  name: string;
+  pod_id: string;
+  player_ids: string[];
+  round_count: number;
+  event_date?: string;
+  custom_image?: string;
 }
 
 export interface CreateMatchRequest {
@@ -927,6 +997,71 @@ export const podDynamicsApi = {
 
   getEliminationStats: async (): Promise<EliminationStatsData> => {
     const response = await api.get('/pod-dynamics/elimination-stats');
+    return response.data;
+  },
+};
+
+// Event API Functions
+export const eventApi = {
+  create: async (request: CreateEventRequest): Promise<TournamentEvent> => {
+    const response = await api.post('/events/', request);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<TournamentEvent> => {
+    const response = await api.get(`/events/${id}`);
+    return response.data;
+  },
+
+  getByPod: async (podId: string): Promise<TournamentEvent[]> => {
+    const response = await api.get(`/events/pod/${podId}`);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/events/${id}`);
+  },
+
+  start: async (id: string): Promise<TournamentEvent> => {
+    const response = await api.post(`/events/${id}/start`);
+    return response.data;
+  },
+
+  startMatch: async (
+    eventId: string,
+    round: number,
+    podIndex: number,
+  ): Promise<{ event_id: string; event_round: number; pod_index: number; player_ids: string[] }> => {
+    const response = await api.post(`/events/${eventId}/rounds/${round}/pods/${podIndex}/start-match`);
+    return response.data;
+  },
+
+  completeMatch: async (
+    eventId: string,
+    round: number,
+    podIndex: number,
+    matchId: string,
+    isAltWin: boolean,
+  ): Promise<TournamentEvent> => {
+    const response = await api.post(
+      `/events/${eventId}/rounds/${round}/pods/${podIndex}/complete-match`,
+      { match_id: matchId, is_alt_win: isAltWin },
+    );
+    return response.data;
+  },
+
+  advanceRound: async (id: string): Promise<TournamentEvent> => {
+    const response = await api.post(`/events/${id}/advance-round`);
+    return response.data;
+  },
+
+  complete: async (id: string): Promise<TournamentEvent> => {
+    const response = await api.post(`/events/${id}/complete`);
+    return response.data;
+  },
+
+  getLive: async (id: string): Promise<TournamentEvent> => {
+    const response = await axios.get(`/api/events/${id}/live`);
     return response.data;
   },
 };
