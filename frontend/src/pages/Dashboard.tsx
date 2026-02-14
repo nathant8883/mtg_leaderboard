@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IconTrophy, IconPlus } from '@tabler/icons-react';
 import StatsCards from '../components/StatsCards';
 import TopPlayers from '../components/TopPlayers';
 import TopDecks from '../components/TopDecks';
@@ -7,10 +8,24 @@ import RecentMatches from '../components/RecentMatches';
 import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import type { Match, Deck, EloHistoryPoint } from '../services/api';
-import { matchApi, deckApi, podDynamicsApi } from '../services/api';
+import type { Match, Deck, EloHistoryPoint, TournamentEvent } from '../services/api';
+import { matchApi, deckApi, podDynamicsApi, eventApi } from '../services/api';
 import type { PendingMatch } from '../types/matchTypes';
 import offlineQueue from '../services/offlineQueue';
+
+function StatusBadge({ status }: { status: string }) {
+  const config = {
+    setup: { label: 'Setup', bg: 'bg-[#25262B]', text: 'text-[#909296]' },
+    active: { label: 'Active', bg: 'bg-[#E67700]/15', text: 'text-[#FFA94D]' },
+    completed: { label: 'Completed', bg: 'bg-[#2B8A3E]/20', text: 'text-[#51CF66]' },
+  }[status] || { label: status, bg: 'bg-[#25262B]', text: 'text-[#909296]' };
+
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      {config.label}
+    </span>
+  );
+}
 
 /**
  * Dashboard page - main landing page showing stats, top players/decks, and recent matches
@@ -24,11 +39,14 @@ export function Dashboard() {
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [eloHistoryByPlayer, setEloHistoryByPlayer] = useState<Map<string, EloHistoryPoint[]>>(new Map());
+  const [events, setEvents] = useState<TournamentEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   useEffect(() => {
     loadMatches();
     loadPendingMatches();
     loadDecks();
+    loadEvents();
 
     // Listen for refresh events from MainLayout
     const handleRefreshMatches = () => {
@@ -41,6 +59,7 @@ export function Dashboard() {
       loadMatches();
       loadPendingMatches();
       loadDecks();
+      loadEvents();
       // Trigger a full page refresh for child components
       window.dispatchEvent(new Event('podSwitched-refresh'));
     };
@@ -147,6 +166,19 @@ export function Dashboard() {
     }
   };
 
+  const loadEvents = async () => {
+    if (!currentPod?.id) return;
+    try {
+      setLoadingEvents(true);
+      const data = await eventApi.getByPod(currentPod.id);
+      setEvents(data);
+    } catch (err) {
+      console.error('Error loading events:', err);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
   const handleViewPlayerDetail = (playerId: string) => {
     navigate(`/players/${playerId}`);
   };
@@ -170,6 +202,57 @@ export function Dashboard() {
   return (
     <div>
       <StatsCards />
+
+      {/* Events Section */}
+      {!isGuest && currentPod && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <IconTrophy size={20} className="text-[#667eea]" />
+              Events
+            </h2>
+            <button
+              onClick={() => navigate('/event/create')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-sm font-medium text-[#667eea] bg-[#667eea]/10 border border-[#667eea]/20 hover:bg-[#667eea]/20 transition-colors"
+            >
+              <IconPlus size={16} />
+              Create Event
+            </button>
+          </div>
+
+          {loadingEvents ? (
+            <div className="text-center py-4 text-[#909296] text-sm">Loading events...</div>
+          ) : events.length === 0 ? (
+            <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-6 text-center">
+              <IconTrophy size={32} className="mx-auto mb-2 text-[#5C5F66]" />
+              <p className="text-sm text-[#909296]">No events yet</p>
+              <p className="text-xs text-[#5C5F66] mt-1">Create a tournament for your pod!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {events.slice(0, 6).map(event => (
+                <button
+                  key={event.id}
+                  onClick={() => navigate(`/event/${event.id}`)}
+                  className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-4 text-left hover:border-[#667eea]/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-white text-sm truncate">{event.name}</span>
+                    <StatusBadge status={event.status} />
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-[#909296]">
+                    <span>{event.player_count} players</span>
+                    <span>&middot;</span>
+                    <span>{event.round_count} rounds</span>
+                    <span>&middot;</span>
+                    <span>{new Date(event.event_date).toLocaleDateString()}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <TopPlayers
