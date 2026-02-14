@@ -15,6 +15,7 @@ class MatchPlayer(BaseModel):
     is_winner: bool = False
     eliminated_by_player_id: Optional[str] = None  # player_id of who eliminated this player (null if scooped or winner)
     elimination_type: Optional[str] = None  # "kill" | "scoop" | None (winner has None)
+    is_alt_win: bool = False  # True if this match ended via alternative win condition
 
 
 class Match(Document):
@@ -26,6 +27,8 @@ class Match(Document):
     match_date: date = Field(default_factory=date.today)
     duration_seconds: Optional[int] = None  # Game duration in seconds
     first_player_position: Optional[int] = None  # Index of player who went first (0-based position in players list)
+    event_id: Optional[str] = None  # Links match to a tournament event
+    event_round: Optional[int] = None  # Which round of the event (1-based)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator('players')
