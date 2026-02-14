@@ -48,6 +48,7 @@ export function EventMatchTracker() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [isAltWin, setIsAltWin] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [currentRound, setCurrentRound] = useState<number>(0);
 
   const storageKey = useMemo(
     () => `mtg_event_match_${eventId}_${podIndex}`,
@@ -65,6 +66,7 @@ export function EventMatchTracker() {
 
         const eventData = await eventApi.getById(eventId);
         setEvent(eventData);
+        setCurrentRound(eventData.current_round);
 
         // Find the current round
         const currentRound = eventData.rounds.find(
@@ -176,6 +178,17 @@ export function EventMatchTracker() {
       // Filter out empty slots (for odd-number games where we create extra slots)
       const activePlayers = players.filter((p) => p.playerId !== null);
 
+      // Report deck selections to backend for TV live view (fire-and-forget)
+      if (eventId && currentRound > 0 && podIndex >= 0) {
+        activePlayers.forEach((player) => {
+          if (player.playerId && player.deckId) {
+            eventApi.setDeck(eventId, currentRound, podIndex, player.playerId, player.deckId).catch((err) =>
+              console.warn('[EventMatchTracker] Failed to report deck selection:', err)
+            );
+          }
+        });
+      }
+
       // Initialize game state
       const gameState: ActiveGameState = {
         startTime: new Date(),
@@ -202,7 +215,7 @@ export function EventMatchTracker() {
         gameState,
       });
     },
-    [matchState]
+    [matchState, eventId, currentRound, podIndex]
   );
 
   // Handle game completion

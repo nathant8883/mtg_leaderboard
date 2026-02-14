@@ -175,12 +175,18 @@ export interface EventPlayer {
   avatar?: string;
 }
 
+export interface PlayerDeckInfo {
+  deck_name: string;
+  commander_image_url: string;
+  colors: string[];
+}
+
 export interface PodAssignment {
   pod_index: number;
   player_ids: string[];
   match_id?: string;
   match_status: 'pending' | 'in_progress' | 'completed';
-  player_decks: Record<string, string>;
+  player_decks: Record<string, PlayerDeckInfo>;
 }
 
 export interface RoundResult {
@@ -1089,6 +1095,20 @@ export const eventApi = {
 
   complete: async (id: string): Promise<TournamentEvent> => {
     const response = await api.post(`/events/${id}/complete`);
+    return response.data;
+  },
+
+  setDeck: async (
+    eventId: string,
+    round: number,
+    podIndex: number,
+    playerId: string,
+    deckId: string,
+  ): Promise<{ status: string; player_id: string; deck_name: string }> => {
+    const response = await api.post(
+      `/events/${eventId}/rounds/${round}/pods/${podIndex}/set-deck`,
+      { player_id: playerId, deck_id: deckId },
+    );
     return response.data;
   },
 
