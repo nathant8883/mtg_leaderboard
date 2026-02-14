@@ -33,6 +33,15 @@
 }
 
 @layer components {
+  /* Scrollbar hide utility for clean TV/spectator views */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Tier color CSS variables for inline gradient styles */
   .s-tier {
     --tier-color: #FFD700;

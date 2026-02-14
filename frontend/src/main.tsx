@@ -18,13 +18,11 @@ import AdminPanel from './components/AdminPanel.tsx'
 import { EventCreate } from './pages/EventCreate.tsx'
 import { EventDashboard } from './pages/EventDashboard.tsx'
 import EventMatchTracker from './pages/EventMatchTracker.tsx'
+import { EventLiveView } from './pages/EventLiveView.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
 import { PendingDecksProvider } from './contexts/PendingDecksContext.tsx'
 import { Toaster } from 'react-hot-toast'
-
-// Placeholder components for future event tasks
-const EventLiveView = () => <div className="flex items-center justify-center min-h-screen text-[#909296] bg-[#141517]">Event Live View - Coming Soon</div>;
 
 // Detect iOS and add class for iOS-specific styling (safe areas)
 const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
