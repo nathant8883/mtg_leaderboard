@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { eventApi, matchApi, playerApi } from '../services/api';
-import type { TournamentEvent, Player, CreateMatchRequest } from '../services/api';
+import { eventApi, matchApi } from '../services/api';
+import type { TournamentEvent, CreateMatchRequest } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Reuse existing match tracker components
@@ -17,6 +17,17 @@ import { useOrientationLock } from '../hooks/useOrientationLock';
 // Types from MatchTracker
 import type { PlayerSlot, ActiveGameState, MatchState, LayoutType } from './MatchTracker';
 
+const EVENT_MATCH_POINTER_KEY = 'mtg_active_event_match';
+
+interface EventMatchSavedState {
+  matchState: MatchState;
+  isAltWin: boolean;
+  eventId: string;
+  podIndex: number;
+  currentRound: number;
+  savedAt: number;
+}
+
 export function EventMatchTracker() {
   const { eventId, podIndex: podIndexStr } = useParams<{ eventId: string; podIndex: string }>();
   const navigate = useNavigate();
@@ -30,13 +41,18 @@ export function EventMatchTracker() {
   const orientationLockStatus = useOrientationLock();
 
   const [event, setEvent] = useState<TournamentEvent | null>(null);
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [podPlayerIds, setPodPlayerIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [matchState, setMatchState] = useState<MatchState | null>(null);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isAltWin, setIsAltWin] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const storageKey = useMemo(
+    () => `mtg_event_match_${eventId}_${podIndex}`,
+    [eventId, podIndex]
+  );
 
   // Load event data + players on mount
   useEffect(() => {
@@ -47,13 +63,8 @@ export function EventMatchTracker() {
         setLoading(true);
         setError(null);
 
-        const [eventData, playersData] = await Promise.all([
-          eventApi.getById(eventId),
-          playerApi.getAll(),
-        ]);
-
+        const eventData = await eventApi.getById(eventId);
         setEvent(eventData);
-        setAllPlayers(playersData);
 
         // Find the current round
         const currentRound = eventData.rounds.find(
@@ -72,29 +83,58 @@ export function EventMatchTracker() {
           return;
         }
 
-        // Build PlayerSlot[] from pod.player_ids
-        const slots: PlayerSlot[] = pod.player_ids.map((pid, i) => {
-          const player = playersData.find((p) => p.id === pid);
-          return {
-            position: i + 1,
-            playerId: pid,
-            playerName:
-              player?.name ||
-              eventData.players.find((ep) => ep.player_id === pid)?.player_name ||
-              'Unknown',
-            deckId: null, // Not selected yet
-            deckName: '', // Not selected yet
-            commanderName: '',
-            commanderImageUrl: '',
-            isGuest: false,
-            killMessages: player?.kill_messages || [],
-          };
-        });
+        setPodPlayerIds(pod.player_ids);
 
-        // Initialize match state starting at assignment step (deck selection)
+        // Try to restore from localStorage
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            const parsed: EventMatchSavedState = JSON.parse(saved);
+
+            // Validate: round matches, pod is still in_progress, not older than 24h
+            const isRoundMatch = parsed.currentRound === eventData.current_round;
+            const isPodInProgress = pod.match_status === 'in_progress';
+            const isRecent = Date.now() - parsed.savedAt < 24 * 60 * 60 * 1000;
+
+            if (isRoundMatch && isPodInProgress && isRecent) {
+              // Convert startTime string back to Date
+              if (parsed.matchState.gameState?.startTime) {
+                parsed.matchState.gameState.startTime = new Date(
+                  parsed.matchState.gameState.startTime
+                );
+              }
+              setMatchState(parsed.matchState);
+              setIsAltWin(parsed.isAltWin);
+              console.log('[EventMatchTracker] Restored match state from localStorage');
+              return;
+            }
+          } catch (e) {
+            console.error('[EventMatchTracker] Failed to parse saved state:', e);
+          }
+          // Invalid saved state — clear it
+          localStorage.removeItem(storageKey);
+          localStorage.removeItem(EVENT_MATCH_POINTER_KEY);
+        }
+
+        // Create empty slots like regular MatchTracker
+        // For odd player counts, create extra slots so players can choose positions
+        const podSize = pod.player_ids.length;
+        const totalSlots = podSize === 3 ? 4 : podSize === 5 ? 6 : podSize;
+        const emptyPlayers: PlayerSlot[] = Array.from({ length: totalSlots }, (_, i) => ({
+          position: i + 1,
+          playerId: null,
+          playerName: '',
+          deckId: null,
+          deckName: '',
+          commanderName: '',
+          commanderImageUrl: '',
+          isGuest: false,
+        }));
+
+        // Initialize match state starting at assignment step (player + deck selection)
         setMatchState({
-          playerCount: slots.length,
-          players: slots,
+          playerCount: podSize,
+          players: emptyPlayers,
           layout: 'table' as LayoutType,
           startingLife: 40,
           currentStep: 'assignment',
@@ -109,7 +149,24 @@ export function EventMatchTracker() {
     };
 
     loadData();
-  }, [eventId, podIndex]);
+  }, [eventId, podIndex, storageKey]);
+
+  // Auto-save to localStorage whenever match state changes
+  useEffect(() => {
+    if (!matchState || !eventId || !event) return;
+    if (matchState.players.length === 0) return;
+
+    const savedState: EventMatchSavedState = {
+      matchState,
+      isAltWin,
+      eventId,
+      podIndex,
+      currentRound: event.current_round,
+      savedAt: Date.now(),
+    };
+    localStorage.setItem(storageKey, JSON.stringify(savedState));
+    localStorage.setItem(EVENT_MATCH_POINTER_KEY, JSON.stringify({ eventId, podIndex }));
+  }, [matchState, isAltWin, eventId, podIndex, event, storageKey]);
 
   // Handle player assignment (deck selection) completion
   const handlePlayerAssignment = useCallback(
@@ -266,6 +323,8 @@ export function EventMatchTracker() {
         isAltWin
       );
 
+      localStorage.removeItem(storageKey);
+      localStorage.removeItem(EVENT_MATCH_POINTER_KEY);
       toast.success('Match saved! Tournament updated.');
       navigate(`/event/${eventId}`);
     } catch (err: any) {
@@ -275,16 +334,24 @@ export function EventMatchTracker() {
     } finally {
       setSaving(false);
     }
-  }, [matchState, event, eventId, podIndex, isAltWin, navigate]);
+  }, [matchState, event, eventId, podIndex, isAltWin, navigate, storageKey]);
 
-  // Handle match discard — navigate back to event dashboard
-  const handleMatchDiscard = useCallback(() => {
-    if (eventId) {
+  // Handle match discard — cancel match on backend and navigate back
+  const handleMatchDiscard = useCallback(async () => {
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(EVENT_MATCH_POINTER_KEY);
+    if (eventId && event) {
+      try {
+        await eventApi.cancelMatch(eventId, event.current_round, podIndex);
+      } catch (err) {
+        // Best-effort cancel — still navigate away even if it fails
+        console.warn('[EventMatchTracker] Failed to cancel match:', err);
+      }
       navigate(`/event/${eventId}`);
     } else {
       navigate('/');
     }
-  }, [eventId, navigate]);
+  }, [eventId, event, podIndex, navigate, storageKey]);
 
   // Exit game handlers
   const handleExitGame = useCallback(() => {
@@ -295,10 +362,22 @@ export function EventMatchTracker() {
     setShowExitModal(false);
   }, []);
 
-  const handleExitConfirm = useCallback(() => {
+  const handleExitConfirm = useCallback(async () => {
     setShowExitModal(false);
-    handleMatchDiscard();
-  }, [handleMatchDiscard]);
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(EVENT_MATCH_POINTER_KEY);
+
+    // Cancel match on backend (best-effort)
+    if (eventId && event) {
+      try {
+        await eventApi.cancelMatch(eventId, event.current_round, podIndex);
+      } catch (err) {
+        console.warn('[EventMatchTracker] Failed to cancel match:', err);
+      }
+    }
+
+    navigate(eventId ? `/event/${eventId}` : '/');
+  }, [storageKey, eventId, event, podIndex, navigate]);
 
   // Loading state
   if (loading) {
@@ -348,6 +427,8 @@ export function EventMatchTracker() {
           layout={matchState.layout}
           onComplete={handlePlayerAssignment}
           onBack={handleMatchDiscard}
+          allowedPlayerIds={podPlayerIds}
+          hideGuestOption={true}
         />
       )}
 
