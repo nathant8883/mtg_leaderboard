@@ -151,7 +151,7 @@ export function EventMatchTracker() {
   // Handle game completion
   const handleGameComplete = useCallback(
     (winnerPosition: number, finalGameState?: ActiveGameState) => {
-      if (!matchState) return;
+      if (!matchState || (!finalGameState && !matchState.gameState)) return;
 
       setMatchState({
         ...matchState,
