@@ -7,7 +7,7 @@ import random
 
 from app.models.event import Event, EventPlayer, PlayerDeckInfo, PodAssignment, Round, RoundResult, StandingsEntry
 from app.models.match import Match
-from app.models.player import Player
+from app.models.player import Player, Deck
 from app.models.pod import Pod
 from app.middleware.auth import get_current_player
 
@@ -30,6 +30,11 @@ class CompleteMatchRequest(BaseModel):
     """Request body for completing a match within an event"""
     match_id: str
     is_alt_win: bool = False
+
+
+class SetDeckRequest(BaseModel):
+    player_id: str
+    deck_id: str
 
 
 # ==================== HELPERS ====================
@@ -581,6 +586,60 @@ async def cancel_pod_match(
     await event.save()
 
     return {"status": "cancelled", "pod_index": pod_index}
+
+
+@router.post("/{event_id}/rounds/{round_num}/pods/{pod_index}/set-deck")
+async def set_pod_deck(
+    event_id: PydanticObjectId,
+    round_num: int,
+    pod_index: int,
+    request: SetDeckRequest,
+    current_player: Player = Depends(get_current_player),
+):
+    """Record a player's deck selection for a pod (called during PlayerAssignment)"""
+    event = await Event.get(event_id)
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    if event.status != "active":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Event is not active")
+
+    # Find the round
+    current_round = None
+    for r in event.rounds:
+        if r.round_number == round_num:
+            current_round = r
+            break
+    if current_round is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Round not found")
+
+    # Find the pod
+    target_pod = None
+    for pa in current_round.pods:
+        if pa.pod_index == pod_index:
+            target_pod = pa
+            break
+    if target_pod is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pod not found")
+
+    # Validate player is in the pod
+    if request.player_id not in target_pod.player_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Player is not in this pod")
+
+    # Fetch the deck
+    deck = await Deck.get(PydanticObjectId(request.deck_id))
+    if not deck:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deck not found")
+
+    # Write deck info to pod
+    target_pod.player_decks[request.player_id] = PlayerDeckInfo(
+        deck_name=deck.name,
+        commander_image_url=deck.commander_image_url or "",
+        colors=deck.colors or [],
+    )
+
+    await event.save()
+    return {"status": "ok", "player_id": request.player_id, "deck_name": deck.name}
 
 
 @router.post("/{event_id}/rounds/{round_num}/pods/{pod_index}/complete-match")
