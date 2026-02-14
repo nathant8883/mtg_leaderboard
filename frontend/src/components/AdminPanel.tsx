@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Player, Deck, Match, CreateMatchRequest, Pod } from '../services/api';
+import type { Player, Deck, Match, CreateMatchRequest, Pod, DeckMatchCounts } from '../services/api';
 import { playerApi, deckApi, matchApi, podApi } from '../services/api';
 import PlayerList from './PlayerList';
 import PlayerForm from './PlayerForm';
@@ -17,6 +17,7 @@ function AdminPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('players');
   const [players, setPlayers] = useState<Player[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
+  const [deckMatchCounts, setDeckMatchCounts] = useState<DeckMatchCounts>({});
   const [matches, setMatches] = useState<Match[]>([]);
   const [pods, setPods] = useState<Pod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,8 +57,12 @@ function AdminPanel() {
     try {
       setIsLoading(true);
       setError('');
-      const data = await deckApi.getAll();
+      const [data, counts] = await Promise.all([
+        deckApi.getAll(),
+        deckApi.getMatchCounts(),
+      ]);
       setDecks(data);
+      setDeckMatchCounts(counts);
     } catch (err) {
       setError('Failed to load decks');
       console.error('Error loading decks:', err);
@@ -168,9 +173,10 @@ function AdminPanel() {
     try {
       await deckApi.delete(deckId);
       await loadDecks();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting deck:', err);
-      alert('Failed to delete deck');
+      const detail = err?.response?.data?.detail || 'Failed to delete deck';
+      setError(detail);
     }
   };
 
@@ -356,6 +362,7 @@ function AdminPanel() {
           <DeckList
             decks={decks}
             players={players}
+            matchCounts={deckMatchCounts}
             onEdit={handleEditDeck}
             onDelete={handleDeleteDeck}
           />

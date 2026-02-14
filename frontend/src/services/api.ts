@@ -227,6 +227,16 @@ export interface TournamentEvent {
   completed_at?: string;
 }
 
+export interface BusyPlayersResponse {
+  busy_player_ids: string[];
+  busy_player_events: Record<string, string>;
+  organizer_active_event: {
+    event_id: string;
+    event_name: string;
+    status: string;
+  } | null;
+}
+
 export interface CreateEventRequest {
   name: string;
   pod_id: string;
@@ -391,10 +401,18 @@ export interface KingmakerData {
   analyzed_games: number;
 }
 
+// Deck Match Counts - maps deck_id to number of matches played
+export type DeckMatchCounts = Record<string, number>;
+
 // Deck API Functions
 export const deckApi = {
   getAll: async (): Promise<Deck[]> => {
     const response = await api.get('/decks/');
+    return response.data;
+  },
+
+  getMatchCounts: async (): Promise<DeckMatchCounts> => {
+    const response = await api.get('/decks/match-counts');
     return response.data;
   },
 
@@ -1003,6 +1021,11 @@ export const podDynamicsApi = {
 
 // Event API Functions
 export const eventApi = {
+  getBusyPlayers: async (): Promise<BusyPlayersResponse> => {
+    const response = await api.get('/events/busy-players');
+    return response.data;
+  },
+
   create: async (request: CreateEventRequest): Promise<TournamentEvent> => {
     const response = await api.post('/events/', request);
     return response.data;
@@ -1033,6 +1056,15 @@ export const eventApi = {
     podIndex: number,
   ): Promise<{ event_id: string; event_round: number; pod_index: number; player_ids: string[] }> => {
     const response = await api.post(`/events/${eventId}/rounds/${round}/pods/${podIndex}/start-match`);
+    return response.data;
+  },
+
+  cancelMatch: async (
+    eventId: string,
+    round: number,
+    podIndex: number,
+  ): Promise<{ status: string; pod_index: number }> => {
+    const response = await api.post(`/events/${eventId}/rounds/${round}/pods/${podIndex}/cancel-match`);
     return response.data;
   },
 

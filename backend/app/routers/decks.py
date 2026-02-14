@@ -1,9 +1,13 @@
+import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 from beanie import PydanticObjectId
 from pydantic import BaseModel
 from typing import Optional
 
+logger = logging.getLogger(__name__)
+
 from app.models.player import Deck, Player
+from app.models.match import Match
 from app.models.pod import Pod
 from app.services.scryfall import scryfall_service
 from app.middleware.auth import get_current_player, get_optional_player
@@ -110,6 +114,17 @@ async def get_pending_decks(current_player: Player = Depends(get_current_player)
         })
 
     return result
+
+
+@router.get("/match-counts")
+async def get_deck_match_counts(current_player: Optional[Player] = Depends(get_optional_player)):
+    """Get the number of matches each deck has been played in."""
+    pipeline = [
+        {"$unwind": "$players"},
+        {"$group": {"_id": "$players.deck_id", "count": {"$sum": 1}}},
+    ]
+    results = await Match.aggregate(pipeline).to_list()
+    return {item["_id"]: item["count"] for item in results if item["_id"]}
 
 
 @router.get("/{deck_id}")
@@ -369,7 +384,7 @@ async def delete_deck(
     deck_id: PydanticObjectId,
     current_player: Player = Depends(get_current_player)
 ):
-    """Delete a deck. Requires deck ownership."""
+    """Delete a deck. Requires deck ownership. Decks with match history cannot be deleted."""
     deck = await Deck.get(deck_id)
     if not deck:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deck not found")
@@ -380,5 +395,22 @@ async def delete_deck(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own decks"
         )
+
+    # Prevent deletion of decks with match history
+    match_count = await Match.find({"players.deck_id": str(deck_id)}).count()
+    if match_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot delete deck with {match_count} match(es) in history. Disable it instead."
+        )
+
+    # Clean up the owning player's deck_ids array
+    owner = await Player.get(PydanticObjectId(deck.player_id))
+    if owner:
+        if owner.deck_ids and str(deck_id) in owner.deck_ids:
+            owner.deck_ids.remove(str(deck_id))
+            await owner.set({Player.deck_ids: owner.deck_ids})
+    else:
+        logger.warning(f"Deck {deck_id} owner {deck.player_id} not found during cleanup")
 
     await deck.delete()

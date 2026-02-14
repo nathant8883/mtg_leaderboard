@@ -4,18 +4,19 @@ import ColorPips from './ColorPips';
 interface DeckListProps {
   decks: Deck[];
   players: Player[];
+  matchCounts?: Record<string, number>;
   onEdit: (deck: Deck) => void;
   onDelete: (deckId: string) => void;
 }
 
-function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
+function DeckList({ decks, players, matchCounts = {}, onEdit, onDelete }: DeckListProps) {
   const getPlayerName = (playerId: string): string => {
     const player = players.find((p) => p.id === playerId);
     return player ? player.name : 'Unknown Player';
   };
 
   const handleDelete = (deck: Deck) => {
-    if (window.confirm(`Are you sure you want to delete "${deck.name}"? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to permanently delete "${deck.name}"? This action cannot be undone.`)) {
       onDelete(deck.id!);
     }
   };
@@ -93,13 +94,15 @@ function DeckList({ decks, players, onEdit, onDelete }: DeckListProps) {
                   >
                     ✏️
                   </button>
-                  <button
-                    onClick={() => handleDelete(deck)}
-                    className="bg-transparent border-none text-lg cursor-pointer py-1 px-2 rounded transition-all duration-200 hover:bg-[rgba(102,126,234,0.2)] hover:scale-110"
-                    title="Delete deck"
-                  >
-                    🗑️
-                  </button>
+                  {!matchCounts[deck.id!] && (
+                    <button
+                      onClick={() => handleDelete(deck)}
+                      className="bg-transparent border-none text-lg cursor-pointer py-1 px-2 rounded transition-all duration-200 hover:bg-[rgba(102,126,234,0.2)] hover:scale-110"
+                      title="Delete deck"
+                    >
+                      🗑️
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>
