@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { eventApi } from '../services/api';
 import type { TournamentEvent, EventRound, PodAssignment, StandingsEntry } from '../services/api';
@@ -473,6 +473,9 @@ export function EventLiveView() {
   const [error, setError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
 
+  // Track whether we've ever loaded successfully (ref avoids stale closure)
+  const hasLoadedRef = useRef(false);
+
   // Poll every 5 seconds
   useEffect(() => {
     if (!eventId) return;
@@ -482,10 +485,11 @@ export function EventLiveView() {
         const data = await eventApi.getLive(eventId);
         setEvent(data);
         setError(null);
+        hasLoadedRef.current = true;
       } catch (err) {
         console.error('Live view polling error:', err);
-        // Only set error on initial load; keep showing stale data on subsequent errors
-        if (!event) {
+        // Only set error if we haven't loaded data yet; keep showing stale data on subsequent errors
+        if (!hasLoadedRef.current) {
           setError('Tournament not found or unavailable');
         }
       } finally {
@@ -497,7 +501,6 @@ export function EventLiveView() {
 
     const interval = setInterval(fetchLive, 5000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   // ─── Loading State ──────────────────────────────────────────
