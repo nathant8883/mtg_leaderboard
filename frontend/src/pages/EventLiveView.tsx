@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { eventApi } from '../services/api';
-import type { TournamentEvent, EventRound, PodAssignment, StandingsEntry } from '../services/api';
+import type { TournamentEvent, EventRound, PodAssignment, StandingsEntry, PlayerDeckInfo } from '../services/api';
 import {
   IconTrophy,
   IconCrown,
@@ -9,7 +9,11 @@ import {
   IconClock,
   IconSwords,
   IconCalendar,
+  IconScale,
 } from '@tabler/icons-react';
+import { TVShuffleAnimation } from '../components/events/TVShuffleAnimation';
+import ColorPips from '../components/ColorPips';
+import { getColorIdentityStyle } from '../utils/manaColors';
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -282,6 +286,152 @@ function StandingsPanel({
   );
 }
 
+// ─── Scoring Rules ──────────────────────────────────────────────
+
+function ScoringRulesPanel() {
+  return (
+    <div className="border-t border-[#2C2E33] px-5 py-4">
+      <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-3">
+        <IconScale size={16} className="text-[#667eea]" />
+        Scoring
+      </h3>
+
+      {/* Placement */}
+      <div className="mb-3">
+        <p className="text-[10px] font-semibold text-[#667eea] uppercase tracking-wider mb-1.5">Placement</p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+          {[
+            ['1st', '3'],
+            ['2nd', '2'],
+            ['3rd', '1'],
+            ['4th', '0'],
+          ].map(([label, pts]) => (
+            <div key={label} className="flex items-center justify-between">
+              <span className="text-xs text-[#909296]">{label}</span>
+              <span className="text-xs font-bold text-white">{pts}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bonuses */}
+      <div className="mb-3">
+        <p className="text-[10px] font-semibold text-[#667eea] uppercase tracking-wider mb-1.5">Bonuses</p>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#909296]">Kill</span>
+            <span className="text-xs font-bold text-[#51CF66]">+1</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#909296]">Alt Win</span>
+            <span className="text-xs font-bold text-[#51CF66]">+4</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Penalties */}
+      <div>
+        <p className="text-[10px] font-semibold text-[#667eea] uppercase tracking-wider mb-1.5">Penalties</p>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-[#909296]">Scoop</span>
+          <span className="text-xs font-bold text-[#E03131]">−1</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pod Player Card ────────────────────────────────────────────
+
+function PodPlayerCard({
+  playerId,
+  event,
+  round,
+  pod,
+  isWinner,
+}: {
+  playerId: string;
+  event: TournamentEvent;
+  round: EventRound;
+  pod: PodAssignment;
+  isWinner: boolean;
+}) {
+  const playerName = findPlayerName(event, playerId);
+  const deckInfo: PlayerDeckInfo | undefined = pod.player_decks[playerId];
+  const result = round.results.find((r) => r.player_id === playerId);
+  const hasDeck = deckInfo && deckInfo.deck_name;
+  const isPodCompleted = pod.match_status === 'completed';
+
+  return (
+    <div
+      className={`flex items-center gap-3 p-2 rounded-[8px] transition-all duration-300 ${
+        isWinner
+          ? 'bg-[rgba(255,215,0,0.08)] border-l-[3px] border-[rgba(255,165,0,0.5)]'
+          : 'bg-[rgba(37,38,43,0.3)]'
+      }`}
+    >
+      {/* Commander artwork or placeholder */}
+      <div className="flex-shrink-0">
+        {hasDeck && deckInfo.commander_image_url ? (
+          <div
+            className="deck-color-border-wrapper p-[2px] rounded-[8px]"
+            style={getColorIdentityStyle(deckInfo.colors || [])}
+          >
+            <div className="w-[40px] h-[40px] rounded-[6px] overflow-hidden">
+              <img
+                src={deckInfo.commander_image_url}
+                alt=""
+                className="w-full h-full object-cover object-[center_20%]"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="w-[44px] h-[44px] rounded-[8px] bg-[#25262B] border border-[#2C2E33] flex items-center justify-center">
+            <span className="text-[#3C3F44] text-lg">?</span>
+          </div>
+        )}
+      </div>
+
+      {/* Player info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          {isWinner && <IconCrown size={13} className="text-[#FFD700] flex-shrink-0" />}
+          <span
+            className={`text-sm truncate ${
+              isWinner ? 'text-[#FFD700] font-bold' : isPodCompleted ? 'text-[#909296] font-medium' : 'text-white font-medium'
+            }`}
+          >
+            {playerName}
+          </span>
+        </div>
+        {hasDeck ? (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-xs text-[#909296] truncate">{deckInfo.deck_name}</span>
+            {deckInfo.colors && deckInfo.colors.length > 0 && (
+              <div className="flex-shrink-0">
+                <ColorPips colors={deckInfo.colors} size={10} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-[#3C3F44] italic mt-0.5 block">Selecting deck...</span>
+        )}
+      </div>
+
+      {/* Points */}
+      {result && (
+        <span
+          className={`text-xs font-bold flex-shrink-0 ${
+            isWinner ? 'text-[#FFD700]' : 'text-[#51CF66]/70'
+          }`}
+        >
+          +{result.total}
+        </span>
+      )}
+    </div>
+  );
+}
+
 // ─── Round Card ──────────────────────────────────────────────────
 
 function RoundCard({
@@ -365,36 +515,18 @@ function RoundCard({
               </div>
 
               {/* Players in pod */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {pod.player_ids.map((pid) => {
                   const isWinner = winner?.playerId === pid;
-                  const result = round.results.find((r) => r.player_id === pid);
-
                   return (
-                    <div
+                    <PodPlayerCard
                       key={pid}
-                      className={`flex items-center justify-between py-1 ${
-                        isWinner ? 'text-[#FFD700]' : isPodCompleted ? 'text-[#909296]' : 'text-[#C1C2C5]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        {isWinner && <IconCrown size={14} className="text-[#FFD700] flex-shrink-0" />}
-                        <span
-                          className={`text-sm truncate ${isWinner ? 'font-bold' : 'font-medium'}`}
-                        >
-                          {findPlayerName(event, pid)}
-                        </span>
-                      </div>
-                      {result && (
-                        <span
-                          className={`text-xs font-medium flex-shrink-0 ml-2 ${
-                            isWinner ? 'text-[#FFD700]' : 'text-[#51CF66]/70'
-                          }`}
-                        >
-                          +{result.total}
-                        </span>
-                      )}
-                    </div>
+                      playerId={pid}
+                      event={event}
+                      round={round}
+                      pod={pod}
+                      isWinner={isWinner}
+                    />
                   );
                 })}
               </div>
@@ -473,6 +605,11 @@ export function EventLiveView() {
   const [error, setError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
 
+  const [animationState, setAnimationState] = useState<'none' | 'shuffle' | 'reseed'>('none');
+  const [previousStandings, setPreviousStandings] = useState<StandingsEntry[] | null>(null);
+  const prevStatusRef = useRef<string | null>(null);
+  const prevRoundRef = useRef<number>(0);
+
   // Track whether we've ever loaded successfully (ref avoids stale closure)
   const hasLoadedRef = useRef(false);
 
@@ -483,6 +620,25 @@ export function EventLiveView() {
     const fetchLive = async () => {
       try {
         const data = await eventApi.getLive(eventId);
+
+        // Detect state transitions for animation
+        if (prevStatusRef.current !== null) {
+          // Tournament just started
+          if (prevStatusRef.current === 'setup' && data.status === 'active') {
+            setAnimationState('shuffle');
+          }
+          // Round advanced
+          else if (data.current_round > prevRoundRef.current && prevRoundRef.current > 0) {
+            // Save current standings before updating for the re-seed animation
+            if (event) {
+              setPreviousStandings([...event.standings].sort((a, b) => b.total_points - a.total_points));
+            }
+            setAnimationState('reseed');
+          }
+        }
+
+        prevStatusRef.current = data.status;
+        prevRoundRef.current = data.current_round;
         setEvent(data);
         setError(null);
         hasLoadedRef.current = true;
@@ -545,13 +701,25 @@ export function EventLiveView() {
       {/* Main Content — landscape grid on desktop, stacked on mobile */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[35%_1fr] min-h-0 overflow-hidden">
         {/* Standings Column */}
-        <div className="border-b md:border-b-0 md:border-r border-[#2C2E33] bg-[#111214] overflow-y-auto scrollbar-hide">
-          <StandingsPanel event={event} standings={sortedStandings} />
+        <div className="border-b md:border-b-0 md:border-r border-[#2C2E33] bg-[#111214] flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0">
+            <StandingsPanel event={event} standings={sortedStandings} />
+          </div>
+          <ScoringRulesPanel />
         </div>
 
-        {/* Round Timeline */}
+        {/* Round Timeline / Animation */}
         <div className="overflow-y-auto scrollbar-hide">
-          <RoundTimeline event={event} />
+          {animationState !== 'none' ? (
+            <TVShuffleAnimation
+              event={event}
+              animationType={animationState}
+              previousStandings={previousStandings ?? undefined}
+              onComplete={() => setAnimationState('none')}
+            />
+          ) : (
+            <RoundTimeline event={event} />
+          )}
         </div>
       </div>
 
