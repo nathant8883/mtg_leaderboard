@@ -5,6 +5,7 @@ import { eventApi } from '../services/api';
 import type { TournamentEvent, EventRound, PodAssignment, StandingsEntry } from '../services/api';
 import toast from 'react-hot-toast';
 import PlayerAvatar from '../components/PlayerAvatar';
+import { ShuffleAnimation } from '../components/events/ShuffleAnimation';
 import {
   IconArrowLeft,
   IconTrophy,
@@ -849,6 +850,7 @@ export function EventDashboard() {
   const [event, setEvent] = useState<TournamentEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showShuffle, setShowShuffle] = useState(false);
 
   const currentPlayerId = currentPlayer?.id;
   const isCreator = event?.creator_id === currentPlayerId;
@@ -901,7 +903,7 @@ export function EventDashboard() {
     try {
       const updated = await eventApi.start(event.id);
       setEvent(updated);
-      toast.success('Tournament started!');
+      setShowShuffle(true);
     } catch (err: any) {
       console.error('Error starting tournament:', err);
       toast.error(err?.response?.data?.detail || 'Failed to start tournament');
@@ -985,38 +987,52 @@ export function EventDashboard() {
     );
   }
 
-  switch (event.status) {
-    case 'setup':
-      return (
-        <SetupView
+  const view = (() => {
+    switch (event.status) {
+      case 'setup':
+        return (
+          <SetupView
+            event={event}
+            isCreator={isCreator}
+            onStart={handleStartTournament}
+            onDelete={handleDeleteEvent}
+            navigate={navigate}
+          />
+        );
+      case 'active':
+        return (
+          <ActiveView
+            event={event}
+            currentPlayerId={currentPlayerId}
+            isCreator={isCreator}
+            onStartMatch={handleStartMatch}
+            onAdvanceRound={handleAdvanceRound}
+            onCompleteEvent={handleCompleteEvent}
+            navigate={navigate}
+          />
+        );
+      case 'completed':
+        return (
+          <CompletedView
+            event={event}
+            currentPlayerId={currentPlayerId}
+            navigate={navigate}
+          />
+        );
+      default:
+        return null;
+    }
+  })();
+
+  return (
+    <>
+      {view}
+      {showShuffle && event && (
+        <ShuffleAnimation
           event={event}
-          isCreator={isCreator}
-          onStart={handleStartTournament}
-          onDelete={handleDeleteEvent}
-          navigate={navigate}
+          onComplete={() => setShowShuffle(false)}
         />
-      );
-    case 'active':
-      return (
-        <ActiveView
-          event={event}
-          currentPlayerId={currentPlayerId}
-          isCreator={isCreator}
-          onStartMatch={handleStartMatch}
-          onAdvanceRound={handleAdvanceRound}
-          onCompleteEvent={handleCompleteEvent}
-          navigate={navigate}
-        />
-      );
-    case 'completed':
-      return (
-        <CompletedView
-          event={event}
-          currentPlayerId={currentPlayerId}
-          navigate={navigate}
-        />
-      );
-    default:
-      return null;
-  }
+      )}
+    </>
+  );
 }
