@@ -15,10 +15,16 @@ import PlayerDetail from './components/PlayerDetail.tsx'
 import MatchDetail from './components/MatchDetail.tsx'
 import Leaderboard from './components/Leaderboard.tsx'
 import AdminPanel from './components/AdminPanel.tsx'
+import { EventCreate } from './pages/EventCreate.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
 import { PendingDecksProvider } from './contexts/PendingDecksContext.tsx'
 import { Toaster } from 'react-hot-toast'
+
+// Placeholder components for future event tasks
+const EventDashboard = () => <div className="flex items-center justify-center min-h-[60vh] text-[#909296]">Event Dashboard - Coming Soon</div>;
+const EventMatchTracker = () => <div className="flex items-center justify-center min-h-screen text-[#909296] bg-[#141517]">Event Match Tracker - Coming Soon</div>;
+const EventLiveView = () => <div className="flex items-center justify-center min-h-screen text-[#909296] bg-[#141517]">Event Live View - Coming Soon</div>;
 
 // Detect iOS and add class for iOS-specific styling (safe areas)
 const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -62,6 +68,19 @@ createRoot(document.getElementById('root')!).render(
               }
             />
 
+            {/* Event Match Tracker - Standalone full-screen (no MainLayout) */}
+            <Route
+              path="/event/:eventId/match/:podIndex"
+              element={
+                <RequireAuth allowGuest={false}>
+                  <EventMatchTracker />
+                </RequireAuth>
+              }
+            />
+
+            {/* Event Live View - Public, no auth, full-screen */}
+            <Route path="/event/:eventId/live" element={<EventLiveView />} />
+
             {/* Main app routes with shared layout */}
             <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
@@ -74,6 +93,8 @@ createRoot(document.getElementById('root')!).render(
               {/* Protected routes - require auth, no guest mode */}
               <Route element={<RequireAuth allowGuest={false}><Outlet /></RequireAuth>}>
                 <Route path="admin" element={<AdminPanel />} />
+                <Route path="event/create" element={<EventCreate />} />
+                <Route path="event/:eventId" element={<EventDashboard />} />
               </Route>
 
               {/* 404 catch-all */}
