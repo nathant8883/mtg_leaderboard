@@ -11,13 +11,20 @@ class EventPlayer(BaseModel):
     avatar: Optional[str] = None
 
 
+class PlayerDeckInfo(BaseModel):
+    """Deck information for a player in a pod"""
+    deck_name: str = ""
+    commander_image_url: str = ""
+    colors: list[str] = Field(default_factory=list)
+
+
 class PodAssignment(BaseModel):
     """A single pod (table) within a tournament round"""
     pod_index: int  # 0-based pod number
     player_ids: list[str] = Field(default_factory=list)
     match_id: Optional[str] = None
     match_status: str = "pending"  # "pending" | "in_progress" | "completed"
-    player_decks: dict[str, str] = Field(default_factory=dict)  # player_id -> deck_name
+    player_decks: dict[str, PlayerDeckInfo] = Field(default_factory=dict)
 
 
 class RoundResult(BaseModel):

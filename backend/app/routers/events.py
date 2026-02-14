@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import date, datetime
 import random
 
-from app.models.event import Event, EventPlayer, PodAssignment, Round, RoundResult, StandingsEntry
+from app.models.event import Event, EventPlayer, PlayerDeckInfo, PodAssignment, Round, RoundResult, StandingsEntry
 from app.models.match import Match
 from app.models.player import Player
 from app.models.pod import Pod
@@ -64,7 +64,14 @@ def serialize_event(event: Event) -> dict:
                         "player_ids": pa.player_ids,
                         "match_id": pa.match_id,
                         "match_status": pa.match_status,
-                        "player_decks": pa.player_decks,
+                        "player_decks": {
+                            pid: {
+                                "deck_name": info.deck_name,
+                                "commander_image_url": info.commander_image_url,
+                                "colors": info.colors,
+                            } if isinstance(info, PlayerDeckInfo) else {"deck_name": info, "commander_image_url": "", "colors": []}
+                            for pid, info in pa.player_decks.items()
+                        },
                     }
                     for pa in r.pods
                 ],
@@ -195,6 +202,30 @@ def _create_pods_from_player_list(player_ids: list[str], round_number: int) -> l
 
 # ==================== CRUD ENDPOINTS ====================
 
+@router.get("/busy-players")
+async def get_busy_players(current_player: Player = Depends(get_current_player)):
+    """Return players currently in non-completed events and organizer active event info"""
+    player_id_str = str(current_player.id)
+    active_events = await Event.find(
+        {"status": {"$in": ["setup", "active"]}}
+    ).to_list()
+
+    busy_map: dict[str, str] = {}
+    organizer_event = None
+    for ev in active_events:
+        if ev.creator_id == player_id_str and organizer_event is None:
+            organizer_event = {"event_id": str(ev.id), "event_name": ev.name, "status": ev.status}
+        for ep in ev.players:
+            if ep.player_id not in busy_map:
+                busy_map[ep.player_id] = ev.name
+
+    return {
+        "busy_player_ids": list(busy_map.keys()),
+        "busy_player_events": busy_map,
+        "organizer_active_event": organizer_event,
+    }
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_event(
     request: CreateEventRequest,
@@ -213,6 +244,24 @@ async def create_event(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You must be a pod member to create an event",
+        )
+
+    # Organizer limit: one active event at a time
+    existing = await Event.find_one({"creator_id": player_id_str, "status": {"$in": ["setup", "active"]}})
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f'You already have an active event: "{existing.name}". Complete or delete it before creating a new one.',
+        )
+
+    # Player exclusivity: no player can be in two active events
+    active_events = await Event.find({"status": {"$in": ["setup", "active"]}}).to_list()
+    busy_ids = {ep.player_id for ev in active_events for ep in ev.players}
+    conflicts = set(request.player_ids) & busy_ids
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"message": "Some players are already in active events", "busy_player_ids": list(conflicts)},
         )
 
     # Validate player count (model validator handles 4/8/12)
@@ -481,6 +530,59 @@ async def start_pod_match(
     }
 
 
+@router.post("/{event_id}/rounds/{round_num}/pods/{pod_index}/cancel-match")
+async def cancel_pod_match(
+    event_id: PydanticObjectId,
+    round_num: int,
+    pod_index: int,
+    current_player: Player = Depends(get_current_player),
+):
+    """Cancel an in-progress match, resetting pod status back to pending"""
+    event = await Event.get(event_id)
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    if event.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Event is not active",
+        )
+
+    # Find the round
+    current_round = None
+    for r in event.rounds:
+        if r.round_number == round_num:
+            current_round = r
+            break
+
+    if current_round is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Round not found")
+
+    # Find the pod
+    target_pod = None
+    for pa in current_round.pods:
+        if pa.pod_index == pod_index:
+            target_pod = pa
+            break
+
+    if target_pod is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pod not found in this round")
+
+    if target_pod.match_status != "in_progress":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Pod match is not in progress (status: {target_pod.match_status})",
+        )
+
+    # Reset pod status
+    target_pod.match_status = "pending"
+    target_pod.match_id = None
+
+    await event.save()
+
+    return {"status": "cancelled", "pod_index": pod_index}
+
+
 @router.post("/{event_id}/rounds/{round_num}/pods/{pod_index}/complete-match")
 async def complete_pod_match(
     event_id: PydanticObjectId,
@@ -550,11 +652,11 @@ async def complete_pod_match(
     target_pod.match_id = request.match_id
     target_pod.match_status = "completed"
 
-    # Build player_decks map from match data
-    player_decks = {}
+    # Build player_decks map from match data (enrich with deck details)
     for mp in match.players:
-        player_decks[mp.player_id] = mp.deck_name
-    target_pod.player_decks = player_decks
+        # Only overwrite if not already set (set-deck endpoint may have pre-populated)
+        if mp.player_id not in target_pod.player_decks:
+            target_pod.player_decks[mp.player_id] = PlayerDeckInfo(deck_name=mp.deck_name)
 
     # Calculate points
     round_results = _calculate_match_points(match, request.is_alt_win)
