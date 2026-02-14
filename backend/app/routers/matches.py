@@ -58,6 +58,8 @@ def serialize_match(match: Match) -> dict:
         "winner_player_id": match.winner_player_id,
         "winner_deck_id": match.winner_deck_id,
         "pod_id": match.pod_id,
+        "event_id": match.event_id,
+        "event_round": match.event_round,
         "match_date": match.match_date.isoformat(),
         "duration_seconds": match.duration_seconds,
         "first_player_position": match.first_player_position,
