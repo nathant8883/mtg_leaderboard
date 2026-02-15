@@ -2,10 +2,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+import logfire
 
 from app.config import settings
 from app.database import init_db, close_db
 from app.routers import players, decks, matches, leaderboard, scryfall, auth, pods, analytics, pod_dynamics, events
+
+logfire.configure(token=settings.logfire_token)
 
 
 @asynccontextmanager
@@ -24,6 +27,8 @@ app = FastAPI(
     description=settings.api_description,
     lifespan=lifespan,
 )
+
+logfire.instrument_fastapi(app)
 
 # Configure Session Middleware (required for OAuth)
 app.add_middleware(

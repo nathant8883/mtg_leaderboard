@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # API settings
     api_title: str = "Pod Pal API"
-    api_version: str = "3.0.2"
+    api_version: str = "3.0.3"
     api_description: str = "API for tracking MTG Commander games and leaderboards"
 
     # CORS settings
@@ -32,6 +32,9 @@ class Settings(BaseSettings):
 
     # Development settings
     environment: str = "development"  # development or production
+
+    # Logfire observability
+    logfire_token: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
