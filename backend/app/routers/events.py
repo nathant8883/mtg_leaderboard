@@ -41,6 +41,15 @@ class SetDeckRequest(BaseModel):
     deck_id: str
 
 
+class RegisterDraftDeckRequest(BaseModel):
+    """Request body for registering/updating a draft deck"""
+    player_id: str
+    name: str
+    colors: list[str] = Field(default_factory=list)
+    commander: Optional[str] = None
+    commander_image_url: Optional[str] = None
+
+
 # ==================== HELPERS ====================
 
 def serialize_event(event: Event) -> dict:
@@ -567,6 +576,51 @@ async def start_tournament(
     # Update event state
     event.status = "active"
     event.current_round = 1
+
+    await event.save()
+    return serialize_event(event)
+
+
+@router.post("/{event_id}/draft-decks")
+async def register_draft_deck(
+    event_id: PydanticObjectId,
+    request: RegisterDraftDeckRequest,
+    current_player: Player = Depends(get_current_player),
+):
+    """Register or update a draft deck for a player in this event"""
+    event = await Event.get(event_id)
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    if event.event_type != "draft":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Draft decks can only be registered for draft events",
+        )
+
+    player_in_event = any(ep.player_id == request.player_id for ep in event.players)
+    if not player_in_event:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Player is not in this event",
+        )
+
+    colors = request.colors
+    commander_image_url = request.commander_image_url
+    if event.game_mode == "commander" and request.commander:
+        details = await scryfall_service.get_commander_details(request.commander)
+        if details:
+            colors = details["color_identity"]
+            commander_image_url = details.get("image_art_crop") or details.get("image_normal")
+
+    event.draft_decks = [dd for dd in event.draft_decks if dd.player_id != request.player_id]
+    event.draft_decks.append(DraftDeck(
+        player_id=request.player_id,
+        name=request.name,
+        colors=colors,
+        commander=request.commander,
+        commander_image_url=commander_image_url,
+    ))
 
     await event.save()
     return serialize_event(event)
