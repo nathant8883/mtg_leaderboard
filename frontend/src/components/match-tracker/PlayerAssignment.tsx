@@ -3,7 +3,6 @@ import { X, ArrowLeft } from 'lucide-react';
 import { playerApi, deckApi, eventApi, type Player, type Deck, type DraftDeck } from '../../services/api';
 import type { PlayerSlot, LayoutType } from '../../pages/MatchTracker';
 import { SmashPlayerSelect, SmashDeckSelect } from './smash-select';
-import CommanderAutocomplete from '../CommanderAutocomplete';
 
 interface PlayerAssignmentProps {
   playerCount: number;
@@ -39,26 +38,18 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   // Draft deck state
   const [draftDeckNames, setDraftDeckNames] = useState<Record<string, string>>({});
   const [draftDeckColors, setDraftDeckColors] = useState<Record<string, string[]>>({});
-  const [draftDeckCommander, setDraftDeckCommander] = useState<Record<string, string>>({});
-  const [draftDeckCommanderImage, setDraftDeckCommanderImage] = useState<Record<string, string>>({});
 
   // Initialize draft deck state from existing draftDecks prop
   useEffect(() => {
     if (draftDecks && draftDecks.length > 0) {
       const names: Record<string, string> = {};
       const colors: Record<string, string[]> = {};
-      const commanders: Record<string, string> = {};
-      const commanderImages: Record<string, string> = {};
       draftDecks.forEach(deck => {
         names[deck.player_id] = deck.name;
         colors[deck.player_id] = deck.colors || [];
-        if (deck.commander) commanders[deck.player_id] = deck.commander;
-        if (deck.commander_image_url) commanderImages[deck.player_id] = deck.commander_image_url;
       });
       setDraftDeckNames(names);
       setDraftDeckColors(colors);
-      setDraftDeckCommander(commanders);
-      setDraftDeckCommanderImage(commanderImages);
     }
   }, [draftDecks]);
 
@@ -153,8 +144,8 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
         playerName: player.name,
         deckId: `draft-${player.id}`,
         deckName: draftDeckNames[player.id!] || 'Draft Deck',
-        commanderName: draftDeckCommander[player.id!] || '',
-        commanderImageUrl: draftDeckCommanderImage[player.id!] || '',
+        commanderName: '',
+        commanderImageUrl: '',
         isGuest: false,
         killMessages: player.kill_messages,
       };
@@ -239,8 +230,8 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
           ...player,
           deckId: `draft-${player.playerId}`,
           deckName: draftDeckNames[player.playerId] || 'Draft Deck',
-          commanderName: draftDeckCommander[player.playerId] || '',
-          commanderImageUrl: draftDeckCommanderImage[player.playerId] || '',
+          commanderName: '',
+          commanderImageUrl: '',
         };
       });
       setPlayers(updatedPlayers);
@@ -251,23 +242,16 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
         if (!player.playerId) continue;
         const deckName = draftDeckNames[player.playerId] || 'Draft Deck';
         const colors = draftDeckColors[player.playerId] || [];
-        const commander = draftDeckCommander[player.playerId] || undefined;
-        const commanderImage = draftDeckCommanderImage[player.playerId] || undefined;
-
         try {
           await eventApi.registerDraftDeck(eventId, {
             player_id: player.playerId,
             name: deckName,
             colors,
-            commander,
-            commander_image_url: commanderImage,
           });
           onDraftDeckRegistered?.({
             player_id: player.playerId,
             name: deckName,
             colors,
-            commander,
-            commander_image_url: commanderImage,
           });
         } catch (err) {
           console.error('Failed to register draft deck:', err);
@@ -346,7 +330,7 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
             >
               <div
                 className="relative z-[2] text-center w-full"
-                style={isTopRow ? { transform: 'rotate(180deg)' } : undefined}
+                style={isTopRow && !isDraft ? { transform: 'rotate(180deg)' } : undefined}
               >
                 {slot.playerId ? (
                   <>
@@ -363,9 +347,11 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
                           placeholder="Deck name"
                           className="w-full bg-[#25262B] text-white rounded-[6px] border border-[#2C2E33] px-2.5 py-1.5 text-xs focus:outline-none focus:border-[#667eea]"
                         />
-                        {gameMode === 'limited' ? (
-                          <div className="flex gap-1.5 mt-1.5 justify-center">
-                            {['W', 'U', 'B', 'R', 'G'].map(color => (
+                        <div className="flex gap-2 mt-1.5 justify-center">
+                          {(['W', 'U', 'B', 'R', 'G'] as const).map(color => {
+                            const manaClass = color === 'W' ? 'ms-w' : color === 'U' ? 'ms-u' : color === 'B' ? 'ms-b' : color === 'R' ? 'ms-r' : 'ms-g';
+                            const isSelected = (draftDeckColors[slot.playerId!] || []).includes(color);
+                            return (
                               <button
                                 key={color}
                                 type="button"
@@ -378,33 +364,18 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
                                     };
                                   });
                                 }}
-                                className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-all ${
-                                  (draftDeckColors[slot.playerId!] || []).includes(color)
-                                    ? 'ring-2 ring-[#667eea] ring-offset-1 ring-offset-[#1A1B1E]'
+                                className={`flex items-center justify-center transition-all ${
+                                  isSelected
+                                    ? 'ring-2 ring-[#667eea] ring-offset-1 ring-offset-[#1A1B1E] rounded-full'
                                     : 'opacity-40'
                                 }`}
-                                style={{
-                                  backgroundColor: color === 'W' ? '#F9FAF4' : color === 'U' ? '#0E68AB' : color === 'B' ? '#150B00' : color === 'R' ? '#D3202A' : '#00733E',
-                                  color: color === 'W' ? '#333' : 'white',
-                                }}
+                                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                               >
-                                {color}
+                                <i className={`ms ${manaClass} ms-cost ms-shadow`} style={{ fontSize: '1.4rem' }} />
                               </button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="mt-1.5">
-                            <CommanderAutocomplete
-                              value={draftDeckCommander[slot.playerId!] || ''}
-                              onChange={(commander, imageUrl, colors) => {
-                                setDraftDeckCommander(prev => ({ ...prev, [slot.playerId!]: commander }));
-                                if (imageUrl) setDraftDeckCommanderImage(prev => ({ ...prev, [slot.playerId!]: imageUrl }));
-                                if (colors) setDraftDeckColors(prev => ({ ...prev, [slot.playerId!]: colors }));
-                              }}
-                              dropdownDirection={isTopRow ? 'up' : 'down'}
-                            />
-                          </div>
-                        )}
+                            );
+                          })}
+                        </div>
                       </div>
                     ) : (
                       <>

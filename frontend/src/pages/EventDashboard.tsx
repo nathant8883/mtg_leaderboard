@@ -374,9 +374,28 @@ function ActiveView({
           )}
           <div className="min-w-0">
             <h1 className="text-lg font-bold text-white truncate">{event.name}</h1>
-            <p className="text-xs text-[#909296]">
-              Round {event.current_round} of {event.round_count}
-            </p>
+            <div className="flex items-center gap-2 text-xs text-[#909296]">
+              {event.event_type === 'draft' && event.sets?.length > 0 && (
+                <div className="flex items-center gap-1 shrink-0">
+                  {event.sets.map(s => (
+                    <img
+                      key={s.code}
+                      src={s.icon_svg_uri}
+                      alt={s.name}
+                      title={s.name}
+                      className="w-3.5 h-3.5"
+                      style={{ filter: 'invert(1)' }}
+                    />
+                  ))}
+                </div>
+              )}
+              <span>
+                {event.game_mode === 'limited' ? 'Limited' : 'Commander'}
+                {event.event_type === 'draft' ? ' Draft' : ' Tournament'}
+              </span>
+              <span className="text-[#2C2E33]">&middot;</span>
+              <span>R{event.current_round}/{event.round_count}</span>
+            </div>
           </div>
         </div>
         <button

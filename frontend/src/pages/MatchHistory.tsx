@@ -5,8 +5,8 @@ import RecentMatches from '../components/RecentMatches';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
-import type { Match, Deck, EloHistoryPoint } from '../services/api';
-import { matchApi, deckApi, podDynamicsApi } from '../services/api';
+import type { Match, Deck, EloHistoryPoint, TournamentEvent } from '../services/api';
+import { matchApi, deckApi, podDynamicsApi, eventApi } from '../services/api';
 
 /**
  * Match History page - shows all matches for the current pod
@@ -19,10 +19,12 @@ export function MatchHistory() {
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [eloHistoryByPlayer, setEloHistoryByPlayer] = useState<Map<string, EloHistoryPoint[]>>(new Map());
+  const [allEvents, setAllEvents] = useState<TournamentEvent[]>([]);
 
   useEffect(() => {
     loadMatches();
     loadDecks();
+    loadEvents();
   }, [currentPod]);
 
   const loadMatches = async () => {
@@ -82,6 +84,16 @@ export function MatchHistory() {
     }
   };
 
+  const loadEvents = async () => {
+    if (!currentPod?.id) return;
+    try {
+      const events = await eventApi.getByPod(currentPod.id);
+      setAllEvents(events);
+    } catch (err) {
+      console.error('Error loading events:', err);
+    }
+  };
+
   // Create deck lookup map for RecentMatches
   const deckMap = useMemo(() => {
     const map = new Map<string, Deck>();
@@ -92,6 +104,15 @@ export function MatchHistory() {
     });
     return map;
   }, [decks]);
+
+  // Create event lookup map for RecentMatches
+  const eventMap = useMemo(() => {
+    const map = new Map<string, TournamentEvent>();
+    allEvents.forEach((event) => {
+      if (event.id) map.set(event.id, event);
+    });
+    return map;
+  }, [allEvents]);
 
   // Show placeholder if authenticated but no pod selected
   if (!isGuest && currentPlayer && !currentPod && !podLoading) {
@@ -119,6 +140,7 @@ export function MatchHistory() {
         matches={matches}
         deckMap={deckMap}
         eloHistoryByPlayer={eloHistoryByPlayer}
+        eventMap={eventMap}
         loading={loadingMatches}
       />
     </div>

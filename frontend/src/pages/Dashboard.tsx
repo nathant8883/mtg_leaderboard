@@ -26,6 +26,7 @@ export function Dashboard() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [eloHistoryByPlayer, setEloHistoryByPlayer] = useState<Map<string, EloHistoryPoint[]>>(new Map());
   const [activeEvent, setActiveEvent] = useState<TournamentEvent | null>(null);
+  const [allEvents, setAllEvents] = useState<TournamentEvent[]>([]);
 
   useEffect(() => {
     loadMatches();
@@ -161,6 +162,7 @@ export function Dashboard() {
     }
     try {
       const events = await eventApi.getByPod(currentPod.id);
+      setAllEvents(events);
       setActiveEvent(events.find(e => e.status === 'active') || null);
     } catch (err) {
       console.error('Error loading active event:', err);
@@ -181,6 +183,15 @@ export function Dashboard() {
     });
     return map;
   }, [decks]);
+
+  // Create event lookup map for RecentMatches
+  const eventMap = useMemo(() => {
+    const map = new Map<string, TournamentEvent>();
+    allEvents.forEach((event) => {
+      if (event.id) map.set(event.id, event);
+    });
+    return map;
+  }, [allEvents]);
 
   // Show placeholder if authenticated but no pod selected
   if (!isGuest && currentPlayer && !currentPod && !podLoading) {
@@ -245,6 +256,7 @@ export function Dashboard() {
         matches={[...pendingMatches, ...matches]}
         deckMap={deckMap}
         eloHistoryByPlayer={eloHistoryByPlayer}
+        eventMap={eventMap}
         loading={loadingMatches}
         onViewAll={() => navigate('/matches')}
       />

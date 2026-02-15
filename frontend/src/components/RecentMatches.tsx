@@ -1,6 +1,6 @@
 import { Trophy, Clock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { Match, Deck, EloHistoryPoint } from '../services/api';
+import type { Match, Deck, EloHistoryPoint, TournamentEvent } from '../services/api';
 import type { PendingMatch } from '../types/matchTypes';
 import { getColorIdentityStyle } from '../utils/manaColors';
 
@@ -23,6 +23,7 @@ interface RecentMatchesProps {
   matches: (Match | PendingMatch)[];
   deckMap?: Map<string, Deck>;
   eloHistoryByPlayer?: Map<string, EloHistoryPoint[]>;
+  eventMap?: Map<string, TournamentEvent>;
   loading?: boolean;
   onViewAll?: () => void;
 }
@@ -173,6 +174,36 @@ function WentFirstBadge() {
 }
 
 /**
+ * Event badge shown in match card header when match belongs to an event
+ */
+function EventBadge({ event }: { event: TournamentEvent }) {
+  const isDraft = event.event_type === 'draft';
+  const bgClass = isDraft ? 'bg-[rgba(51,217,178,0.15)]' : 'bg-[rgba(102,126,234,0.15)]';
+  const textClass = isDraft ? 'text-[#33D9B2]' : 'text-[#667eea]';
+
+  // Determine icon: custom image > draft set icon > trophy fallback
+  let icon: React.ReactNode;
+  if (event.custom_image) {
+    icon = (
+      <img src={event.custom_image} alt="" className="w-3.5 h-3.5 rounded-sm object-cover flex-shrink-0" />
+    );
+  } else if (isDraft && event.sets?.length > 0 && event.sets[0]?.icon_svg_uri) {
+    icon = (
+      <img src={event.sets[0].icon_svg_uri} alt="" className="w-3.5 h-3.5 flex-shrink-0 invert opacity-70" />
+    );
+  } else {
+    icon = <Trophy className="w-3 h-3 flex-shrink-0" />;
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${bgClass} ${textClass} max-w-[130px]`}>
+      {icon}
+      <span className="truncate">{event.name}</span>
+    </span>
+  );
+}
+
+/**
  * Winner section - prominent display at top of match card
  */
 function WinnerSection({
@@ -307,11 +338,13 @@ function MatchCard({
   match,
   isPending,
   enrichedPlayers,
+  event,
   onClick,
 }: {
   match: Match | PendingMatch;
   isPending: boolean;
   enrichedPlayers: EnrichedMatchPlayer[];
+  event?: TournamentEvent;
   onClick?: () => void;
 }) {
   const durationText = formatDuration(match.duration_seconds);
@@ -353,8 +386,16 @@ function MatchCard({
 
       {/* Header: Time info */}
       <div className="flex justify-between items-center mb-3">
-        <span className="text-[#909296] text-xs">{dateText}</span>
-        <div className="flex items-center gap-2 text-xs text-[#909296]">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[#909296] text-xs flex-shrink-0">{dateText}</span>
+          {event && <EventBadge event={event} />}
+        </div>
+        <div className="flex items-center gap-2 text-xs text-[#909296] flex-shrink-0">
+          {match.event_round && (
+            <span className="bg-[rgba(144,146,150,0.15)] text-[#909296] px-1.5 py-0.5 rounded text-[10px] font-semibold">
+              Rd {match.event_round}
+            </span>
+          )}
           {is1v1 && (
             <span className="bg-[rgba(102,126,234,0.2)] text-[#667eea] px-2 py-0.5 rounded-full text-[10px] font-semibold">
               1v1
@@ -391,6 +432,7 @@ function RecentMatches({
   matches,
   deckMap,
   eloHistoryByPlayer,
+  eventMap,
   loading = false,
   onViewAll,
 }: RecentMatchesProps) {
@@ -484,6 +526,7 @@ function RecentMatches({
         {matches.map((match) => {
           const isPending = isPendingMatch(match);
           const enrichedPlayers = enrichPlayers(match);
+          const event = match.event_id && eventMap ? eventMap.get(match.event_id) : undefined;
 
           return (
             <MatchCard
@@ -491,6 +534,7 @@ function RecentMatches({
               match={match}
               isPending={isPending}
               enrichedPlayers={enrichedPlayers}
+              event={event}
               onClick={() => match.id && handleMatchClick(match.id)}
             />
           );

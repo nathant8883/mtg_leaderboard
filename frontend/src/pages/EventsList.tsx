@@ -109,16 +109,7 @@ export function EventsList() {
         <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-8 text-center">
           <IconTrophy size={40} className="mx-auto mb-3 text-[#5C5F66]" />
           <p className="text-sm text-[#909296] mb-1">No events yet</p>
-          <p className="text-xs text-[#5C5F66] mb-4">Create a tournament for your pod!</p>
-          {!isGuest && currentPod && (
-            <button
-              onClick={() => navigate('/event/create')}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-sm font-medium text-white bg-[#667eea] hover:bg-[#5568d3] transition-colors"
-            >
-              <IconPlus size={16} />
-              Create Event
-            </button>
-          )}
+          <p className="text-xs text-[#5C5F66]">Create a tournament for your pod!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

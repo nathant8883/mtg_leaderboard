@@ -1094,7 +1094,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 </div>
               )}
 
-              <div className="absolute top-3 left-20 right-20 z-[2] text-center flex flex-col vertical-stack">
+              <div className={`absolute top-3 z-[2] flex flex-col vertical-stack ${
+                playerCount === 2
+                  ? (player.position === 1 ? 'left-4 right-auto text-left' : 'right-4 left-auto text-right')
+                  : 'left-20 right-20 text-center'
+              }`}>
                 <div
                   className="text-lg font-bold text-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   onClick={() => {
