@@ -224,6 +224,18 @@ def _create_pods_from_player_list(player_ids: list[str], round_number: int) -> l
     return pods
 
 
+def _create_1v1_pairings(player_ids: list[str]) -> list[PodAssignment]:
+    """Create 1v1 pairings from a list of player IDs"""
+    pods = []
+    for i in range(0, len(player_ids) - 1, 2):
+        pods.append(PodAssignment(
+            pod_index=i // 2,
+            player_ids=[player_ids[i], player_ids[i + 1]],
+            match_status="pending",
+        ))
+    return pods
+
+
 # ==================== CRUD ENDPOINTS ====================
 
 @router.get("/busy-players")
@@ -501,8 +513,11 @@ async def start_tournament(
     player_ids = [ep.player_id for ep in event.players]
     random.shuffle(player_ids)
 
-    # Create pods of 4 for round 1
-    round1_pods = _create_pods_from_player_list(player_ids, 1)
+    # Create pairings for round 1
+    if event.event_type == "draft":
+        round1_pods = _create_1v1_pairings(player_ids)
+    else:
+        round1_pods = _create_pods_from_player_list(player_ids, 1)
 
     # Update round 1
     event.rounds[0].pods = round1_pods
