@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { podApi, eventApi } from '../services/api';
-import type { PodMember, CreateEventRequest } from '../services/api';
+import type { PodMember, CreateEventRequest, DraftSet } from '../services/api';
+import SetPicker from '../components/events/SetPicker';
 import toast from 'react-hot-toast';
 import {
   IconArrowLeft,
@@ -59,6 +60,11 @@ export function EventCreate() {
   const [members, setMembers] = useState<PodMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  // Draft-specific state
+  const [eventType, setEventType] = useState<'tournament' | 'draft'>('tournament');
+  const [gameMode, setGameMode] = useState<'commander' | 'limited'>('commander');
+  const [selectedSets, setSelectedSets] = useState<DraftSet[]>([]);
 
   // Busy player constraint state
   const [busyPlayerIds, setBusyPlayerIds] = useState<Set<string>>(new Set());
@@ -156,8 +162,12 @@ export function EventCreate() {
 
   // Validation
   const selectedCount = selectedPlayerIds.size;
-  const isValidPlayerCount = VALID_PLAYER_COUNTS.includes(selectedCount);
-  const targetCount = getTargetCount(selectedCount);
+  const isValidPlayerCount = eventType === 'draft'
+    ? selectedCount >= 4 && selectedCount <= 12 && selectedCount % 2 === 0
+    : VALID_PLAYER_COUNTS.includes(selectedCount);
+  const targetCount = eventType === 'draft'
+    ? (selectedCount % 2 === 0 ? selectedCount : selectedCount + 1)
+    : getTargetCount(selectedCount);
   const isNameValid = eventName.trim().length > 0;
   const isRoundCountValid = roundCount >= 1 && roundCount <= 10;
   const canSubmit = isNameValid && isValidPlayerCount && isRoundCountValid && !submitting && !organizerEvent && !loadingConstraints;
@@ -174,6 +184,9 @@ export function EventCreate() {
         player_ids: Array.from(selectedPlayerIds),
         round_count: roundCount,
         custom_image: customImage || undefined,
+        event_type: eventType,
+        game_mode: eventType === 'draft' ? gameMode : undefined,
+        set_codes: eventType === 'draft' ? selectedSets.map(s => s.code) : undefined,
       };
       const event = await eventApi.create(request);
       toast.success('Event created!');
@@ -236,6 +249,77 @@ export function EventCreate() {
               Go to event
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Event Type Toggle */}
+      <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-4 mb-4">
+        <label className="text-sm text-[#909296] mb-2 block">Event Type</label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setEventType('tournament')}
+            className={`py-2.5 px-4 rounded-[8px] text-sm font-medium transition-all ${
+              eventType === 'tournament'
+                ? 'bg-[#667eea]/20 text-[#667eea] border border-[#667eea]/50'
+                : 'bg-[#25262B] text-[#909296] border border-[#2C2E33] hover:border-[#3C3E43]'
+            }`}
+          >
+            Tournament
+          </button>
+          <button
+            type="button"
+            onClick={() => setEventType('draft')}
+            className={`py-2.5 px-4 rounded-[8px] text-sm font-medium transition-all ${
+              eventType === 'draft'
+                ? 'bg-[#667eea]/20 text-[#667eea] border border-[#667eea]/50'
+                : 'bg-[#25262B] text-[#909296] border border-[#2C2E33] hover:border-[#3C3E43]'
+            }`}
+          >
+            Draft
+          </button>
+        </div>
+      </div>
+
+      {/* Game Mode Picker (draft only) */}
+      {eventType === 'draft' && (
+        <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-4 mb-4">
+          <label className="text-sm text-[#909296] mb-2 block">Game Mode</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setGameMode('commander')}
+              className={`py-2.5 px-4 rounded-[8px] text-sm font-medium transition-all ${
+                gameMode === 'commander'
+                  ? 'bg-[#667eea]/20 text-[#667eea] border border-[#667eea]/50'
+                  : 'bg-[#25262B] text-[#909296] border border-[#2C2E33] hover:border-[#3C3E43]'
+              }`}
+            >
+              Commander
+            </button>
+            <button
+              type="button"
+              onClick={() => setGameMode('limited')}
+              className={`py-2.5 px-4 rounded-[8px] text-sm font-medium transition-all ${
+                gameMode === 'limited'
+                  ? 'bg-[#667eea]/20 text-[#667eea] border border-[#667eea]/50'
+                  : 'bg-[#25262B] text-[#909296] border border-[#2C2E33] hover:border-[#3C3E43]'
+              }`}
+            >
+              Limited
+            </button>
+          </div>
+          <p className="text-xs text-[#5C5F66] mt-2">
+            {gameMode === 'commander' ? '40 life, commander damage enabled' : '20 life, no commander damage'}
+          </p>
+        </div>
+      )}
+
+      {/* Set Picker (draft only) */}
+      {eventType === 'draft' && (
+        <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-4 mb-4">
+          <label className="text-sm text-[#909296] mb-2 block">MTG Sets (optional)</label>
+          <SetPicker selectedSets={selectedSets} onChange={setSelectedSets} />
         </div>
       )}
 
@@ -369,7 +453,7 @@ export function EventCreate() {
             </button>
           )}
           <div className="ml-auto text-xs text-[#5C5F66]">
-            Must be 4, 8, or 12 players
+            {eventType === 'draft' ? 'Even number, 4-12 players' : 'Must be 4, 8, or 12 players'}
           </div>
         </div>
 
@@ -457,7 +541,10 @@ export function EventCreate() {
         {selectedCount > 0 && !isValidPlayerCount && (
           <p className="text-xs text-[#FFA94D] mt-3 flex items-center gap-1.5">
             <IconUserCheck size={14} />
-            Select {getNearestValidCount(selectedCount)} players (need exactly 4, 8, or 12)
+            {eventType === 'draft'
+              ? `Select an even number of players (4-12). Currently ${selectedCount}.`
+              : `Select ${getNearestValidCount(selectedCount)} players (need exactly 4, 8, or 12)`
+            }
           </p>
         )}
       </div>
