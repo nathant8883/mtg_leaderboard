@@ -218,6 +218,61 @@ class ScryfallService:
             return results
 
     @staticmethod
+    async def search_sets(query: str, limit: int = 15) -> list[dict]:
+        """
+        Search for MTG sets by name.
+        Scryfall /sets endpoint returns all sets; we filter client-side.
+        """
+        if not query or len(query) < 2:
+            return []
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{SCRYFALL_API_BASE}/sets",
+                timeout=10.0,
+            )
+
+            if response.status_code != 200:
+                return []
+
+            data = response.json()
+            all_sets = data.get("data", [])
+
+            query_lower = query.lower()
+            results = []
+            for s in all_sets:
+                if s.get("set_type") not in ("core", "expansion", "draft_innovation", "masters", "funny"):
+                    continue
+                if query_lower in s.get("name", "").lower() or query_lower == s.get("code", "").lower():
+                    results.append({
+                        "code": s["code"],
+                        "name": s["name"],
+                        "icon_svg_uri": s.get("icon_svg_uri", ""),
+                        "released_at": s.get("released_at", ""),
+                    })
+                if len(results) >= limit:
+                    break
+
+            return results
+
+    @staticmethod
+    async def get_set_by_code(code: str) -> dict | None:
+        """Get a single set by its code."""
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{SCRYFALL_API_BASE}/sets/{code}",
+                timeout=10.0,
+            )
+            if response.status_code != 200:
+                return None
+            s = response.json()
+            return {
+                "code": s["code"],
+                "name": s["name"],
+                "icon_svg_uri": s.get("icon_svg_uri", ""),
+            }
+
+    @staticmethod
     @lru_cache(maxsize=100)
     def get_cached_commander_sync(name: str) -> Optional[dict]:
         """

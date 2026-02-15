@@ -5,7 +5,8 @@ from typing import Optional
 from datetime import date, datetime
 import random
 
-from app.models.event import Event, EventPlayer, PlayerDeckInfo, PodAssignment, Round, RoundResult, StandingsEntry
+from app.models.event import Event, EventPlayer, PlayerDeckInfo, PodAssignment, Round, RoundResult, StandingsEntry, DraftSet, DraftDeck
+from app.services.scryfall import scryfall_service
 from app.models.match import Match
 from app.models.player import Player, Deck
 from app.models.pod import Pod
@@ -380,6 +381,13 @@ async def list_events_for_pod(
     ).sort(-Event.created_at).to_list()
 
     return [serialize_event(e) for e in events]
+
+
+@router.get("/sets/search")
+async def search_sets(q: str = ""):
+    """Search for MTG sets via Scryfall (authenticated)"""
+    results = await scryfall_service.search_sets(q)
+    return results
 
 
 @router.get("/{event_id}")
