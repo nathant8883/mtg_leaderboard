@@ -36,6 +36,10 @@ function findPlayerName(event: TournamentEvent, playerId: string): string {
   return event.players.find((p) => p.player_id === playerId)?.player_name ?? 'Unknown';
 }
 
+function findPlayerAvatar(event: TournamentEvent, playerId: string): string | undefined {
+  return event.players.find((p) => p.player_id === playerId)?.avatar;
+}
+
 function getRoundDelta(event: TournamentEvent, roundNumber: number, playerId: string): number | null {
   const round = event.rounds.find((r) => r.round_number === roundNumber);
   if (!round) return null;
@@ -132,6 +136,18 @@ function LiveHeader({ event }: { event: TournamentEvent }) {
         </div>
       )}
 
+      {/* Set Icons for Draft */}
+      {event.event_type === 'draft' && event.sets && event.sets.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {event.sets.map(s => (
+            <div key={s.code} className="flex items-center gap-1">
+              <img src={s.icon_svg_uri} alt={s.name} className="w-4 h-4" style={{ filter: 'invert(1)' }} />
+              <span className="text-xs text-[#C1C2C5] uppercase">{s.code}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Event Name */}
       <div className="flex-1 min-w-0">
         <h1 className="text-2xl font-bold text-white truncate" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>{event.name}</h1>
@@ -142,6 +158,12 @@ function LiveHeader({ event }: { event: TournamentEvent }) {
           </span>
           <span className="text-[#2C2E33]">|</span>
           <span>{event.players.length} Players</span>
+          {event.event_type === 'draft' && event.game_mode && (
+            <>
+              <span className="text-[#2C2E33]">|</span>
+              <span className="capitalize">{event.game_mode}</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -213,7 +235,10 @@ function StandingsPanel({
           <p className="text-xs text-[#FFD700]/70 uppercase tracking-[0.2em] font-bold mb-1" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>Champion</p>
           <p className="text-2xl font-bold text-[#FFD700]" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>{standings[0].player_name}</p>
           <p className="text-sm text-[#FFD700]/50 mt-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            {standings[0].total_points} pts &middot; {standings[0].wins}W &middot; {standings[0].kills}K
+            {event.event_type === 'draft'
+              ? `${standings[0].wins}-${standings[0].round_points.length - standings[0].wins}`
+              : `${standings[0].total_points} pts \u00B7 ${standings[0].wins}W \u00B7 ${standings[0].kills}K`
+            }
           </p>
         </div>
       )}
@@ -230,18 +255,30 @@ function StandingsPanel({
       </div>
 
       {/* Table Header */}
-      <div
-        className="grid grid-cols-[2rem_2.5rem_1fr_3rem_3rem_3rem_3.5rem] items-center px-5 py-2.5 text-[11px] text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
-        style={{ fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.15em' }}
-      >
-        <span>#</span>
-        <span></span>
-        <span>Player</span>
-        <span className="text-right text-[#667eea]" title="Placement Points">Plc</span>
-        <span className="text-right text-[#51CF66]" title="Bonus Points">Bon</span>
-        <span className="text-right text-[#E03131]" title="Penalties">Pen</span>
-        <span className="text-right">Tot</span>
-      </div>
+      {event.event_type === 'draft' ? (
+        <div
+          className="grid grid-cols-[2rem_2.5rem_1fr_4rem] items-center px-5 py-2.5 text-[11px] text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
+          style={{ fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.15em' }}
+        >
+          <span>#</span>
+          <span></span>
+          <span>Player</span>
+          <span className="text-right">W-L</span>
+        </div>
+      ) : (
+        <div
+          className="grid grid-cols-[2rem_2.5rem_1fr_3rem_3rem_3rem_3.5rem] items-center px-5 py-2.5 text-[11px] text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
+          style={{ fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.15em' }}
+        >
+          <span>#</span>
+          <span></span>
+          <span>Player</span>
+          <span className="text-right text-[#667eea]" title="Placement Points">Plc</span>
+          <span className="text-right text-[#51CF66]" title="Bonus Points">Bon</span>
+          <span className="text-right text-[#E03131]" title="Penalties">Pen</span>
+          <span className="text-right">Tot</span>
+        </div>
+      )}
 
       {/* Table Rows */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
@@ -255,7 +292,50 @@ function StandingsPanel({
           const isTopThree = rank <= 3;
           const player = event.players.find((p) => p.player_id === entry.player_id);
 
-          // Aggregate point breakdown from all round results
+          if (event.event_type === 'draft') {
+            return (
+              <div
+                key={entry.player_id}
+                className={`grid grid-cols-[2rem_2.5rem_1fr_4rem] items-center px-5 py-3 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
+                  isChampion
+                    ? 'bg-[#FFD700]/8'
+                    : isTopThree
+                      ? 'bg-[#667eea]/5'
+                      : ''
+                }`}
+              >
+                <span className={`text-lg font-bold ${rankColor(rank)}`}>
+                  {medal ?? rank}
+                </span>
+                <PlayerAvatar
+                  playerName={entry.player_name}
+                  customAvatar={player?.avatar}
+                  size="small"
+                  className="!w-7 !h-7 !text-xs border border-[#2C2E33]"
+                />
+                <span
+                  className={`truncate ${
+                    isChampion
+                      ? 'text-[#FFD700] font-bold'
+                      : isTopThree
+                        ? 'text-white font-semibold'
+                        : 'text-[#C1C2C5]'
+                  }`}
+                  style={{ fontSize: '15px', fontFamily: "'Chakra Petch', sans-serif" }}
+                >
+                  {entry.player_name}
+                </span>
+                <span
+                  className={`text-right font-bold ${isChampion ? 'text-[#FFD700]' : 'text-white'}`}
+                  style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  {entry.wins}-{entry.round_points.length - entry.wins}
+                </span>
+              </div>
+            );
+          }
+
+          // Tournament: Full point breakdown
           let placementPts = 0;
           let bonusPts = 0;
           let penaltyPts = 0;
@@ -493,7 +573,7 @@ function PodPlayerCard({
       </div>
 
       {/* Points */}
-      {result && (
+      {result && event.event_type !== 'draft' && (
         <span
           className={`text-sm font-bold flex-shrink-0 ${
             isWinner ? 'text-[#FFD700]' : 'text-[#51CF66]/70'
@@ -607,7 +687,7 @@ function RoundCard({
                   }`}
                   style={{ fontFamily: "'Chakra Petch', sans-serif" }}
                 >
-                  Pod {pod.pod_index + 1}
+                  {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
                 </span>
                 {isPodLive && <LiveBadge />}
                 {isPodPending && (
@@ -616,21 +696,49 @@ function RoundCard({
               </div>
 
               {/* Players in pod */}
-              <div className="space-y-2">
-                {pod.player_ids.map((pid) => {
-                  const isWinner = winner?.playerId === pid;
-                  return (
-                    <PodPlayerCard
-                      key={pid}
-                      playerId={pid}
-                      event={event}
-                      round={round}
-                      pod={pod}
-                      isWinner={isWinner}
+              {event.event_type === 'draft' && pod.player_ids.length === 2 ? (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-[8px] bg-[rgba(37,38,43,0.3)]">
+                    <PlayerAvatar
+                      playerName={findPlayerName(event, pod.player_ids[0])}
+                      customAvatar={findPlayerAvatar(event, pod.player_ids[0])}
+                      size="small"
+                      className="!w-6 !h-6 !text-xs border border-[#2C2E33]"
                     />
-                  );
-                })}
-              </div>
+                    <span className="text-sm text-white font-medium" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
+                      {findPlayerName(event, pod.player_ids[0])}
+                    </span>
+                  </div>
+                  <span className="text-xs text-[#5C5F66] font-semibold">vs</span>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-[8px] bg-[rgba(37,38,43,0.3)]">
+                    <PlayerAvatar
+                      playerName={findPlayerName(event, pod.player_ids[1])}
+                      customAvatar={findPlayerAvatar(event, pod.player_ids[1])}
+                      size="small"
+                      className="!w-6 !h-6 !text-xs border border-[#2C2E33]"
+                    />
+                    <span className="text-sm text-white font-medium" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
+                      {findPlayerName(event, pod.player_ids[1])}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {pod.player_ids.map((pid) => {
+                    const isWinner = winner?.playerId === pid;
+                    return (
+                      <PodPlayerCard
+                        key={pid}
+                        playerId={pid}
+                        event={event}
+                        round={round}
+                        pod={pod}
+                        isWinner={isWinner}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
@@ -685,7 +793,7 @@ function LiveFooter({ event }: { event: TournamentEvent }) {
         {inProgressPods.map(({ round, pod }) => (
           <div key={`r${round.round_number}-p${pod.pod_index}`} className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xs text-[#5C5F66] font-semibold uppercase tracking-wider">
-              Pod {pod.pod_index + 1}
+              {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
             </span>
             <span className="text-[#2C2E33]">&mdash;</span>
             <span className="text-sm text-[#C1C2C5]">
@@ -771,7 +879,7 @@ function TVSplashScreen({ event }: { event: TournamentEvent }) {
         className="text-2xl text-[#5C5F66] font-medium tracking-wide"
         style={{ animation: 'splash-glow-text 2s ease-in-out infinite', fontFamily: "'Chakra Petch', sans-serif" }}
       >
-        Waiting for tournament to start...
+        {event.event_type === 'draft' ? 'Waiting for draft to start...' : 'Waiting for tournament to start...'}
       </p>
 
       {/* Pod Pal branding — small, bottom */}
@@ -937,7 +1045,7 @@ export function EventLiveView() {
           <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0">
             <StandingsPanel event={event} standings={sortedStandings} />
           </div>
-          <ScoringRulesPanel />
+          {event.event_type !== 'draft' && <ScoringRulesPanel />}
         </div>
 
         {/* Round Timeline */}
