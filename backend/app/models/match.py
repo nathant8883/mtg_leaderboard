@@ -29,6 +29,7 @@ class Match(Document):
     first_player_position: Optional[int] = None  # Index of player who went first (0-based position in players list)
     event_id: Optional[str] = None  # Links match to a tournament event
     event_round: Optional[int] = None  # Which round of the event (1-based)
+    game_mode: Optional[str] = None  # "commander" | "limited" | None (regular match)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator('players')
