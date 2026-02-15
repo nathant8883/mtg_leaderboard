@@ -236,6 +236,47 @@ def _create_1v1_pairings(player_ids: list[str]) -> list[PodAssignment]:
     return pods
 
 
+def _swiss_pair(standings: list[StandingsEntry], previous_rounds: list[Round]) -> list[PodAssignment]:
+    """
+    Swiss pairing: group by wins, pair within groups, avoid rematches.
+    """
+    previous_pairings: set[frozenset[str]] = set()
+    for r in previous_rounds:
+        for pod in r.pods:
+            if len(pod.player_ids) == 2:
+                previous_pairings.add(frozenset(pod.player_ids))
+
+    sorted_players = sorted(
+        standings,
+        key=lambda s: (s.total_points, random.random()),
+        reverse=True,
+    )
+
+    paired: list[tuple[str, str]] = []
+    remaining = [s.player_id for s in sorted_players]
+
+    while len(remaining) >= 2:
+        p1 = remaining.pop(0)
+        partner_idx = None
+        for i, p2 in enumerate(remaining):
+            if frozenset([p1, p2]) not in previous_pairings:
+                partner_idx = i
+                break
+        if partner_idx is None:
+            partner_idx = 0
+        p2 = remaining.pop(partner_idx)
+        paired.append((p1, p2))
+
+    pods = []
+    for i, (p1, p2) in enumerate(paired):
+        pods.append(PodAssignment(
+            pod_index=i,
+            player_ids=[p1, p2],
+            match_status="pending",
+        ))
+    return pods
+
+
 # ==================== CRUD ENDPOINTS ====================
 
 @router.get("/busy-players")
@@ -852,16 +893,18 @@ async def advance_round(
             detail="No more rounds to advance to. Use the complete endpoint instead.",
         )
 
-    # Seed by standings: sort by total_points desc, tiebreak random
-    sorted_standings = sorted(
-        event.standings,
-        key=lambda s: (s.total_points, random.random()),
-        reverse=True,
-    )
-    sorted_player_ids = [s.player_id for s in sorted_standings]
-
-    # Create pods of 4 from sorted list
-    next_round_pods = _create_pods_from_player_list(sorted_player_ids, next_round_num)
+    # Create pairings/pods for the next round
+    if event.event_type == "draft":
+        completed_rounds = [r for r in event.rounds if r.status == "completed"]
+        next_round_pods = _swiss_pair(event.standings, completed_rounds)
+    else:
+        sorted_standings = sorted(
+            event.standings,
+            key=lambda s: (s.total_points, random.random()),
+            reverse=True,
+        )
+        sorted_player_ids = [s.player_id for s in sorted_standings]
+        next_round_pods = _create_pods_from_player_list(sorted_player_ids, next_round_num)
 
     # Find and update the next round
     for r in event.rounds:
