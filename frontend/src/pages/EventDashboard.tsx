@@ -142,7 +142,9 @@ function SetupView({
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-white truncate">{event.name}</h1>
-          <p className="text-sm text-[#909296]">Tournament Setup</p>
+          <p className="text-sm text-[#909296]">
+            {event.event_type === 'draft' ? 'Draft Setup' : 'Tournament Setup'}
+          </p>
         </div>
         <button
           onClick={async () => {
@@ -176,13 +178,38 @@ function SetupView({
           <span className="text-sm text-[#909296]">Players</span>
           <span className="text-sm text-white font-medium">{event.players.length}</span>
         </div>
+        {event.game_mode && (
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-[#909296]">Mode</span>
+            <span className="text-sm text-white font-medium capitalize">{event.game_mode}</span>
+          </div>
+        )}
+        {event.sets?.length > 0 && (
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-[#909296]">Sets</span>
+            <div className="flex items-center gap-1.5">
+              {event.sets.map(s => (
+                <div key={s.code} className="flex items-center gap-1">
+                  <img src={s.icon_svg_uri} alt={s.name} className="w-4 h-4" style={{ filter: 'invert(1)' }} />
+                  <span className="text-xs text-[#C1C2C5] uppercase">{s.code}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-[#909296]">Rounds</span>
           <span className="text-sm text-white font-medium">{event.round_count}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-[#909296]">Pods per Round</span>
-          <span className="text-sm text-white font-medium">{Math.ceil(event.players.length / 4)}</span>
+          <span className="text-sm text-[#909296]">
+            {event.event_type === 'draft' ? 'Matches per Round' : 'Pods per Round'}
+          </span>
+          <span className="text-sm text-white font-medium">
+            {event.event_type === 'draft'
+              ? Math.ceil(event.players.length / 2)
+              : Math.ceil(event.players.length / 4)}
+          </span>
         </div>
       </div>
 
@@ -357,13 +384,21 @@ function ActiveView({
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
-          <span>#</span>
-          <span>Player</span>
-          <span className="text-right">Pts</span>
-          <span className="text-right">W</span>
-          <span className="text-right">K</span>
-        </div>
+        {event.event_type === 'draft' ? (
+          <div className="grid grid-cols-[2rem_1fr_4rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
+            <span>#</span>
+            <span>Player</span>
+            <span className="text-right">W-L</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
+            <span>#</span>
+            <span>Player</span>
+            <span className="text-right">Pts</span>
+            <span className="text-right">W</span>
+            <span className="text-right">K</span>
+          </div>
+        )}
 
         {/* Table Rows */}
         {sortedStandings.map((entry, idx) => {
@@ -372,7 +407,32 @@ function ActiveView({
           const delta = getRoundDelta(event, entry.player_id);
           const medal = rankMedal(rank);
 
-          return (
+          return event.event_type === 'draft' ? (
+            <div
+              key={entry.player_id}
+              className={`grid grid-cols-[2rem_1fr_4rem] items-center px-4 py-2.5 border-b border-[#2C2E33]/30 last:border-b-0 ${
+                isCurrentUser ? 'bg-[#667eea]/10 border-l-2 border-l-[#667eea]' : ''
+              }`}
+            >
+              <span className={`text-sm font-semibold ${rankColor(rank)}`}>
+                {medal ?? rank}
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <PlayerAvatar
+                  playerName={entry.player_name}
+                  customAvatar={findPlayerAvatar(event, entry.player_id)}
+                  size="small"
+                  className="!w-7 !h-7 !text-xs"
+                />
+                <span className={`text-sm truncate ${isCurrentUser ? 'text-white font-medium' : 'text-[#C1C2C5]'}`}>
+                  {entry.player_name}
+                </span>
+              </div>
+              <span className="text-sm font-bold text-right text-white">
+                {entry.wins}-{entry.round_points.length - entry.wins}
+              </span>
+            </div>
+          ) : (
             <div
               key={entry.player_id}
               className={`grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-2.5 border-b border-[#2C2E33]/30 last:border-b-0 ${
@@ -417,7 +477,7 @@ function ActiveView({
         <div className="mb-4">
           <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
             <IconSwords size={16} className="text-[#667eea]" />
-            Round {event.current_round} Pods
+            Round {event.current_round} {event.event_type === 'draft' ? 'Matches' : 'Pods'}
           </h2>
 
           <div className="space-y-3">
@@ -437,38 +497,68 @@ function ActiveView({
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-semibold text-[#909296] uppercase tracking-wider">
-                      Pod {pod.pod_index + 1}
+                      {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
                     </span>
                     <StatusBadge status={pod.match_status} />
                   </div>
 
                   {/* Player list */}
-                  <div className="grid grid-cols-2 gap-1.5 mb-3">
-                    {pod.player_ids.map((pid) => (
-                      <div key={pid} className="flex items-center gap-2 min-w-0">
+                  {event.event_type === 'draft' && pod.player_ids.length === 2 ? (
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                      <div className="flex items-center gap-2">
                         <PlayerAvatar
-                          playerName={findPlayerName(event, pid)}
-                          customAvatar={findPlayerAvatar(event, pid)}
+                          playerName={findPlayerName(event, pod.player_ids[0])}
+                          customAvatar={findPlayerAvatar(event, pod.player_ids[0])}
                           size="small"
                           className="!w-6 !h-6 !text-[10px]"
                         />
-                        <span
-                          className={`text-xs truncate ${
-                            pid === currentPlayerId ? 'text-white font-medium' : 'text-[#C1C2C5]'
-                          }`}
-                        >
-                          {findPlayerName(event, pid)}
+                        <span className={`text-xs ${pod.player_ids[0] === currentPlayerId ? 'text-white font-medium' : 'text-[#C1C2C5]'}`}>
+                          {findPlayerName(event, pod.player_ids[0])}
                         </span>
                       </div>
-                    ))}
-                  </div>
+                      <span className="text-xs text-[#5C5F66] font-medium">vs</span>
+                      <div className="flex items-center gap-2">
+                        <PlayerAvatar
+                          playerName={findPlayerName(event, pod.player_ids[1])}
+                          customAvatar={findPlayerAvatar(event, pod.player_ids[1])}
+                          size="small"
+                          className="!w-6 !h-6 !text-[10px]"
+                        />
+                        <span className={`text-xs ${pod.player_ids[1] === currentPlayerId ? 'text-white font-medium' : 'text-[#C1C2C5]'}`}>
+                          {findPlayerName(event, pod.player_ids[1])}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-1.5 mb-3">
+                      {pod.player_ids.map((pid) => (
+                        <div key={pid} className="flex items-center gap-2 min-w-0">
+                          <PlayerAvatar
+                            playerName={findPlayerName(event, pid)}
+                            customAvatar={findPlayerAvatar(event, pid)}
+                            size="small"
+                            className="!w-6 !h-6 !text-[10px]"
+                          />
+                          <span
+                            className={`text-xs truncate ${
+                              pid === currentPlayerId ? 'text-white font-medium' : 'text-[#C1C2C5]'
+                            }`}
+                          >
+                            {findPlayerName(event, pid)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Winner info for completed pods */}
                   {winner && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-[8px] bg-[#2B8A3E]/10 border border-[#2B8A3E]/20 mb-3">
                       <IconCrown size={14} className="text-[#FFD700]" />
                       <span className="text-xs text-[#51CF66] font-medium">{winner.name}</span>
-                      <span className="text-xs text-[#51CF66]/60 ml-auto">+{winner.points} pts</span>
+                      {event.event_type !== 'draft' && (
+                        <span className="text-xs text-[#51CF66]/60 ml-auto">+{winner.points} pts</span>
+                      )}
                     </div>
                   )}
 
@@ -581,7 +671,7 @@ function ActiveView({
                           >
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-xs font-semibold text-[#5C5F66] uppercase tracking-wider">
-                                Pod {pod.pod_index + 1}
+                                {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
                               </span>
                               {winner && (
                                 <div className="flex items-center gap-1">
@@ -669,7 +759,7 @@ function CompletedView({
             <h1 className="text-lg font-bold text-white truncate">{event.name}</h1>
             <p className="text-xs text-[#909296] flex items-center gap-1">
               <IconTrophy size={12} className="text-[#FFD700]" />
-              Tournament Complete
+              {event.event_type === 'draft' ? 'Draft Complete' : 'Tournament Complete'}
             </p>
           </div>
         </div>
@@ -700,7 +790,10 @@ function CompletedView({
               </span>
             </div>
             <p className="text-sm text-[#FFD700]/60">
-              {sortedStandings[0].total_points} points &middot; {sortedStandings[0].wins}W &middot; {sortedStandings[0].kills}K
+              {event.event_type === 'draft'
+                ? `${sortedStandings[0].wins}-${sortedStandings[0].round_points.length - sortedStandings[0].wins} record`
+                : `${sortedStandings[0].total_points} points \u00B7 ${sortedStandings[0].wins}W \u00B7 ${sortedStandings[0].kills}K`
+              }
             </p>
           </div>
         </div>
@@ -716,20 +809,61 @@ function CompletedView({
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
-          <span>#</span>
-          <span>Player</span>
-          <span className="text-right">Pts</span>
-          <span className="text-right">W</span>
-          <span className="text-right">K</span>
-        </div>
+        {event.event_type === 'draft' ? (
+          <div className="grid grid-cols-[2rem_1fr_4rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
+            <span>#</span>
+            <span>Player</span>
+            <span className="text-right">W-L</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
+            <span>#</span>
+            <span>Player</span>
+            <span className="text-right">Pts</span>
+            <span className="text-right">W</span>
+            <span className="text-right">K</span>
+          </div>
+        )}
 
         {sortedStandings.map((entry, idx) => {
           const rank = idx + 1;
           const isCurrentUser = entry.player_id === currentPlayerId;
           const medal = rankMedal(rank);
 
-          return (
+          return event.event_type === 'draft' ? (
+            <div
+              key={entry.player_id}
+              className={`grid grid-cols-[2rem_1fr_4rem] items-center px-4 py-3 border-b border-[#2C2E33]/30 last:border-b-0 ${
+                rank === 1
+                  ? 'bg-[#FFD700]/5'
+                  : isCurrentUser
+                    ? 'bg-[#667eea]/10 border-l-2 border-l-[#667eea]'
+                    : ''
+              }`}
+            >
+              <span className={`text-sm font-bold ${rankColor(rank)}`}>
+                {medal ?? rank}
+              </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <PlayerAvatar
+                  playerName={entry.player_name}
+                  customAvatar={findPlayerAvatar(event, entry.player_id)}
+                  size="small"
+                  className="!w-7 !h-7 !text-xs"
+                />
+                <span
+                  className={`text-sm truncate ${
+                    rank === 1 ? 'text-[#FFD700] font-bold' : isCurrentUser ? 'text-white font-medium' : 'text-[#C1C2C5]'
+                  }`}
+                >
+                  {entry.player_name}
+                </span>
+              </div>
+              <span className={`text-sm font-bold text-right ${rank === 1 ? 'text-[#FFD700]' : 'text-white'}`}>
+                {entry.wins}-{entry.round_points.length - entry.wins}
+              </span>
+            </div>
+          ) : (
             <div
               key={entry.player_id}
               className={`grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-3 border-b border-[#2C2E33]/30 last:border-b-0 ${
@@ -805,7 +939,7 @@ function CompletedView({
                           >
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-xs font-semibold text-[#5C5F66] uppercase tracking-wider">
-                                Pod {pod.pod_index + 1}
+                                {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
                               </span>
                               {winner && (
                                 <div className="flex items-center gap-1">
