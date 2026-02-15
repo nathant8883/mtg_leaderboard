@@ -563,7 +563,7 @@ function PodPlayerCard({
             <span className="text-xs text-[#909296] truncate">{deckInfo.deck_name}</span>
             {deckInfo.colors && deckInfo.colors.length > 0 && (
               <div className="flex-shrink-0">
-                <ColorPips colors={deckInfo.colors} size={10} />
+                <ColorPips colors={deckInfo.colors} size="sm" />
               </div>
             )}
           </div>

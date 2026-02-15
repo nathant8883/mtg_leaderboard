@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventApi } from '../services/api';
-import type { TournamentEvent, EventRound, PodAssignment, StandingsEntry } from '../services/api';
+import type { TournamentEvent, EventRound, PodAssignment } from '../services/api';
 import toast from 'react-hot-toast';
 import PlayerAvatar from '../components/PlayerAvatar';
 import { ShuffleAnimation } from '../components/events/ShuffleAnimation';
@@ -20,7 +20,6 @@ import {
   IconClock,
   IconUsers,
   IconSwords,
-  IconSkull,
 } from '@tabler/icons-react';
 
 // ─── Helpers ────────────────────────────────────────────────────

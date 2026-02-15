@@ -107,11 +107,6 @@ function SetPicker({ selectedSets, onChange, maxSets = 4 }: SetPickerProps) {
     }
   };
 
-  const getReleaseYear = (set: DraftSet): string => {
-    // The set name sometimes contains a year; we just show the code as fallback
-    return set.code.toUpperCase();
-  };
-
   return (
     <div ref={wrapperRef}>
       {/* Search Input */}

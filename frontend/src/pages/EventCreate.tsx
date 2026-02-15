@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { podApi, eventApi } from '../services/api';
 import type { PodMember, CreateEventRequest, DraftSet } from '../services/api';
@@ -15,7 +14,6 @@ import {
   IconCheck,
   IconLoader2,
   IconUserCheck,
-  IconX,
   IconAlertTriangle,
 } from '@tabler/icons-react';
 
@@ -50,7 +48,6 @@ function getAvatarUrl(member: PodMember): string {
 
 export function EventCreate() {
   const navigate = useNavigate();
-  const { currentPlayer } = useAuth();
   const { currentPod } = usePod();
 
   const [eventName, setEventName] = useState('');

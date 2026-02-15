@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { eventApi, matchApi } from '../services/api';
 import type { TournamentEvent, CreateMatchRequest, DraftDeck } from '../services/api';
 import toast from 'react-hot-toast';
@@ -31,7 +30,6 @@ interface EventMatchSavedState {
 export function EventMatchTracker() {
   const { eventId, podIndex: podIndexStr } = useParams<{ eventId: string; podIndex: string }>();
   const navigate = useNavigate();
-  const { currentPlayer } = useAuth();
   const podIndex = parseInt(podIndexStr || '0', 10);
 
   // Prevent screen timeout during match play
