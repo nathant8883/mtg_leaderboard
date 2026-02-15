@@ -126,6 +126,15 @@ export function EventsList() {
                   <div className="w-9 h-9 rounded-[8px] overflow-hidden border border-[#2C2E33] flex-shrink-0">
                     <img src={event.custom_image} alt="" className="w-full h-full object-cover" />
                   </div>
+                ) : event.event_type === 'draft' && event.sets?.length > 0 ? (
+                  <div className={`flex items-center justify-center w-9 h-9 rounded-[8px] ${cfg.iconBg} flex-shrink-0`}>
+                    <img
+                      src={event.sets[0].icon_svg_uri}
+                      alt={event.sets[0].name}
+                      className="w-5 h-5"
+                      style={{ filter: 'invert(1)' }}
+                    />
+                  </div>
                 ) : (
                   <div className={`flex items-center justify-center w-9 h-9 rounded-[8px] ${cfg.iconBg} flex-shrink-0`}>
                     <IconTrophy size={20} className={cfg.icon} />
@@ -147,7 +156,11 @@ export function EventsList() {
                       <span>{event.round_count} rounds</span>
                     )}
                     <span>&middot;</span>
-                    <span className="capitalize">{event.event_type}</span>
+                    <span className="capitalize">
+                      {event.event_type === 'draft' && event.game_mode
+                        ? `${event.game_mode} draft`
+                        : event.event_type}
+                    </span>
                     <span>&middot;</span>
                     <span>{new Date(event.event_date).toLocaleDateString()}</span>
                   </div>
