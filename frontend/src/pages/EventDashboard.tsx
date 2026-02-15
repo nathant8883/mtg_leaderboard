@@ -662,33 +662,35 @@ function ActiveView({
             </button>
           )}
 
-          <button
-            onClick={handleCancel}
-            disabled={cancelling}
-            className={`w-full py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 ${
-              cancelling ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
-          >
-            {cancelling ? (
-              <>
-                <IconLoader2 size={16} className="animate-spin" />
-                Cancelling...
-              </>
-            ) : (
-              <>
-                <IconBan size={16} />
-                Cancel Event
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={handleCancel}
+              disabled={cancelling}
+              className={`py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 ${
+                cancelling ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+            >
+              {cancelling ? (
+                <>
+                  <IconLoader2 size={16} className="animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                <>
+                  <IconBan size={16} />
+                  Cancel
+                </>
+              )}
+            </button>
 
-          <button
-            onClick={onDelete}
-            className="w-full py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2"
-          >
-            <IconTrash size={16} />
-            Delete Event
-          </button>
+            <button
+              onClick={onDelete}
+              className="py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2"
+            >
+              <IconTrash size={16} />
+              Delete
+            </button>
+          </div>
         </div>
       )}
 
