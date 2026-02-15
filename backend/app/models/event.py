@@ -90,7 +90,7 @@ class Event(Document):
     players: list[EventPlayer] = Field(default_factory=list)
 
     # Tournament state
-    status: str = "setup"  # "setup" | "active" | "completed"
+    status: str = "setup"  # "setup" | "active" | "completed" | "cancelled"
     current_round: int = 0
     rounds: list[Round] = Field(default_factory=list)
     standings: list[StandingsEntry] = Field(default_factory=list)

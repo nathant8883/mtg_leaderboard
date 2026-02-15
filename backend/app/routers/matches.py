@@ -154,12 +154,20 @@ async def create_match(
                 detail=f"Player {player_id} not found"
             )
 
-        deck = await Deck.get(PydanticObjectId(deck_id))
-        if not deck:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Deck {deck_id} not found"
-            )
+        # Draft decks use a "draft-<playerId>" format and don't exist in the DB
+        is_draft_deck = deck_id.startswith("draft-")
+        if is_draft_deck:
+            deck_name = "Draft Deck"
+            deck_colors: list[str] = []
+        else:
+            deck = await Deck.get(PydanticObjectId(deck_id))
+            if not deck:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Deck {deck_id} not found"
+                )
+            deck_name = deck.name
+            deck_colors = deck.colors or []
 
         # Create MatchPlayer with snapshot data
         is_winner = (player_id == request.winner_player_id and deck_id == request.winner_deck_id)
@@ -172,8 +180,8 @@ async def create_match(
             player_id=player_id,
             player_name=player.name,
             deck_id=deck_id,
-            deck_name=deck.name,
-            deck_colors=deck.colors,  # Snapshot deck colors for historical accuracy
+            deck_name=deck_name,
+            deck_colors=deck_colors,
             elimination_order=elimination_order,  # Player placement (1=winner, 2=2nd, etc.)
             is_winner=is_winner,
             eliminated_by_player_id=elim_detail.get('eliminated_by_player_id'),

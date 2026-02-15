@@ -20,6 +20,7 @@ import {
   IconClock,
   IconUsers,
   IconSwords,
+  IconBan,
 } from '@tabler/icons-react';
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -277,6 +278,8 @@ function ActiveView({
   onStartMatch,
   onAdvanceRound,
   onCompleteEvent,
+  onCancelEvent,
+  onDelete,
   navigate,
 }: {
   event: TournamentEvent;
@@ -285,11 +288,14 @@ function ActiveView({
   onStartMatch: (podIndex: number) => void;
   onAdvanceRound: () => void;
   onCompleteEvent: () => void;
+  onCancelEvent: () => void;
+  onDelete: () => void;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
   const [advancing, setAdvancing] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const currentRound = event.rounds.find((r) => r.round_number === event.current_round);
   const allPodsCompleted = currentRound?.pods.every((p) => p.match_status === 'completed') ?? false;
@@ -323,6 +329,15 @@ function ActiveView({
       await onCompleteEvent();
     } finally {
       setCompleting(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await onCancelEvent();
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -627,6 +642,34 @@ function ActiveView({
               )}
             </button>
           )}
+
+          <button
+            onClick={handleCancel}
+            disabled={cancelling}
+            className={`w-full py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2 ${
+              cancelling ? 'opacity-60 cursor-not-allowed' : ''
+            }`}
+          >
+            {cancelling ? (
+              <>
+                <IconLoader2 size={16} className="animate-spin" />
+                Cancelling...
+              </>
+            ) : (
+              <>
+                <IconBan size={16} />
+                Cancel Event
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={onDelete}
+            className="w-full py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2"
+          >
+            <IconTrash size={16} />
+            Delete Event
+          </button>
         </div>
       )}
 
@@ -716,10 +759,14 @@ function ActiveView({
 function CompletedView({
   event,
   currentPlayerId,
+  isCreator,
+  onDelete,
   navigate,
 }: {
   event: TournamentEvent;
   currentPlayerId: string | undefined;
+  isCreator: boolean;
+  onDelete: () => void;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   const sortedStandings = [...event.standings].sort((a, b) => b.total_points - a.total_points);
@@ -985,6 +1032,273 @@ function CompletedView({
         <IconArrowLeft size={16} />
         Back to Dashboard
       </button>
+
+      {isCreator && (
+        <button
+          onClick={onDelete}
+          className="w-full mt-3 py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2"
+        >
+          <IconTrash size={16} />
+          Delete Event
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Cancelled View ─────────────────────────────────────────────
+
+function CancelledView({
+  event,
+  currentPlayerId,
+  isCreator,
+  onDelete,
+  navigate,
+}: {
+  event: TournamentEvent;
+  currentPlayerId: string | undefined;
+  isCreator: boolean;
+  onDelete: () => void;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const sortedStandings = [...event.standings].sort((a, b) => b.total_points - a.total_points);
+  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+
+  const toggleRound = (roundNum: number) => {
+    setExpandedRounds((prev) => {
+      const next = new Set(prev);
+      if (next.has(roundNum)) {
+        next.delete(roundNum);
+      } else {
+        next.add(roundNum);
+      }
+      return next;
+    });
+  };
+
+  const completedRounds = event.rounds.filter((r) => r.status === 'completed');
+
+  return (
+    <div className="max-w-2xl mx-auto pb-8">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => navigate('/')}
+          aria-label="Go back"
+          className="flex items-center justify-center w-10 h-10 rounded-[10px] bg-[#25262B] border border-[#2C2E33] text-[#909296] hover:text-white hover:border-[#667eea] transition-colors"
+        >
+          <IconArrowLeft size={20} />
+        </button>
+        <div className="flex-1 min-w-0 flex items-center gap-3">
+          {event.custom_image && (
+            <div className="w-10 h-10 rounded-[8px] overflow-hidden border border-[#2C2E33] flex-shrink-0">
+              <img src={event.custom_image} alt="" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-lg font-bold text-white truncate">{event.name}</h1>
+            <p className="text-xs text-[#FF6B6B] flex items-center gap-1">
+              <IconBan size={12} />
+              Event Cancelled
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Cancelled Banner */}
+      <div
+        className="rounded-[12px] p-5 mb-4 text-center relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(201,42,42,0.15) 0%, rgba(201,42,42,0.05) 100%)',
+          border: '1px solid rgba(201,42,42,0.3)',
+        }}
+      >
+        <IconBan size={36} className="text-[#FF6B6B] mx-auto mb-2" />
+        <p className="text-sm font-semibold text-[#FF6B6B] mb-1">Event Cancelled</p>
+        <p className="text-xs text-[#FF6B6B]/60">
+          Cancelled after round {event.current_round} of {event.round_count}
+        </p>
+      </div>
+
+      {/* Standings at Cancellation */}
+      {sortedStandings.length > 0 && (
+        <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] mb-4 overflow-hidden">
+          <div className="px-4 py-3 border-b border-[#2C2E33]">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <IconTrophy size={16} className="text-[#909296]" />
+              Standings at Cancellation
+            </h2>
+          </div>
+
+          {event.event_type === 'draft' ? (
+            <div className="grid grid-cols-[2rem_1fr_4rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
+              <span>#</span>
+              <span>Player</span>
+              <span className="text-right">W-L</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-2 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50">
+              <span>#</span>
+              <span>Player</span>
+              <span className="text-right">Pts</span>
+              <span className="text-right">W</span>
+              <span className="text-right">K</span>
+            </div>
+          )}
+
+          {sortedStandings.map((entry, idx) => {
+            const rank = idx + 1;
+            const isCurrentUser = entry.player_id === currentPlayerId;
+
+            return event.event_type === 'draft' ? (
+              <div
+                key={entry.player_id}
+                className={`grid grid-cols-[2rem_1fr_4rem] items-center px-4 py-3 border-b border-[#2C2E33]/30 last:border-b-0 ${
+                  isCurrentUser ? 'bg-[#667eea]/10 border-l-2 border-l-[#667eea]' : ''
+                }`}
+              >
+                <span className={`text-sm font-semibold ${rankColor(rank)}`}>
+                  {rankMedal(rank) ?? rank}
+                </span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <PlayerAvatar
+                    playerName={entry.player_name}
+                    customAvatar={findPlayerAvatar(event, entry.player_id)}
+                    size="small"
+                    className="!w-7 !h-7 !text-xs"
+                  />
+                  <span className={`text-sm truncate ${isCurrentUser ? 'text-white font-medium' : 'text-[#C1C2C5]'}`}>
+                    {entry.player_name}
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-right text-white">
+                  {entry.wins}-{entry.round_points.length - entry.wins}
+                </span>
+              </div>
+            ) : (
+              <div
+                key={entry.player_id}
+                className={`grid grid-cols-[2rem_1fr_3rem_2.5rem_2.5rem] items-center px-4 py-3 border-b border-[#2C2E33]/30 last:border-b-0 ${
+                  isCurrentUser ? 'bg-[#667eea]/10 border-l-2 border-l-[#667eea]' : ''
+                }`}
+              >
+                <span className={`text-sm font-semibold ${rankColor(rank)}`}>
+                  {rankMedal(rank) ?? rank}
+                </span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <PlayerAvatar
+                    playerName={entry.player_name}
+                    customAvatar={findPlayerAvatar(event, entry.player_id)}
+                    size="small"
+                    className="!w-7 !h-7 !text-xs"
+                  />
+                  <span className={`text-sm truncate ${isCurrentUser ? 'text-white font-medium' : 'text-[#C1C2C5]'}`}>
+                    {entry.player_name}
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-right text-white">{entry.total_points}</span>
+                <span className="text-sm text-right text-[#C1C2C5]">{entry.wins}</span>
+                <span className="text-sm text-right text-[#C1C2C5]">{entry.kills}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Completed Rounds Breakdown */}
+      {completedRounds.length > 0 && (
+        <div className="mb-4">
+          <h2 className="text-sm font-semibold text-[#909296] mb-3">Completed Rounds</h2>
+          <div className="space-y-2">
+            {completedRounds.map((round) => {
+              const isExpanded = expandedRounds.has(round.round_number);
+              return (
+                <div
+                  key={round.round_number}
+                  className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] overflow-hidden"
+                >
+                  <button
+                    onClick={() => toggleRound(round.round_number)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#25262B]/50 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-[#C1C2C5]">
+                      Round {round.round_number}
+                    </span>
+                    {isExpanded ? (
+                      <IconChevronUp size={16} className="text-[#909296]" />
+                    ) : (
+                      <IconChevronDown size={16} className="text-[#909296]" />
+                    )}
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-[#2C2E33]/50">
+                      {round.pods.map((pod) => {
+                        const winner = getPodWinner(event, round, pod);
+                        return (
+                          <div
+                            key={pod.pod_index}
+                            className="mt-3 p-3 rounded-[8px] bg-[#25262B]/50 border border-[#2C2E33]/50"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-semibold text-[#5C5F66] uppercase tracking-wider">
+                                {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
+                              </span>
+                              {winner && (
+                                <div className="flex items-center gap-1">
+                                  <IconCrown size={12} className="text-[#FFD700]" />
+                                  <span className="text-xs text-[#FFD700]">{winner.name}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1">
+                              {pod.player_ids.map((pid) => {
+                                const result = round.results.find((r) => r.player_id === pid);
+                                return (
+                                  <div key={pid} className="flex items-center gap-1.5">
+                                    <span className="text-xs text-[#C1C2C5]">
+                                      {findPlayerName(event, pid)}
+                                    </span>
+                                    {result && (
+                                      <span className="text-[10px] text-[#51CF66] font-medium">
+                                        +{result.total}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Back + Delete */}
+      <button
+        onClick={() => navigate('/')}
+        className="w-full py-3 rounded-[10px] font-semibold text-white flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+        style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+      >
+        <IconArrowLeft size={16} />
+        Back to Dashboard
+      </button>
+
+      {isCreator && (
+        <button
+          onClick={onDelete}
+          className="w-full mt-3 py-3 rounded-[10px] font-medium text-[#FF6B6B] bg-[#25262B] border border-[#2C2E33] hover:border-[#FF6B6B]/50 transition-colors flex items-center justify-center gap-2"
+        >
+          <IconTrash size={16} />
+          Delete Event
+        </button>
+      )}
     </div>
   );
 }
@@ -1059,10 +1373,27 @@ export function EventDashboard() {
     }
   };
 
+  const handleCancelEvent = async () => {
+    if (!event) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel "${event.name}"? No winner will be declared.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      const updated = await eventApi.cancel(event.id);
+      setEvent(updated);
+      toast.success('Event cancelled');
+    } catch (err: any) {
+      console.error('Error cancelling event:', err);
+      toast.error(err?.response?.data?.detail || 'Failed to cancel event');
+    }
+  };
+
   const handleDeleteEvent = async () => {
     if (!event) return;
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${event.name}"? This action cannot be undone.`,
+      `Are you sure you want to delete "${event.name}"?${event.status !== 'setup' ? ' All associated matches will also be deleted.' : ''} This action cannot be undone.`,
     );
     if (!confirmed) return;
 
@@ -1157,6 +1488,8 @@ export function EventDashboard() {
             onStartMatch={handleStartMatch}
             onAdvanceRound={handleAdvanceRound}
             onCompleteEvent={handleCompleteEvent}
+            onCancelEvent={handleCancelEvent}
+            onDelete={handleDeleteEvent}
             navigate={navigate}
           />
         );
@@ -1165,6 +1498,18 @@ export function EventDashboard() {
           <CompletedView
             event={event}
             currentPlayerId={currentPlayerId}
+            isCreator={isCreator}
+            onDelete={handleDeleteEvent}
+            navigate={navigate}
+          />
+        );
+      case 'cancelled':
+        return (
+          <CancelledView
+            event={event}
+            currentPlayerId={currentPlayerId}
+            isCreator={isCreator}
+            onDelete={handleDeleteEvent}
             navigate={navigate}
           />
         );

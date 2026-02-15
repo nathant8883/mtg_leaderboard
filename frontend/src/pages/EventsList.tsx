@@ -32,6 +32,14 @@ const statusConfig: Record<string, { label: string; badge: string; icon: string;
     border: 'border-[#2C2E33] hover:border-[#51CF66]/40',
     cardBg: 'bg-[#1A1B1E]',
   },
+  cancelled: {
+    label: 'Cancelled',
+    badge: 'bg-[#C92A2A]/20 text-[#FF6B6B]',
+    icon: 'text-[#FF6B6B]',
+    iconBg: 'bg-[#C92A2A]/20',
+    border: 'border-[#C92A2A]/30 hover:border-[#C92A2A]/50',
+    cardBg: 'bg-[#C92A2A]/10',
+  },
 };
 
 const defaultStatusConfig = statusConfig.setup;

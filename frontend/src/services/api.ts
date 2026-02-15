@@ -238,7 +238,7 @@ export interface TournamentEvent {
   player_count: number;
   round_count: number;
   players: EventPlayer[];
-  status: 'setup' | 'active' | 'completed';
+  status: 'setup' | 'active' | 'completed' | 'cancelled';
   current_round: number;
   rounds: EventRound[];
   standings: StandingsEntry[];
@@ -1115,6 +1115,11 @@ export const eventApi = {
 
   complete: async (id: string): Promise<TournamentEvent> => {
     const response = await api.post(`/events/${id}/complete`);
+    return response.data;
+  },
+
+  cancel: async (id: string): Promise<TournamentEvent> => {
+    const response = await api.post(`/events/${id}/cancel`);
     return response.data;
   },
 

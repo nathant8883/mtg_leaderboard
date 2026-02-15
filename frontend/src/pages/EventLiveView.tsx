@@ -690,6 +690,11 @@ function RoundCard({
                   {event.event_type === 'draft' ? `Match ${pod.pod_index + 1}` : `Pod ${pod.pod_index + 1}`}
                 </span>
                 {isPodLive && <LiveBadge />}
+                {isPodCompleted && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2B8A3E]/20 text-[#51CF66]">
+                    Complete
+                  </span>
+                )}
                 {isPodPending && (
                   <span className="text-xs text-[#5C5F66]">Pending</span>
                 )}
@@ -698,29 +703,40 @@ function RoundCard({
               {/* Players in pod */}
               {event.event_type === 'draft' && pod.player_ids.length === 2 ? (
                 <div className="flex items-center justify-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-[8px] bg-[rgba(37,38,43,0.3)]">
-                    <PlayerAvatar
-                      playerName={findPlayerName(event, pod.player_ids[0])}
-                      customAvatar={findPlayerAvatar(event, pod.player_ids[0])}
-                      size="small"
-                      className="!w-6 !h-6 !text-xs border border-[#2C2E33]"
-                    />
-                    <span className="text-sm text-white font-medium" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
-                      {findPlayerName(event, pod.player_ids[0])}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#5C5F66] font-semibold">vs</span>
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-[8px] bg-[rgba(37,38,43,0.3)]">
-                    <PlayerAvatar
-                      playerName={findPlayerName(event, pod.player_ids[1])}
-                      customAvatar={findPlayerAvatar(event, pod.player_ids[1])}
-                      size="small"
-                      className="!w-6 !h-6 !text-xs border border-[#2C2E33]"
-                    />
-                    <span className="text-sm text-white font-medium" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
-                      {findPlayerName(event, pod.player_ids[1])}
-                    </span>
-                  </div>
+                  {pod.player_ids.map((pid, i) => {
+                    const isThisWinner = winner?.playerId === pid;
+                    const isLoser = isPodCompleted && !isThisWinner;
+                    return (
+                      <div key={pid} className="contents">
+                        {i === 1 && <span className="text-xs text-[#5C5F66] font-semibold">vs</span>}
+                        <div
+                          className={`flex items-center gap-2 px-3 py-2 rounded-[8px] ${
+                            isThisWinner
+                              ? 'bg-[rgba(255,215,0,0.12)] border border-[rgba(255,215,0,0.4)]'
+                              : isLoser
+                                ? 'bg-[rgba(37,38,43,0.2)] opacity-50'
+                                : 'bg-[rgba(37,38,43,0.3)]'
+                          }`}
+                        >
+                          {isThisWinner && <span className="text-sm">👑</span>}
+                          <PlayerAvatar
+                            playerName={findPlayerName(event, pid)}
+                            customAvatar={findPlayerAvatar(event, pid)}
+                            size="small"
+                            className={`!w-6 !h-6 !text-xs border ${isThisWinner ? 'border-[#FFD700]' : 'border-[#2C2E33]'}`}
+                          />
+                          <span
+                            className={`text-sm font-medium ${
+                              isThisWinner ? 'text-[#FFD700] font-bold' : isLoser ? 'text-[#5C5F66]' : 'text-white'
+                            }`}
+                            style={{ fontFamily: "'Chakra Petch', sans-serif" }}
+                          >
+                            {findPlayerName(event, pid)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="space-y-2">

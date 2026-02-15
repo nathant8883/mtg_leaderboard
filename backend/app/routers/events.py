@@ -513,7 +513,7 @@ async def delete_event(
     event_id: PydanticObjectId,
     current_player: Player = Depends(get_current_player),
 ):
-    """Delete event (creator only, must be in 'setup' status)"""
+    """Delete event (creator or superuser). Cascade-deletes associated matches."""
     event = await Event.get(event_id)
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
@@ -525,11 +525,8 @@ async def delete_event(
             detail="Only the event creator can delete the event",
         )
 
-    if event.status != "setup":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Can only delete events in 'setup' status",
-        )
+    # Delete all matches associated with this event
+    await Match.find(Match.event_id == str(event_id)).delete()
 
     await event.delete()
 
@@ -1023,6 +1020,36 @@ async def complete_tournament(
         )
 
     event.status = "completed"
+    event.completed_at = datetime.utcnow()
+
+    await event.save()
+    return serialize_event(event)
+
+
+@router.post("/{event_id}/cancel")
+async def cancel_event(
+    event_id: PydanticObjectId,
+    current_player: Player = Depends(get_current_player),
+):
+    """Cancel an active event (creator or superuser). No winner declared, standings preserved."""
+    event = await Event.get(event_id)
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    player_id_str = str(current_player.id)
+    if event.creator_id != player_id_str and not current_player.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the event creator can cancel the event",
+        )
+
+    if event.status != "active":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only active events can be cancelled",
+        )
+
+    event.status = "cancelled"
     event.completed_at = datetime.utcnow()
 
     await event.save()
