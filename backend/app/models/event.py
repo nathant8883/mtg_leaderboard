@@ -55,6 +55,22 @@ class StandingsEntry(BaseModel):
     round_points: list[int] = Field(default_factory=list)
 
 
+class DraftSet(BaseModel):
+    """An MTG set used in the draft"""
+    code: str          # e.g. "MKM"
+    name: str          # e.g. "Murders at Karlov Manor"
+    icon_svg_uri: str  # Scryfall set icon URL
+
+
+class DraftDeck(BaseModel):
+    """A temporary deck built during a draft event"""
+    player_id: str
+    name: str
+    colors: list[str] = Field(default_factory=list)  # W/U/B/R/G
+    commander: Optional[str] = None
+    commander_image_url: Optional[str] = None
+
+
 class Event(Document):
     """Tournament event document"""
     name: str
@@ -62,6 +78,11 @@ class Event(Document):
     pod_id: str
     creator_id: str
     custom_image: Optional[str] = None  # Base64 logo (same pattern as Pod)
+
+    # Draft-specific config (None for tournaments)
+    game_mode: Optional[str] = None      # "commander" | "limited"
+    sets: list[DraftSet] = Field(default_factory=list)
+    draft_decks: list[DraftDeck] = Field(default_factory=list)
 
     # Tournament config
     player_count: int  # 4, 8, or 12
@@ -82,8 +103,8 @@ class Event(Document):
     @field_validator('player_count')
     @classmethod
     def validate_player_count(cls, v):
-        if v not in (4, 8, 12):
-            raise ValueError('Player count must be 4, 8, or 12')
+        if v < 4 or v > 12:
+            raise ValueError('Player count must be between 4 and 12')
         return v
 
     @field_validator('round_count')

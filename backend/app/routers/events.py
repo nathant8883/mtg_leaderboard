@@ -48,6 +48,21 @@ def serialize_event(event: Event) -> dict:
         "pod_id": event.pod_id,
         "creator_id": event.creator_id,
         "custom_image": event.custom_image,
+        "game_mode": event.game_mode,
+        "sets": [
+            {"code": s.code, "name": s.name, "icon_svg_uri": s.icon_svg_uri}
+            for s in event.sets
+        ],
+        "draft_decks": [
+            {
+                "player_id": dd.player_id,
+                "name": dd.name,
+                "colors": dd.colors,
+                "commander": dd.commander,
+                "commander_image_url": dd.commander_image_url,
+            }
+            for dd in event.draft_decks
+        ],
         "player_count": event.player_count,
         "round_count": event.round_count,
         "players": [
