@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Play, User, WifiOff, List, BarChart3 } from 'lucide-react';
+import { Home, Play, User, WifiOff, List, BarChart3, Trophy } from 'lucide-react';
 import { ProfileDropdown } from './ProfileDropdown';
 import { PodDrawer } from './PodDrawer';
 import { CreatePodModal } from './CreatePodModal';
@@ -102,6 +102,20 @@ export function MainLayout() {
       console.error('Error loading pending count:', err);
     }
   };
+
+  const handlePlayClick = useCallback(() => {
+    const eventPointer = localStorage.getItem('mtg_active_event_match');
+    if (eventPointer) {
+      try {
+        const { eventId, podIndex } = JSON.parse(eventPointer);
+        navigate(`/event/${eventId}/match/${podIndex}`);
+        return;
+      } catch {
+        localStorage.removeItem('mtg_active_event_match');
+      }
+    }
+    navigate('/match-tracker');
+  }, [navigate]);
 
   const handleRecordMatch = async (matchRequest: CreateMatchRequest) => {
     try {
@@ -299,7 +313,7 @@ export function MainLayout() {
               </button>
               <button
                 className="px-4 py-2 bg-gradient-purple border-none rounded-[6px] text-white cursor-pointer font-semibold text-sm transition-all duration-200 shadow-[0_2px_8px_rgba(102,126,234,0.3)] record-match-btn-hover max-md:hidden desktop-nav-item"
-                onClick={() => navigate('/match-tracker')}
+                onClick={handlePlayClick}
               >
                 <span>🎮</span>
                 <span> Match Tracker</span>
@@ -310,6 +324,15 @@ export function MainLayout() {
               >
                 <span>➕</span>
                 <span> Record Match</span>
+              </button>
+              <button
+                className={`px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden desktop-nav-item ${
+                  location.pathname === '/events' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
+                }`}
+                onClick={() => navigate('/events')}
+              >
+                <span>🏆</span>
+                <span> Events</span>
               </button>
               {pendingCount > 0 && (
                 <button
@@ -439,7 +462,7 @@ export function MainLayout() {
                   icon: '🎯',
                 });
               } else {
-                navigate('/match-tracker');
+                handlePlayClick();
               }
             }}
             disabled={!isGuest && !!currentPlayer && !currentPod}
@@ -447,6 +470,19 @@ export function MainLayout() {
             <Play size={24} />
             <span className="text-[11px]">Play</span>
           </button>
+          {!isGuest && (
+            <button
+              className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${
+                location.pathname === '/events'
+                  ? 'bg-[rgba(51,217,178,0.15)] text-[var(--accent-cyan)] opacity-100 shadow-[0_-2px_6px_rgba(51,217,178,0.15)]'
+                  : 'bg-transparent text-[#909296] opacity-60'
+              }`}
+              onClick={() => navigate('/events')}
+            >
+              <Trophy size={24} />
+              <span className="text-[11px]">Events</span>
+            </button>
+          )}
           {!isGuest && (
             <button
               className={`flex-1 flex flex-col items-center justify-center gap-1 px-2 py-3 border-none rounded-[12px] cursor-pointer text-xs font-semibold transition-[all_0.15s_ease-out] active:scale-95 ${

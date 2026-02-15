@@ -15,6 +15,7 @@ import PlayerDetail from './components/PlayerDetail.tsx'
 import MatchDetail from './components/MatchDetail.tsx'
 import Leaderboard from './components/Leaderboard.tsx'
 import AdminPanel from './components/AdminPanel.tsx'
+import { EventsList } from './pages/EventsList.tsx'
 import { EventCreate } from './pages/EventCreate.tsx'
 import { EventDashboard } from './pages/EventDashboard.tsx'
 import EventMatchTracker from './pages/EventMatchTracker.tsx'
@@ -85,6 +86,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="matches" element={<MatchHistory />} />
               <Route path="leaderboard" element={<Leaderboard />} />
               <Route path="pod-dynamics" element={<PodDynamics />} />
+              <Route path="events" element={<EventsList />} />
               <Route path="players/:playerId" element={<PlayerDetail />} />
               <Route path="matches/:matchId" element={<MatchDetail />} />
 

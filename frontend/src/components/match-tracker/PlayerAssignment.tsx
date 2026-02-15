@@ -12,6 +12,7 @@ interface PlayerAssignmentProps {
   onBack: () => void;
   allowedPlayerIds?: string[];
   hideGuestOption?: boolean;
+  onDeckSelected?: (playerId: string, deckId: string) => void;
 }
 
 // Selection flow state machine
@@ -21,7 +22,7 @@ type SelectionPhase =
   | { type: 'guest-name'; position: number }
   | { type: 'deck-select'; position: number; playerId: string; playerName: string; killMessages?: string[] };
 
-function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack, allowedPlayerIds, hideGuestOption }: PlayerAssignmentProps) {
+function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack, allowedPlayerIds, hideGuestOption, onDeckSelected }: PlayerAssignmentProps) {
   const [players, setPlayers] = useState<PlayerSlot[]>(initialPlayers);
   const [selectionPhase, setSelectionPhase] = useState<SelectionPhase>({ type: 'grid' });
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
@@ -172,6 +173,9 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
     };
     setPlayers(updatedPlayers);
     setSelectionPhase({ type: 'grid' });
+    if (onDeckSelected && playerId && deck.id) {
+      onDeckSelected(playerId, deck.id);
+    }
   };
 
   const handleStartGame = () => {

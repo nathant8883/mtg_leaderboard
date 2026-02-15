@@ -170,6 +170,18 @@ export function EventMatchTracker() {
     localStorage.setItem(EVENT_MATCH_POINTER_KEY, JSON.stringify({ eventId, podIndex }));
   }, [matchState, isAltWin, eventId, podIndex, event, storageKey]);
 
+  // Report individual deck selection to backend for TV live view (progressive reveal)
+  const handleDeckSelected = useCallback(
+    (playerId: string, deckId: string) => {
+      if (eventId && currentRound > 0 && podIndex >= 0) {
+        eventApi.setDeck(eventId, currentRound, podIndex, playerId, deckId).catch((err) =>
+          console.warn('[EventMatchTracker] Failed to report deck selection:', err)
+        );
+      }
+    },
+    [eventId, currentRound, podIndex],
+  );
+
   // Handle player assignment (deck selection) completion
   const handlePlayerAssignment = useCallback(
     (players: PlayerSlot[]) => {
@@ -177,17 +189,6 @@ export function EventMatchTracker() {
 
       // Filter out empty slots (for odd-number games where we create extra slots)
       const activePlayers = players.filter((p) => p.playerId !== null);
-
-      // Report deck selections to backend for TV live view (fire-and-forget)
-      if (eventId && currentRound > 0 && podIndex >= 0) {
-        activePlayers.forEach((player) => {
-          if (player.playerId && player.deckId) {
-            eventApi.setDeck(eventId, currentRound, podIndex, player.playerId, player.deckId).catch((err) =>
-              console.warn('[EventMatchTracker] Failed to report deck selection:', err)
-            );
-          }
-        });
-      }
 
       // Initialize game state
       const gameState: ActiveGameState = {
@@ -442,6 +443,7 @@ export function EventMatchTracker() {
           onBack={handleMatchDiscard}
           allowedPlayerIds={podPlayerIds}
           hideGuestOption={true}
+          onDeckSelected={handleDeckSelected}
         />
       )}
 

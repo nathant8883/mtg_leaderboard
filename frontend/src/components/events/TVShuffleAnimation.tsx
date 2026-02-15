@@ -20,12 +20,14 @@ export function TVShuffleAnimation({
 }: TVShuffleAnimationProps) {
   const [phase, setPhase] = useState<AnimationPhase>('scatter');
   const completedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   // Get the new round's pods
   const currentRound = event.rounds.find((r) => r.round_number === event.current_round);
   const pods = currentRound?.pods ?? [];
 
-  // Phase timing
+  // Phase timing — onComplete stored in ref to avoid restarting timers on parent re-renders
   useEffect(() => {
     const timers =
       animationType === 'shuffle'
@@ -36,7 +38,7 @@ export function TVShuffleAnimation({
               setPhase('done');
               if (!completedRef.current) {
                 completedRef.current = true;
-                onComplete();
+                onCompleteRef.current();
               }
             }, 5000),
           ]
@@ -49,13 +51,13 @@ export function TVShuffleAnimation({
               setPhase('done');
               if (!completedRef.current) {
                 completedRef.current = true;
-                onComplete();
+                onCompleteRef.current();
               }
             }, 6500),
           ];
 
     return () => timers.forEach(clearTimeout);
-  }, [animationType, onComplete]);
+  }, [animationType]);
 
   // Sort standings for re-seed display
   const sortedStandings = previousStandings
@@ -110,7 +112,7 @@ export function TVShuffleAnimation({
       `}</style>
 
       {/* Title */}
-      <h2 className="text-3xl font-bold text-white mb-10 text-center">
+      <h2 className="text-5xl font-bold text-white mb-12 text-center">
         {animationType === 'shuffle' && phase === 'scatter' && (
           <span style={{ animation: 'tv-title-pulse 1.2s ease-in-out infinite' }} className="inline-block">
             Shuffling Players...
@@ -133,10 +135,10 @@ export function TVShuffleAnimation({
       </h2>
 
       {/* Animation container */}
-      <div className="relative w-full max-w-4xl px-6">
+      <div className="relative w-full max-w-5xl px-6">
         {/* Phase: Scatter (shuffle bounce grid) */}
         {phase === 'scatter' && (
-          <div className={`grid ${event.players.length <= 4 ? 'grid-cols-2' : event.players.length <= 8 ? 'grid-cols-4' : 'grid-cols-4'} gap-6 justify-items-center`}>
+          <div className={`grid ${event.players.length <= 4 ? 'grid-cols-2' : 'grid-cols-4'} gap-8 justify-items-center`}>
             {event.players.map((player, i) => (
               <div
                 key={player.player_id}
@@ -154,32 +156,32 @@ export function TVShuffleAnimation({
 
         {/* Phase: Sort (re-seed only) — ranked column */}
         {phase === 'sort' && animationType === 'reseed' && (
-          <div className="flex flex-col items-center gap-3 max-w-md mx-auto">
+          <div className="flex flex-col items-center gap-4 max-w-lg mx-auto">
             {sortedStandings.map((entry, idx) => {
               const player = findPlayer(entry.player_id);
               if (!player) return null;
               return (
                 <div
                   key={entry.player_id}
-                  className="flex items-center gap-4 w-full px-4 py-2 rounded-[10px] bg-[#1A1B1E]/80 border border-[#2C2E33]"
+                  className="flex items-center gap-5 w-full px-5 py-3 rounded-[12px] bg-[#1A1B1E]/80 border border-[#2C2E33]"
                   style={{
                     animation: `tv-slide-to-rank 0.5s ease-out both`,
                     animationDelay: `${idx * 120}ms`,
                   }}
                 >
-                  <span className={`text-xl font-bold w-8 text-center ${rankColor(idx)}`}>
+                  <span className={`text-2xl font-bold w-10 text-center ${rankColor(idx)}`}>
                     {idx + 1}
                   </span>
                   <PlayerAvatar
                     playerName={player.player_name}
                     customAvatar={player.avatar}
                     size="small"
-                    className="!w-10 !h-10 !text-base border-2 border-[#2C2E33]"
+                    className="!w-14 !h-14 !text-lg border-2 border-[#2C2E33]"
                   />
-                  <span className="text-base text-white font-semibold flex-1 truncate">
+                  <span className="text-xl text-white font-semibold flex-1 truncate">
                     {player.player_name}
                   </span>
-                  <span className="text-sm font-bold text-[#667eea]">{entry.total_points} pts</span>
+                  <span className="text-lg font-bold text-[#667eea]">{entry.total_points} pts</span>
                 </div>
               );
             })}
@@ -188,14 +190,14 @@ export function TVShuffleAnimation({
 
         {/* Phase: Form pods / Reveal / Done — players grouped into pods */}
         {(phase === 'form-pods' || phase === 'reveal' || phase === 'done') && (
-          <div className={`grid ${pods.length === 1 ? 'grid-cols-1' : pods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-6`}>
+          <div className={`grid ${pods.length === 1 ? 'grid-cols-1' : pods.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-8`}>
             {pods.map((pod, podIdx) => {
               const isRevealed = phase === 'reveal' || phase === 'done';
 
               return (
                 <div
                   key={podIdx}
-                  className="tv-pod-container rounded-[12px] border p-5 transition-all duration-700"
+                  className="tv-pod-container rounded-[14px] border p-6 transition-all duration-700"
                   style={{
                     animationDelay: `${podIdx * 200}ms`,
                     background: isRevealed
@@ -211,19 +213,19 @@ export function TVShuffleAnimation({
                 >
                   {/* Pod label */}
                   <div
-                    className="transition-all duration-500 mb-4"
+                    className="transition-all duration-500 mb-5"
                     style={{
                       opacity: isRevealed ? 1 : 0.5,
                       transform: isRevealed ? 'translateY(0)' : 'translateY(-6px)',
                     }}
                   >
-                    <span className="text-sm font-bold uppercase tracking-widest text-[#667eea]">
+                    <span className="text-base font-bold uppercase tracking-widest text-[#667eea]">
                       Pod {podIdx + 1}
                     </span>
                   </div>
 
                   {/* Player tiles */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-4">
                     {pod.player_ids.map((pid, playerIdx) => {
                       const player = findPlayer(pid);
                       if (!player) return null;
@@ -234,7 +236,7 @@ export function TVShuffleAnimation({
                       return (
                         <div
                           key={pid}
-                          className="tv-shuffle-tile flex items-center gap-3"
+                          className="tv-shuffle-tile flex items-center gap-4"
                           style={{
                             opacity: phase === 'form-pods' ? 0.6 : 1,
                             transitionDelay: `${playerIdx * 100}ms`,
@@ -244,13 +246,13 @@ export function TVShuffleAnimation({
                             playerName={player.player_name}
                             customAvatar={player.avatar}
                             size="small"
-                            className="!w-10 !h-10 !text-base border-2 border-[#2C2E33]"
+                            className="!w-14 !h-14 !text-lg border-2 border-[#2C2E33]"
                           />
-                          <span className="text-base text-white font-medium truncate flex-1">
+                          <span className="text-xl text-white font-medium truncate flex-1">
                             {player.player_name}
                           </span>
                           {animationType === 'reseed' && standingEntry && (
-                            <span className="text-xs font-bold text-[#667eea] bg-[#667eea]/10 px-2 py-0.5 rounded-full">
+                            <span className="text-sm font-bold text-[#667eea] bg-[#667eea]/10 px-3 py-1 rounded-full">
                               {standingEntry.total_points} pts
                             </span>
                           )}
@@ -268,10 +270,10 @@ export function TVShuffleAnimation({
       {/* Ready indicator */}
       {phase === 'done' && (
         <div
-          className="mt-10 px-8 py-3 rounded-full border border-[#51CF66]/40 bg-[#51CF66]/10"
+          className="mt-12 px-10 py-4 rounded-full border border-[#51CF66]/40 bg-[#51CF66]/10"
           style={{ animation: 'tv-fade-in-up 0.4s ease-out both' }}
         >
-          <span className="text-base font-semibold text-[#51CF66] tracking-wide">
+          <span className="text-xl font-semibold text-[#51CF66] tracking-wide">
             Ready!
           </span>
         </div>
@@ -284,14 +286,14 @@ export function TVShuffleAnimation({
 
 function TVPlayerTile({ player }: { player: { player_id: string; player_name: string; avatar?: string } }) {
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-3">
       <PlayerAvatar
         playerName={player.player_name}
         customAvatar={player.avatar}
         size="small"
-        className="!w-14 !h-14 !text-xl border-2 border-[#2C2E33]"
+        className="!w-[72px] !h-[72px] !text-2xl border-2 border-[#2C2E33]"
       />
-      <span className="text-sm text-white font-medium text-center truncate max-w-[100px]">
+      <span className="text-lg text-white font-medium text-center truncate max-w-[130px]">
         {player.player_name}
       </span>
     </div>

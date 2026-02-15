@@ -15,6 +15,7 @@ import {
   IconLoader2,
   IconUserCheck,
   IconX,
+  IconAlertTriangle,
 } from '@tabler/icons-react';
 
 const VALID_PLAYER_COUNTS = [4, 8, 12];
@@ -52,12 +53,18 @@ export function EventCreate() {
   const { currentPod } = usePod();
 
   const [eventName, setEventName] = useState('');
-  const [roundCount, setRoundCount] = useState(3);
+  const [roundCount, setRoundCount] = useState(4);
   const [customImage, setCustomImage] = useState<string | null>(null);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<string>>(new Set());
   const [members, setMembers] = useState<PodMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  // Busy player constraint state
+  const [busyPlayerIds, setBusyPlayerIds] = useState<Set<string>>(new Set());
+  const [busyPlayerEvents, setBusyPlayerEvents] = useState<Record<string, string>>({});
+  const [organizerEvent, setOrganizerEvent] = useState<{ event_id: string; event_name: string; status: string } | null>(null);
+  const [loadingConstraints, setLoadingConstraints] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,6 +85,26 @@ export function EventCreate() {
     };
     loadMembers();
   }, [currentPod?.id]);
+
+  // Load busy player constraints
+  const refreshConstraints = async () => {
+    try {
+      setLoadingConstraints(true);
+      const data = await eventApi.getBusyPlayers();
+      setBusyPlayerIds(new Set(data.busy_player_ids));
+      setBusyPlayerEvents(data.busy_player_events);
+      setOrganizerEvent(data.organizer_active_event);
+    } catch (err) {
+      console.error('Error loading busy players:', err);
+      // Fail gracefully - backend still enforces
+    } finally {
+      setLoadingConstraints(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshConstraints();
+  }, []);
 
   // Image upload handler
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,6 +134,7 @@ export function EventCreate() {
 
   // Player selection
   const togglePlayer = (playerId: string) => {
+    if (busyPlayerIds.has(playerId)) return;
     setSelectedPlayerIds((prev) => {
       const next = new Set(prev);
       if (next.has(playerId)) {
@@ -119,7 +147,7 @@ export function EventCreate() {
   };
 
   const selectAll = () => {
-    setSelectedPlayerIds(new Set(members.map((m) => m.player_id)));
+    setSelectedPlayerIds(new Set(members.filter((m) => !busyPlayerIds.has(m.player_id)).map((m) => m.player_id)));
   };
 
   const deselectAll = () => {
@@ -132,7 +160,7 @@ export function EventCreate() {
   const targetCount = getTargetCount(selectedCount);
   const isNameValid = eventName.trim().length > 0;
   const isRoundCountValid = roundCount >= 1 && roundCount <= 10;
-  const canSubmit = isNameValid && isValidPlayerCount && isRoundCountValid && !submitting;
+  const canSubmit = isNameValid && isValidPlayerCount && isRoundCountValid && !submitting && !organizerEvent && !loadingConstraints;
 
   // Submit handler
   const handleSubmit = async () => {
@@ -152,8 +180,16 @@ export function EventCreate() {
       navigate(`/event/${event.id}`);
     } catch (err: any) {
       console.error('Error creating event:', err);
-      const message = err?.response?.data?.detail || 'Failed to create event';
-      toast.error(message);
+      if (err?.response?.status === 409) {
+        // Refresh constraints to update the UI
+        refreshConstraints();
+        const detail = err?.response?.data?.detail;
+        const message = typeof detail === 'string' ? detail : detail?.message || 'Conflict: some players are unavailable';
+        toast.error(message);
+      } else {
+        const message = err?.response?.data?.detail || 'Failed to create event';
+        toast.error(message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -183,6 +219,25 @@ export function EventCreate() {
           <p className="text-sm text-[#909296]">{currentPod.name}</p>
         </div>
       </div>
+
+      {/* Organizer limit warning */}
+      {organizerEvent && (
+        <div className="bg-[#FFA94D]/10 border border-[#FFA94D]/30 rounded-[12px] p-4 mb-4 flex items-start gap-3">
+          <IconAlertTriangle size={20} className="text-[#FFA94D] flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-[#FFA94D]">You already have an active event</p>
+            <p className="text-xs text-[#909296] mt-1">
+              "{organizerEvent.event_name}" is still {organizerEvent.status}. Complete or delete it before creating a new one.
+            </p>
+            <button
+              onClick={() => navigate(`/event/${organizerEvent.event_id}`)}
+              className="text-xs text-[#667eea] hover:text-[#764ba2] mt-2 transition-colors"
+            >
+              Go to event
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Event Name Section */}
       <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-4 mb-4">
@@ -257,7 +312,11 @@ export function EventCreate() {
           <input
             type="number"
             value={roundCount}
-            onChange={(e) => setRoundCount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              if (!isNaN(val)) setRoundCount(val);
+            }}
+            onBlur={() => setRoundCount(Math.max(1, Math.min(10, roundCount)))}
             min={1}
             max={10}
             className="w-24 bg-[#25262B] text-white text-center rounded-[8px] border border-[#2C2E33] px-3 py-2 focus:outline-none focus:border-[#667eea] transition-colors"
@@ -328,15 +387,20 @@ export function EventCreate() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {members.map((member) => {
               const isSelected = selectedPlayerIds.has(member.player_id);
+              const isBusy = busyPlayerIds.has(member.player_id);
               const avatarUrl = getAvatarUrl(member);
               return (
                 <button
                   key={member.player_id}
                   onClick={() => togglePlayer(member.player_id)}
+                  disabled={isBusy}
+                  title={isBusy ? `In event: ${busyPlayerEvents[member.player_id]}` : undefined}
                   className={`relative flex items-center gap-2.5 p-2.5 rounded-[10px] border transition-all duration-150 text-left ${
-                    isSelected
-                      ? 'bg-[#667eea]/10 border-[#667eea]/50 ring-1 ring-[#667eea]/30'
-                      : 'bg-[#25262B] border-[#2C2E33] hover:border-[#3C3E43]'
+                    isBusy
+                      ? 'opacity-40 cursor-not-allowed bg-[#25262B] border-[#2C2E33]'
+                      : isSelected
+                        ? 'bg-[#667eea]/10 border-[#667eea]/50 ring-1 ring-[#667eea]/30'
+                        : 'bg-[#25262B] border-[#2C2E33] hover:border-[#3C3E43]'
                   }`}
                 >
                   {/* Avatar */}
@@ -359,7 +423,7 @@ export function EventCreate() {
                       )}
                     </div>
                     {/* Selection checkmark */}
-                    {isSelected && (
+                    {isSelected && !isBusy && (
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center"
                         style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
                       >
@@ -368,14 +432,21 @@ export function EventCreate() {
                     )}
                   </div>
 
-                  {/* Name */}
-                  <span
-                    className={`text-sm truncate ${
-                      isSelected ? 'text-white font-medium' : 'text-[#C1C2C5]'
-                    }`}
-                  >
-                    {member.player_name}
-                  </span>
+                  {/* Name + busy badge */}
+                  <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                    <span
+                      className={`text-sm truncate ${
+                        isBusy ? 'text-[#5C5F66]' : isSelected ? 'text-white font-medium' : 'text-[#C1C2C5]'
+                      }`}
+                    >
+                      {member.player_name}
+                    </span>
+                    {isBusy && (
+                      <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-[#FFA94D]/15 text-[#FFA94D] font-medium">
+                        In Event
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             })}
