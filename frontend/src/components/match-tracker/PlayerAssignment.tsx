@@ -27,7 +27,7 @@ type SelectionPhase =
   | { type: 'guest-name'; position: number }
   | { type: 'deck-select'; position: number; playerId: string; playerName: string; killMessages?: string[] };
 
-function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack, allowedPlayerIds, hideGuestOption, onDeckSelected, isDraft, gameMode, eventId, draftDecks, onDraftDeckRegistered }: PlayerAssignmentProps) {
+function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComplete, onBack, allowedPlayerIds, hideGuestOption, onDeckSelected, isDraft, eventId, draftDecks, onDraftDeckRegistered }: PlayerAssignmentProps) {
   const [players, setPlayers] = useState<PlayerSlot[]>(initialPlayers);
   const [selectionPhase, setSelectionPhase] = useState<SelectionPhase>({ type: 'grid' });
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
