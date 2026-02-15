@@ -803,6 +803,7 @@ async def complete_pod_match(
     # Link match to event
     match.event_id = str(event.id)
     match.event_round = round_num
+    match.game_mode = event.game_mode
     await match.save()
 
     # Update pod assignment
@@ -816,7 +817,17 @@ async def complete_pod_match(
             target_pod.player_decks[mp.player_id] = PlayerDeckInfo(deck_name=mp.deck_name)
 
     # Calculate points
-    round_results = _calculate_match_points(match, request.is_alt_win)
+    if event.event_type == "draft":
+        round_results = []
+        for mp in match.players:
+            total = 1 if mp.player_id == match.winner_player_id else 0
+            round_results.append(RoundResult(
+                player_id=mp.player_id,
+                placement_points=total,
+                total=total,
+            ))
+    else:
+        round_results = _calculate_match_points(match, request.is_alt_win)
 
     # Merge new results into the round's results
     current_round.results.extend(round_results)
