@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from beanie import PydanticObjectId
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date, datetime
 import random
@@ -25,6 +25,9 @@ class CreateEventRequest(BaseModel):
     round_count: int
     event_date: Optional[date] = None
     custom_image: Optional[str] = None
+    event_type: str = "tournament"  # "tournament" | "draft"
+    game_mode: Optional[str] = None  # "commander" | "limited" (required for draft)
+    set_codes: list[str] = Field(default_factory=list)  # Up to 4 set codes
 
 
 class CompleteMatchRequest(BaseModel):
@@ -285,13 +288,31 @@ async def create_event(
             detail={"message": "Some players are already in active events", "busy_player_ids": list(conflicts)},
         )
 
-    # Validate player count (model validator handles 4/8/12)
+    # Validate player count
     player_count = len(request.player_ids)
-    if player_count not in (4, 8, 12):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Player count must be 4, 8, or 12",
-        )
+
+    if request.event_type == "draft":
+        if player_count < 4 or player_count > 12 or player_count % 2 != 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Draft requires an even number of players (4-12)",
+            )
+        if not request.game_mode or request.game_mode not in ("commander", "limited"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Draft requires game_mode: 'commander' or 'limited'",
+            )
+        if len(request.set_codes) > 4:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Maximum 4 sets allowed",
+            )
+    else:
+        if player_count not in (4, 8, 12):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Player count must be 4, 8, or 12",
+            )
 
     # Validate all players are pod members
     for pid in request.player_ids:
@@ -329,6 +350,14 @@ async def create_event(
         for ep in event_players
     ]
 
+    # Fetch set details from Scryfall (draft only)
+    draft_sets = []
+    if request.event_type == "draft" and request.set_codes:
+        for code in request.set_codes:
+            set_data = await scryfall_service.get_set_by_code(code)
+            if set_data:
+                draft_sets.append(DraftSet(**set_data))
+
     # Build empty rounds
     rounds = [
         Round(
@@ -342,6 +371,7 @@ async def create_event(
 
     event = Event(
         name=request.name,
+        event_type=request.event_type,
         pod_id=request.pod_id,
         creator_id=player_id_str,
         custom_image=request.custom_image,
@@ -353,6 +383,8 @@ async def create_event(
         rounds=rounds,
         standings=standings,
         event_date=request.event_date or date.today(),
+        game_mode=request.game_mode,
+        sets=draft_sets,
     )
 
     await event.insert()
