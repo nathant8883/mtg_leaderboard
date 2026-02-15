@@ -12,6 +12,7 @@ interface ActiveGameProps {
   onUpdateGameState: (gameState: ActiveGameState) => void;
   isQuickPlay?: boolean;
   onReset?: () => void;
+  gameMode?: 'commander' | 'limited';
 }
 
 // Fun phrases for when a player scoops (concedes)
@@ -28,7 +29,7 @@ const SCOOP_PHRASES = [
   "Lived to fight another day",
 ];
 
-function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState, isQuickPlay, onReset }: ActiveGameProps) {
+function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpdateGameState, isQuickPlay, onReset, gameMode }: ActiveGameProps) {
   const [timer, setTimer] = useState(gameState.elapsedSeconds || 0);
   const [menuState, setMenuState] = useState<'closed' | 'spinning' | 'open' | 'closing'>('closed');
   const [commanderDamageMode, setCommanderDamageMode] = useState(false);
@@ -843,7 +844,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const totalDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     // Swipe completion: Check if intent is swipe AND distance exceeds completion threshold (60px)
-    if (gesture.intent === 'swipe' && totalDistance > 60) {
+    // Don't enter commander damage mode in limited mode
+    if (gesture.intent === 'swipe' && totalDistance > 60 && gameMode !== 'limited') {
       // Enter commander damage mode from this player's perspective
       setCommanderDamageMode(true);
       setTrackingPlayerPosition(player.position);
@@ -1096,12 +1098,12 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <div
                   className="text-lg font-bold text-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   onClick={() => {
-                    if (!commanderDamageMode && !playerState.eliminated) {
+                    if (!commanderDamageMode && !playerState.eliminated && gameMode !== 'limited') {
                       setCommanderDamageMode(true);
                       setTrackingPlayerPosition(player.position);
                     }
                   }}
-                  style={{ cursor: !commanderDamageMode && !playerState.eliminated ? 'pointer' : 'default' }}
+                  style={{ cursor: !commanderDamageMode && !playerState.eliminated && gameMode !== 'limited' ? 'pointer' : 'default' }}
                 >
                   {player.playerName}
                 </div>

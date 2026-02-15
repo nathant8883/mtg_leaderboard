@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventApi, matchApi } from '../services/api';
-import type { TournamentEvent, CreateMatchRequest } from '../services/api';
+import type { TournamentEvent, CreateMatchRequest, DraftDeck } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Reuse existing match tracker components
@@ -134,11 +134,13 @@ export function EventMatchTracker() {
         }));
 
         // Initialize match state starting at assignment step (player + deck selection)
+        const startingLife = eventData.game_mode === 'limited' ? 20 : 40;
+
         setMatchState({
           playerCount: podSize,
           players: emptyPlayers,
           layout: 'table' as LayoutType,
-          startingLife: 40,
+          startingLife,
           currentStep: 'assignment',
         });
       } catch (err: any) {
@@ -444,6 +446,16 @@ export function EventMatchTracker() {
           allowedPlayerIds={podPlayerIds}
           hideGuestOption={true}
           onDeckSelected={handleDeckSelected}
+          isDraft={event?.event_type === 'draft'}
+          gameMode={event?.game_mode}
+          eventId={eventId}
+          draftDecks={event?.draft_decks}
+          onDraftDeckRegistered={(deck: DraftDeck) => {
+            if (event) {
+              const updatedDecks = [...(event.draft_decks || []).filter(d => d.player_id !== deck.player_id), deck];
+              setEvent({ ...event, draft_decks: updatedDecks });
+            }
+          }}
         />
       )}
 
@@ -459,6 +471,7 @@ export function EventMatchTracker() {
           }
           isQuickPlay={false}
           onReset={handleMatchDiscard}
+          gameMode={event?.game_mode}
         />
       )}
 
