@@ -214,6 +214,20 @@ export interface StandingsEntry {
   round_points: number[];
 }
 
+export interface DraftSet {
+  code: string;
+  name: string;
+  icon_svg_uri: string;
+}
+
+export interface DraftDeck {
+  player_id: string;
+  name: string;
+  colors: string[];
+  commander?: string;
+  commander_image_url?: string;
+}
+
 export interface TournamentEvent {
   id: string;
   name: string;
@@ -228,6 +242,9 @@ export interface TournamentEvent {
   current_round: number;
   rounds: EventRound[];
   standings: StandingsEntry[];
+  game_mode?: 'commander' | 'limited';
+  sets: DraftSet[];
+  draft_decks: DraftDeck[];
   event_date: string;
   created_at: string;
   completed_at?: string;
@@ -250,6 +267,9 @@ export interface CreateEventRequest {
   round_count: number;
   event_date?: string;
   custom_image?: string;
+  event_type?: 'tournament' | 'draft';
+  game_mode?: 'commander' | 'limited';
+  set_codes?: string[];
 }
 
 export interface CreateMatchRequest {
@@ -1114,6 +1134,19 @@ export const eventApi = {
 
   getLive: async (id: string): Promise<TournamentEvent> => {
     const response = await axios.get(`/api/events/${id}/live`);
+    return response.data;
+  },
+
+  searchSets: async (query: string): Promise<DraftSet[]> => {
+    const response = await api.get('/events/sets/search', { params: { q: query } });
+    return response.data;
+  },
+
+  registerDraftDeck: async (
+    eventId: string,
+    deck: { player_id: string; name: string; colors: string[]; commander?: string; commander_image_url?: string }
+  ): Promise<TournamentEvent> => {
+    const response = await api.post(`/events/${eventId}/draft-decks`, deck);
     return response.data;
   },
 };
