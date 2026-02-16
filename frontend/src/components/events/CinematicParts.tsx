@@ -199,17 +199,17 @@ export function RankRow({
 }: RankRowProps) {
   const highlightClass = isTopMover
     ? 'bg-[#667eea]/10 border border-[#667eea]/40'
-    : 'border border-transparent';
+    : 'bg-[#1A1B1E]/80 border border-[#2C2E33]';
 
   return (
     <motion.div
       layoutId={layoutId}
       transition={rowSpring}
-      className={`flex items-center gap-3 px-4 py-2.5 rounded-[10px] ${highlightClass}`}
+      className={`flex items-center gap-5 w-full px-6 py-4 rounded-[14px] ${highlightClass}`}
     >
       {/* Rank number */}
       <span
-        className="w-7 text-right text-lg font-bold shrink-0"
+        className="w-12 text-center text-3xl font-bold shrink-0"
         style={{
           fontFamily: "'JetBrains Mono', monospace",
           color: rankColor(rank),
@@ -223,12 +223,12 @@ export function RankRow({
         playerName={player.player_name}
         customAvatar={player.avatar}
         size="small"
-        className="!w-8 !h-8 !text-xs"
+        className="!w-14 !h-14 !text-lg border-2 border-[#2C2E33]"
       />
 
       {/* Player name — fills available space */}
       <span
-        className="flex-1 truncate text-sm font-semibold text-white/90"
+        className="flex-1 truncate text-2xl font-semibold text-white/90"
         style={{ fontFamily: "'Chakra Petch', sans-serif" }}
       >
         {player.player_name}
@@ -242,7 +242,7 @@ export function RankRow({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ delay: 0.8, duration: 0.3 }}
-            className={`text-xs font-bold ${
+            className={`text-lg font-bold ${
               rankDelta > 0 ? 'text-[#51CF66]' : 'text-[#ff6b6b]'
             }`}
           >
@@ -253,10 +253,10 @@ export function RankRow({
 
       {/* Points */}
       <span
-        className="w-10 text-right text-sm font-bold text-white/80"
+        className="text-xl font-bold text-[#667eea]"
         style={{ fontFamily: "'JetBrains Mono', monospace" }}
       >
-        {points}
+        {points} pts
       </span>
     </motion.div>
   );

@@ -140,10 +140,10 @@ export function CinematicReseed({ event, previousStandings, onComplete }: Cinema
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex flex-col items-center gap-4 max-w-2xl w-full px-6"
+              className="flex flex-col items-center gap-3 max-w-4xl w-full px-8"
             >
               <h3
-                className="text-2xl font-bold text-[#667eea] mb-4 uppercase tracking-wider"
+                className="text-4xl font-bold text-[#667eea] mb-6 uppercase tracking-wider"
                 style={{ fontFamily: "'Chakra Petch', sans-serif" }}
               >
                 Standings
