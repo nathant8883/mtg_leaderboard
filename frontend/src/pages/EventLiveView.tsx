@@ -698,6 +698,33 @@ function RoundCard({
     );
   }
 
+  // Completed non-current rounds collapse to a compact summary
+  if (isCompleted && !isCurrent) {
+    // Find winners for each pod for the summary
+    const podWinners = round.pods
+      .map((pod) => getPodWinner(event, round, pod))
+      .filter(Boolean);
+
+    return (
+      <div className="flex items-center gap-3 px-4 py-3 rounded-[8px] bg-[#111214] border border-[#2C2E33]/30">
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#2B8A3E]/20 text-[#51CF66] text-xs">
+          ✓
+        </span>
+        <span className="text-sm font-semibold text-[#909296]" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
+          Round {round.round_number}
+        </span>
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#2B8A3E]/20 text-[#51CF66]">
+          Complete
+        </span>
+        {podWinners.length > 0 && (
+          <span className="ml-auto text-xs text-[#5C5F66] truncate max-w-[300px]" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
+            {podWinners.map((w) => w!.name).join(' · ')}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`rounded-[12px] border p-5 transition-all ${
