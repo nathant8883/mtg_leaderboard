@@ -15,6 +15,7 @@ import { TVShuffleAnimation } from '../components/events/TVShuffleAnimation';
 import ColorPips from '../components/ColorPips';
 import PlayerAvatar from '../components/PlayerAvatar';
 import { getColorIdentityStyle } from '../utils/manaColors';
+import { getSetColors, getSetGradientCSS } from '../utils/setColors';
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -117,14 +118,99 @@ function StatusDot({ active }: { active: boolean }) {
   return <span className="inline-flex rounded-full h-3 w-3 bg-[#5C5F66]" />;
 }
 
+// ─── Round Progress Bar ─────────────────────────────────────────
+
+function RoundProgressBar({ event }: { event: TournamentEvent }) {
+  if (event.status === 'completed') {
+    return (
+      <span className="text-lg font-bold text-[#FFD700]" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
+        Completed
+      </span>
+    );
+  }
+
+  const totalRounds = event.round_count;
+  const currentRound = event.current_round;
+
+  // Connector width scales with round count — big for TV
+  const connectorWidth = totalRounds <= 5 ? 48 : totalRounds <= 7 ? 32 : 20;
+
+  // Build round status array
+  const rounds = Array.from({ length: totalRounds }, (_, i) => {
+    const roundNumber = i + 1;
+    const roundData = event.rounds.find((r) => r.round_number === roundNumber);
+    if (roundData?.status === 'completed') return 'completed' as const;
+    if (roundNumber === currentRound && event.status === 'active') return 'current' as const;
+    return 'pending' as const;
+  });
+
+  return (
+    <div className="flex items-center">
+      {rounds.map((status, i) => (
+        <div key={i} className="flex items-center">
+          {/* Connector line */}
+          {i > 0 && (
+            <div
+              className="h-[4px] rounded-full"
+              style={{
+                width: `${connectorWidth}px`,
+                backgroundColor:
+                  rounds[i - 1] === 'completed' && (status === 'completed' || status === 'current')
+                    ? '#667eea'
+                    : '#2C2E33',
+              }}
+            />
+          )}
+          {/* Dot */}
+          {status === 'current' ? (
+            <span className="relative flex h-7 w-7">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#667eea] opacity-75" />
+              <span className="relative inline-flex rounded-full h-7 w-7 bg-[#667eea]" />
+            </span>
+          ) : status === 'completed' ? (
+            <span className="inline-flex rounded-full h-7 w-7 bg-[#667eea]" />
+          ) : (
+            <span className="inline-flex rounded-full h-6 w-6 border-[3px] border-[#5C5F66] bg-transparent" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Header ──────────────────────────────────────────────────────
 
 function LiveHeader({ event }: { event: TournamentEvent }) {
   const isActive = event.status === 'active';
   const isCompleted = event.status === 'completed';
+  const isDraft = event.event_type === 'draft';
+  const hasSets = isDraft && event.sets && event.sets.length > 0;
+  const headerGradient = hasSets ? getSetGradientCSS(event.sets) : '';
 
   return (
-    <div className="flex items-center gap-4 px-6 py-4 border-b border-[#2C2E33] bg-[#111214]">
+    <div
+      className="relative overflow-hidden flex items-center gap-4 px-6 py-4 border-b border-[#2C2E33]"
+      style={{
+        background: headerGradient
+          ? `${headerGradient}, #111214`
+          : '#111214',
+      }}
+    >
+      {/* Watermark — faint set codes behind content */}
+      {hasSets && (
+        <div
+          className="absolute inset-0 flex items-center justify-end pr-8 pointer-events-none select-none"
+          style={{ opacity: 0.04 }}
+        >
+          <span
+            className="text-white font-bold uppercase whitespace-nowrap"
+            style={{ fontSize: '80px', fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.1em' }}
+          >
+            {event.sets.map(s => s.code).join(' ')}
+          </span>
+        </div>
+      )}
+
       {/* Logo / Trophy */}
       {event.custom_image ? (
         <div className="w-12 h-12 rounded-[10px] overflow-hidden border border-[#2C2E33] flex-shrink-0">
@@ -133,18 +219,6 @@ function LiveHeader({ event }: { event: TournamentEvent }) {
       ) : (
         <div className="w-12 h-12 rounded-[10px] bg-[#1A1B1E] border border-[#2C2E33] flex items-center justify-center flex-shrink-0">
           <IconTrophy size={24} className="text-[#667eea]" />
-        </div>
-      )}
-
-      {/* Set Icons for Draft */}
-      {event.event_type === 'draft' && event.sets && event.sets.length > 0 && (
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {event.sets.map(s => (
-            <div key={s.code} className="flex items-center gap-1">
-              <img src={s.icon_svg_uri} alt={s.name} className="w-4 h-4" style={{ filter: 'invert(1)' }} />
-              <span className="text-xs text-[#C1C2C5] uppercase">{s.code}</span>
-            </div>
-          ))}
         </div>
       )}
 
@@ -158,10 +232,20 @@ function LiveHeader({ event }: { event: TournamentEvent }) {
           </span>
           <span className="text-[#2C2E33]">|</span>
           <span>{event.players.length} Players</span>
-          {event.event_type === 'draft' && event.game_mode && (
+          {isDraft && event.game_mode && (
             <>
               <span className="text-[#2C2E33]">|</span>
-              <span className="capitalize">{event.game_mode}</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#667eea]/15 text-[#667eea] capitalize">
+                {event.game_mode}
+              </span>
+            </>
+          )}
+          {hasSets && event.sets.length > 1 && (
+            <>
+              <span className="text-[#2C2E33]">|</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#f59f00]/15 text-[#ffd43b] border border-[#f59f00]/30">
+                Chaos
+              </span>
             </>
           )}
         </div>
@@ -169,15 +253,15 @@ function LiveHeader({ event }: { event: TournamentEvent }) {
 
       {/* Round Indicator + Status */}
       <div className="flex items-center gap-4 flex-shrink-0">
-        <div className="text-right">
-          {isCompleted ? (
-            <span className="text-lg font-bold text-[#FFD700]" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>Completed</span>
-          ) : (
-            <span className="text-lg font-bold text-white" style={{ fontFamily: "'Chakra Petch', sans-serif" }}>
-              Round {event.current_round} <span className="text-[#5C5F66] font-normal">of</span> {event.round_count}
-            </span>
-          )}
-        </div>
+        {isActive && (
+          <span
+            className="text-lg font-bold text-[#5C5F66]"
+            style={{ fontFamily: "'Chakra Petch', sans-serif" }}
+          >
+            Round {event.current_round}/{event.round_count}
+          </span>
+        )}
+        <RoundProgressBar event={event} />
         <StatusDot active={isActive} />
       </div>
     </div>
@@ -257,7 +341,7 @@ function StandingsPanel({
       {/* Table Header */}
       {event.event_type === 'draft' ? (
         <div
-          className="grid grid-cols-[2rem_2.5rem_1fr_4rem] items-center px-5 py-2.5 text-[11px] text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
+          className="grid grid-cols-[2.5rem_3.5rem_1fr_5rem] items-center px-6 py-3 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
           style={{ fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.15em' }}
         >
           <span>#</span>
@@ -267,7 +351,7 @@ function StandingsPanel({
         </div>
       ) : (
         <div
-          className="grid grid-cols-[2rem_2.5rem_1fr_3rem_3rem_3rem_3.5rem] items-center px-5 py-2.5 text-[11px] text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
+          className="grid grid-cols-[2.5rem_3.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem] items-center px-6 py-3 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
           style={{ fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.15em' }}
         >
           <span>#</span>
@@ -296,7 +380,7 @@ function StandingsPanel({
             return (
               <div
                 key={entry.player_id}
-                className={`grid grid-cols-[2rem_2.5rem_1fr_4rem] items-center px-5 py-3 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
+                className={`grid grid-cols-[2.5rem_3.5rem_1fr_5rem] items-center px-6 py-4 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
                   isChampion
                     ? 'bg-[#FFD700]/8'
                     : isTopThree
@@ -304,14 +388,14 @@ function StandingsPanel({
                       : ''
                 }`}
               >
-                <span className={`text-lg font-bold ${rankColor(rank)}`}>
+                <span className={`text-2xl font-bold ${rankColor(rank)}`}>
                   {medal ?? rank}
                 </span>
                 <PlayerAvatar
                   playerName={entry.player_name}
                   customAvatar={player?.avatar}
                   size="small"
-                  className="!w-7 !h-7 !text-xs border border-[#2C2E33]"
+                  className="!w-10 !h-10 !text-base border border-[#2C2E33]"
                 />
                 <span
                   className={`truncate ${
@@ -321,13 +405,13 @@ function StandingsPanel({
                         ? 'text-white font-semibold'
                         : 'text-[#C1C2C5]'
                   }`}
-                  style={{ fontSize: '15px', fontFamily: "'Chakra Petch', sans-serif" }}
+                  style={{ fontSize: '20px', fontFamily: "'Chakra Petch', sans-serif" }}
                 >
                   {entry.player_name}
                 </span>
                 <span
                   className={`text-right font-bold ${isChampion ? 'text-[#FFD700]' : 'text-white'}`}
-                  style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}
+                  style={{ fontSize: '24px', fontFamily: "'JetBrains Mono', monospace" }}
                 >
                   {entry.wins}-{entry.round_points.length - entry.wins}
                 </span>
@@ -351,7 +435,7 @@ function StandingsPanel({
           return (
             <div
               key={entry.player_id}
-              className={`grid grid-cols-[2rem_2.5rem_1fr_3rem_3rem_3rem_3.5rem] items-center px-5 py-3 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
+              className={`grid grid-cols-[2.5rem_3.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem] items-center px-6 py-4 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
                 isChampion
                   ? 'bg-[#FFD700]/8'
                   : isTopThree
@@ -359,14 +443,14 @@ function StandingsPanel({
                     : ''
               }`}
             >
-              <span className={`text-lg font-bold ${rankColor(rank)}`}>
+              <span className={`text-2xl font-bold ${rankColor(rank)}`}>
                 {medal ?? rank}
               </span>
               <PlayerAvatar
                 playerName={entry.player_name}
                 customAvatar={player?.avatar}
                 size="small"
-                className="!w-7 !h-7 !text-xs border border-[#2C2E33]"
+                className="!w-10 !h-10 !text-base border border-[#2C2E33]"
               />
               <span
                 className={`truncate ${
@@ -376,17 +460,17 @@ function StandingsPanel({
                       ? 'text-white font-semibold'
                       : 'text-[#C1C2C5]'
                 }`}
-                style={{ fontSize: '15px', fontFamily: "'Chakra Petch', sans-serif" }}
+                style={{ fontSize: '20px', fontFamily: "'Chakra Petch', sans-serif" }}
               >
                 {entry.player_name}
               </span>
-              <span className="text-right text-[#667eea] font-medium" style={{ fontSize: '15px', fontFamily: "'JetBrains Mono', monospace" }}>{placementPts}</span>
-              <span className="text-right text-[#51CF66] font-medium" style={{ fontSize: '15px', fontFamily: "'JetBrains Mono', monospace" }}>{bonusPts > 0 ? `+${bonusPts}` : '0'}</span>
-              <span className="text-right text-[#E03131] font-medium" style={{ fontSize: '15px', fontFamily: "'JetBrains Mono', monospace" }}>{penaltyPts < 0 ? penaltyPts : '0'}</span>
+              <span className="text-right text-[#667eea] font-medium" style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}>{placementPts}</span>
+              <span className="text-right text-[#51CF66] font-medium" style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}>{bonusPts > 0 ? `+${bonusPts}` : '0'}</span>
+              <span className="text-right text-[#E03131] font-medium" style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}>{penaltyPts < 0 ? penaltyPts : '0'}</span>
               <div className="text-right flex items-center justify-end gap-1.5">
                 <span
                   className={`font-bold ${isChampion ? 'text-[#FFD700]' : 'text-white'}`}
-                  style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}
+                  style={{ fontSize: '22px', fontFamily: "'JetBrains Mono', monospace" }}
                 >
                   {entry.total_points}
                 </span>
@@ -514,9 +598,9 @@ function PodPlayerCard({
 
   return (
     <div
-      className={`flex items-center gap-3 p-2 rounded-[8px] transition-all duration-300 ${
+      className={`flex items-center gap-4 p-3 rounded-[10px] transition-all duration-300 ${
         isWinner
-          ? 'bg-[rgba(255,215,0,0.08)] border-l-[3px] border-[rgba(255,165,0,0.5)]'
+          ? 'bg-[rgba(255,215,0,0.08)] border-l-[4px] border-[rgba(255,165,0,0.5)]'
           : 'bg-[rgba(37,38,43,0.3)]'
       }`}
     >
@@ -524,10 +608,10 @@ function PodPlayerCard({
       <div className="flex-shrink-0">
         {hasDeck && deckInfo.commander_image_url ? (
           <div
-            className="deck-color-border-wrapper p-[2px] rounded-[8px]"
+            className="deck-color-border-wrapper p-[2px] rounded-[10px]"
             style={getColorIdentityStyle(deckInfo.colors || [])}
           >
-            <div className="w-[40px] h-[40px] rounded-[6px] overflow-hidden">
+            <div className="w-[60px] h-[60px] rounded-[8px] overflow-hidden">
               <img
                 src={deckInfo.commander_image_url}
                 alt=""
@@ -540,17 +624,17 @@ function PodPlayerCard({
             playerName={playerName}
             customAvatar={player?.avatar}
             size="small"
-            className="!w-[44px] !h-[44px] !text-base border-2 border-[#2C2E33]"
+            className="!w-[64px] !h-[64px] !text-2xl border-2 border-[#2C2E33]"
           />
         )}
       </div>
 
       {/* Player info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          {isWinner && <IconCrown size={14} className="text-[#FFD700] flex-shrink-0" />}
+        <div className="flex items-center gap-2">
+          {isWinner && <IconCrown size={22} className="text-[#FFD700] flex-shrink-0" />}
           <span
-            className={`text-sm truncate ${
+            className={`text-xl truncate ${
               isWinner ? 'text-[#FFD700] font-bold' : isPodCompleted ? 'text-[#909296] font-medium' : 'text-white font-medium'
             }`}
             style={{ fontFamily: "'Chakra Petch', sans-serif" }}
@@ -559,8 +643,8 @@ function PodPlayerCard({
           </span>
         </div>
         {hasDeck ? (
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-xs text-[#909296] truncate">{deckInfo.deck_name}</span>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm text-[#909296] truncate">{deckInfo.deck_name}</span>
             {deckInfo.colors && deckInfo.colors.length > 0 && (
               <div className="flex-shrink-0">
                 <ColorPips colors={deckInfo.colors} size="sm" />
@@ -568,14 +652,14 @@ function PodPlayerCard({
             )}
           </div>
         ) : (
-          <span className="text-xs text-[#3C3F44] italic mt-0.5 block">Selecting deck...</span>
+          <span className="text-sm text-[#3C3F44] italic mt-1 block">Selecting deck...</span>
         )}
       </div>
 
       {/* Points */}
       {result && event.event_type !== 'draft' && (
         <span
-          className={`text-sm font-bold flex-shrink-0 ${
+          className={`text-lg font-bold flex-shrink-0 ${
             isWinner ? 'text-[#FFD700]' : 'text-[#51CF66]/70'
           }`}
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
@@ -620,7 +704,7 @@ function RoundCard({
       className={`rounded-[12px] border p-5 transition-all ${
         isCurrent && isInProgress
           ? 'border-[#667eea]/60 bg-[#141517]'
-          : isCompleted
+          : isCompleted && !isCurrent
             ? 'border-[#2C2E33]/30 bg-[#111214]'
             : 'border-[#2C2E33] bg-[#141517]'
       }`}
@@ -630,7 +714,7 @@ function RoundCard({
               boxShadow: '0 0 20px rgba(102,126,234,0.15), inset 0 0 0 1px rgba(102,126,234,0.1)',
               animation: 'tv-pulse-border 3s ease-in-out infinite',
             }
-          : isCompleted
+          : isCompleted && !isCurrent
             ? { opacity: 0.6, filter: 'saturate(0.6)' }
             : {}
       }
@@ -702,15 +786,15 @@ function RoundCard({
 
               {/* Players in pod */}
               {event.event_type === 'draft' && pod.player_ids.length === 2 ? (
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-4">
                   {pod.player_ids.map((pid, i) => {
                     const isThisWinner = winner?.playerId === pid;
                     const isLoser = isPodCompleted && !isThisWinner;
                     return (
                       <div key={pid} className="contents">
-                        {i === 1 && <span className="text-xs text-[#5C5F66] font-semibold">vs</span>}
+                        {i === 1 && <span className="text-lg text-[#5C5F66] font-bold">vs</span>}
                         <div
-                          className={`flex items-center gap-2 px-3 py-2 rounded-[8px] ${
+                          className={`flex items-center gap-3 px-4 py-3 rounded-[10px] ${
                             isThisWinner
                               ? 'bg-[rgba(255,215,0,0.12)] border border-[rgba(255,215,0,0.4)]'
                               : isLoser
@@ -718,15 +802,15 @@ function RoundCard({
                                 : 'bg-[rgba(37,38,43,0.3)]'
                           }`}
                         >
-                          {isThisWinner && <span className="text-sm">👑</span>}
+                          {isThisWinner && <span className="text-xl">👑</span>}
                           <PlayerAvatar
                             playerName={findPlayerName(event, pid)}
                             customAvatar={findPlayerAvatar(event, pid)}
                             size="small"
-                            className={`!w-6 !h-6 !text-xs border ${isThisWinner ? 'border-[#FFD700]' : 'border-[#2C2E33]'}`}
+                            className={`!w-12 !h-12 !text-lg border-2 ${isThisWinner ? 'border-[#FFD700]' : 'border-[#2C2E33]'}`}
                           />
                           <span
-                            className={`text-sm font-medium ${
+                            className={`text-xl font-medium ${
                               isThisWinner ? 'text-[#FFD700] font-bold' : isLoser ? 'text-[#5C5F66]' : 'text-white'
                             }`}
                             style={{ fontFamily: "'Chakra Petch', sans-serif" }}
@@ -921,6 +1005,55 @@ function TVSplashScreen({ event }: { event: TournamentEvent }) {
   );
 }
 
+// ─── Set Banner (Draft only) ────────────────────────────────────
+
+function SetBanner({ event }: { event: TournamentEvent }) {
+  if (event.event_type !== 'draft' || !event.sets || event.sets.length === 0) return null;
+
+  const isChaos = event.sets.length > 1;
+
+  return (
+    <div
+      className="flex items-center gap-3 px-6 py-2.5 border-b border-[#2C2E33]/50 overflow-x-auto scrollbar-hide"
+      style={{ background: '#0d0d12' }}
+    >
+      <span
+        className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#5C5F66] flex-shrink-0"
+        style={{ fontFamily: "'Chakra Petch', sans-serif" }}
+      >
+        {isChaos ? 'Drafting' : 'Set'}
+      </span>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {event.sets.map((s, i) => {
+          const { color } = getSetColors(s.code);
+          return (
+            <div key={s.code} className="contents">
+              {i > 0 && isChaos && (
+                <span className="text-[10px] font-bold text-[#3C3F44]">&times;</span>
+              )}
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 rounded-[8px]"
+                style={{
+                  background: `${color}12`,
+                  border: `1px solid ${color}30`,
+                }}
+              >
+                <div
+                  className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${color}25` }}
+                >
+                  <img src={s.icon_svg_uri} alt="" className="w-4 h-4" style={{ filter: 'invert(1)' }} />
+                </div>
+                <span className="text-sm font-medium text-[#C1C2C5] whitespace-nowrap">{s.name}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ──────────────────────────────────────────────
 
 export function EventLiveView() {
@@ -1023,6 +1156,7 @@ export function EventLiveView() {
     return (
       <div className="min-h-screen bg-[#0a0a10] flex flex-col overflow-hidden">
         <LiveHeader event={event} />
+        <SetBanner event={event} />
         <div className="flex-1 flex items-center justify-center">
           <TVShuffleAnimation
             event={event}
@@ -1050,6 +1184,7 @@ export function EventLiveView() {
 
       {/* Header */}
       <LiveHeader event={event} />
+      <SetBanner event={event} />
 
       {/* Main Content — landscape grid on desktop, stacked on mobile */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[35%_1fr] min-h-0 overflow-hidden">

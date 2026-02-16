@@ -51,7 +51,7 @@ export function EventCreate() {
   const { currentPod } = usePod();
 
   const [eventName, setEventName] = useState('');
-  const [roundCount, setRoundCount] = useState(4);
+  const [roundCount, setRoundCount] = useState<number | string>(4);
   const [customImage, setCustomImage] = useState<string | null>(null);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<Set<string>>(new Set());
   const [members, setMembers] = useState<PodMember[]>([]);
@@ -179,7 +179,7 @@ export function EventCreate() {
         name: eventName.trim(),
         pod_id: currentPod.id!,
         player_ids: Array.from(selectedPlayerIds),
-        round_count: roundCount,
+        round_count: Number(roundCount),
         custom_image: customImage || undefined,
         event_type: eventType,
         game_mode: eventType === 'draft' ? gameMode : undefined,
@@ -394,10 +394,19 @@ export function EventCreate() {
             type="number"
             value={roundCount}
             onChange={(e) => {
-              const val = parseInt(e.target.value);
-              if (!isNaN(val)) setRoundCount(val);
+              const raw = e.target.value;
+              if (raw === '') {
+                setRoundCount('');
+              } else {
+                const val = parseInt(raw);
+                if (!isNaN(val)) setRoundCount(val);
+              }
             }}
-            onBlur={() => setRoundCount(Math.max(1, Math.min(10, roundCount)))}
+            onBlur={() => {
+              const val = typeof roundCount === 'number' ? roundCount : parseInt(String(roundCount));
+              setRoundCount(Math.max(1, Math.min(10, isNaN(val) ? 4 : val)));
+            }}
+            onFocus={(e) => e.target.select()}
             min={1}
             max={10}
             className="w-24 bg-[#25262B] text-white text-center rounded-[8px] border border-[#2C2E33] px-3 py-2 focus:outline-none focus:border-[#667eea] transition-colors"
