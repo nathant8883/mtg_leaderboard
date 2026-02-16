@@ -31,7 +31,6 @@ services:
       - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost"]
       - environment=production
       - FRONTEND_URL=https://mtg.turner-labs.net
-      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN}
     depends_on:
       mongodb:
         condition: service_healthy

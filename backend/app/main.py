@@ -8,7 +8,8 @@ from app.config import settings
 from app.database import init_db, close_db
 from app.routers import players, decks, matches, leaderboard, scryfall, auth, pods, analytics, pod_dynamics, events
 
-logfire.configure(token=settings.logfire_token)
+if settings.logfire_token:
+    logfire.configure(token=settings.logfire_token)
 
 
 @asynccontextmanager
@@ -28,7 +29,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-logfire.instrument_fastapi(app)
+if settings.logfire_token:
+    logfire.instrument_fastapi(app)
 
 # Configure Session Middleware (required for OAuth)
 app.add_middleware(
