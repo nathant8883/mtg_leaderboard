@@ -166,7 +166,7 @@ export function EventCreate() {
     ? (selectedCount % 2 === 0 ? selectedCount : selectedCount + 1)
     : getTargetCount(selectedCount);
   const isNameValid = eventName.trim().length > 0;
-  const isRoundCountValid = roundCount >= 1 && roundCount <= 10;
+  const isRoundCountValid = Number(roundCount) >= 1 && Number(roundCount) <= 10;
   const canSubmit = isNameValid && isValidPlayerCount && isRoundCountValid && !submitting && !organizerEvent && !loadingConstraints;
 
   // Submit handler

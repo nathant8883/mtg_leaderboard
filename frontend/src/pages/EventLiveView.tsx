@@ -182,7 +182,6 @@ function RoundProgressBar({ event }: { event: TournamentEvent }) {
 
 function LiveHeader({ event }: { event: TournamentEvent }) {
   const isActive = event.status === 'active';
-  const isCompleted = event.status === 'completed';
   const isDraft = event.event_type === 'draft';
   const hasSets = isDraft && event.sets && event.sets.length > 0;
   const headerGradient = hasSets ? getSetGradientCSS(event.sets) : '';
