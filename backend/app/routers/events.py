@@ -884,6 +884,7 @@ async def complete_pod_match(
     # Update pod assignment
     target_pod.match_id = request.match_id
     target_pod.match_status = "completed"
+    target_pod.live_game_state = None
 
     # Build player_decks map from match data (enrich with deck details)
     for mp in match.players:
