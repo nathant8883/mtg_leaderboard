@@ -1,0 +1,300 @@
+/* ============================================================
+   Cinematic Effects — Decorative CSS for broadcast animations
+   Used by event live-view intro / round-transition sequences.
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   1. Scan Line Sweep
+   A semi-transparent horizontal bar that sweeps top-to-bottom,
+   mimicking a CRT / broadcast monitor scan effect.
+   ---------------------------------------------------------- */
+
+@keyframes scan-line-sweep {
+  0% {
+    transform: translateY(-100vh);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.scan-line {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.scan-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.4) 20%,
+    rgba(102, 126, 234, 0.8) 50%,
+    rgba(102, 126, 234, 0.4) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3),
+    0 0 60px rgba(102, 126, 234, 0.15);
+  animation: scan-line-sweep 3s linear infinite;
+}
+
+/* ----------------------------------------------------------
+   2. Orbit Ring
+   A spinning ring with a dot tracing its circumference,
+   used as a decorative loader / waiting indicator.
+   ---------------------------------------------------------- */
+
+@keyframes orbit-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.orbit-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: orbit-spin 4s linear infinite;
+}
+
+.orbit-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #667eea;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.8),
+    0 0 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ----------------------------------------------------------
+   3. Pod Glow Arrive
+   A glow-in effect for player pods entering the scene.
+   Ramps up a purple box-shadow then settles to a subtler glow.
+   ---------------------------------------------------------- */
+
+@keyframes pod-glow-arrive {
+  0% {
+    box-shadow: 0 0 0 rgba(102, 126, 234, 0);
+  }
+  60% {
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 12px rgba(102, 126, 234, 0.25);
+  }
+}
+
+.pod-glow-arrive {
+  animation: pod-glow-arrive 1s ease-out forwards;
+}
+
+/* ----------------------------------------------------------
+   4. Glitch Text Effect
+   Broadcast-style text glitch using clip-path and translate
+   shifts with red / blue channel-split pseudo-elements.
+   ---------------------------------------------------------- */
+
+@keyframes glitch-text {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    transform: translate(0);
+  }
+  10% {
+    clip-path: inset(40% 0 30% 0);
+    transform: translate(-2px, 1px);
+  }
+  20% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(2px, -1px);
+  }
+  30% {
+    clip-path: inset(70% 0 5% 0);
+    transform: translate(-1px, 2px);
+  }
+  40% {
+    clip-path: inset(20% 0 50% 0);
+    transform: translate(1px, -2px);
+  }
+  50% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+}
+
+@keyframes glitch-text-reverse {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    transform: translate(0);
+  }
+  10% {
+    clip-path: inset(60% 0 10% 0);
+    transform: translate(2px, -1px);
+  }
+  20% {
+    clip-path: inset(5% 0 70% 0);
+    transform: translate(-2px, 1px);
+  }
+  30% {
+    clip-path: inset(50% 0 20% 0);
+    transform: translate(1px, -2px);
+  }
+  40% {
+    clip-path: inset(30% 0 40% 0);
+    transform: translate(-1px, 2px);
+  }
+  50% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+  }
+}
+
+.glitch-text {
+  position: relative;
+  display: inline-block;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.glitch-text::before {
+  color: #ff6b6b;
+  animation: glitch-text 2s infinite linear;
+  z-index: -1;
+}
+
+.glitch-text::after {
+  color: #4dabf7;
+  animation: glitch-text-reverse 2s infinite linear;
+  z-index: -1;
+}
+
+/* ----------------------------------------------------------
+   5. Round Progress Dots
+   Pulsing glow on the dot representing the current round
+   in a step-indicator / breadcrumb bar.
+   ---------------------------------------------------------- */
+
+@keyframes dot-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(102, 126, 234, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(102, 126, 234, 0.8);
+  }
+}
+
+.round-dot-current {
+  animation: dot-glow 2s infinite;
+}
+
+/* ----------------------------------------------------------
+   6. Title Slam-In
+   A dramatic scale-down entrance: the title starts large and
+   blurred, slams past normal size, and rebounds to rest.
+   ---------------------------------------------------------- */
+
+@keyframes slam-in {
+  0% {
+    transform: scale(2.5);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  60% {
+    transform: scale(0.95);
+    opacity: 1;
+    filter: blur(0);
+  }
+  80% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.slam-in {
+  animation: slam-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ----------------------------------------------------------
+   7. Ready Pulse
+   A green pulsing glow for "player ready" indicators.
+   ---------------------------------------------------------- */
+
+@keyframes ready-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    box-shadow: 0 0 6px rgba(81, 207, 102, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 18px rgba(81, 207, 102, 0.6);
+  }
+}
+
+.ready-pulse {
+  animation: ready-pulse 2s infinite;
+}
+
+/* ----------------------------------------------------------
+   8. Ambient Glow
+   A soft, breathing radial glow behind content areas.
+   Purely atmospheric — no interaction.
+   ---------------------------------------------------------- */
+
+@keyframes ambient-glow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.ambient-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(102, 126, 234, 0.08) 0%,
+    transparent 70%
+  );
+  animation: ambient-glow 4s ease-in-out infinite;
+}
