@@ -105,6 +105,24 @@ def serialize_event(event: Event) -> dict:
                             } if isinstance(info, PlayerDeckInfo) else {"deck_name": info, "commander_image_url": "", "colors": []}
                             for pid, info in pa.player_decks.items()
                         },
+                        "live_game_state": (
+                            {
+                                "elapsed_seconds": pa.live_game_state.elapsed_seconds,
+                                "updated_at": pa.live_game_state.updated_at.isoformat(),
+                                "player_states": {
+                                    pid: {
+                                        "player_id": ps.player_id,
+                                        "life": ps.life,
+                                        "eliminated": ps.eliminated,
+                                        "eliminated_by_player_id": ps.eliminated_by_player_id,
+                                        "elimination_type": ps.elimination_type,
+                                    }
+                                    for pid, ps in pa.live_game_state.player_states.items()
+                                },
+                            }
+                            if pa.live_game_state
+                            else None
+                        ),
                     }
                     for pa in r.pods
                 ],
