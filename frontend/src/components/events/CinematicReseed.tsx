@@ -93,7 +93,7 @@ export function CinematicReseed({ event, previousStandings, onComplete }: Cinema
 
   return (
     <LayoutGroup>
-      <div className="relative flex flex-col items-center justify-center h-full w-full overflow-hidden">
+      <div className="relative flex flex-col items-center justify-center min-h-[60vh] w-full overflow-hidden">
         {/* Round progress dots — top right */}
         <div className="absolute top-6 right-8 z-20">
           <RoundProgressDots

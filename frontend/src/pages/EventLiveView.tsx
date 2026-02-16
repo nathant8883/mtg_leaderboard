@@ -1068,6 +1068,9 @@ export function EventLiveView() {
 
   // Track whether we've ever loaded successfully (ref avoids stale closure)
   const hasLoadedRef = useRef(false);
+  // Keep a ref to latest event so the poll closure can read current standings
+  const eventRef = useRef<TournamentEvent | null>(null);
+  eventRef.current = event;
 
   // Poll every 5 seconds
   useEffect(() => {
@@ -1086,8 +1089,9 @@ export function EventLiveView() {
           // Round advanced
           else if (data.current_round > prevRoundRef.current && prevRoundRef.current > 0) {
             // Save current standings before updating for the re-seed animation
-            if (event) {
-              setPreviousStandings([...event.standings].sort((a, b) => b.total_points - a.total_points));
+            const currentEvent = eventRef.current;
+            if (currentEvent) {
+              setPreviousStandings([...currentEvent.standings].sort((a, b) => b.total_points - a.total_points));
             }
             setAnimationState('reseed');
           }
@@ -1156,7 +1160,7 @@ export function EventLiveView() {
       <div className="min-h-screen bg-[#0a0a10] flex flex-col overflow-hidden">
         <LiveHeader event={event} />
         <SetBanner event={event} />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-6 min-h-0">
           <TVCinematicAnimation
             event={event}
             animationType={animationState}
