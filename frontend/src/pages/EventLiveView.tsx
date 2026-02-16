@@ -11,7 +11,7 @@ import {
   IconCalendar,
   IconClipboardList,
 } from '@tabler/icons-react';
-import { TVShuffleAnimation } from '../components/events/TVShuffleAnimation';
+import { TVCinematicAnimation } from '../components/events/TVCinematicAnimation';
 import ColorPips from '../components/ColorPips';
 import PlayerAvatar from '../components/PlayerAvatar';
 import { getColorIdentityStyle } from '../utils/manaColors';
@@ -1157,7 +1157,7 @@ export function EventLiveView() {
         <LiveHeader event={event} />
         <SetBanner event={event} />
         <div className="flex-1 flex items-center justify-center">
-          <TVShuffleAnimation
+          <TVCinematicAnimation
             event={event}
             animationType={animationState}
             previousStandings={previousStandings ?? undefined}
