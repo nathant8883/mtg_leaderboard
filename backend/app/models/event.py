@@ -18,6 +18,22 @@ class PlayerDeckInfo(BaseModel):
     colors: list[str] = Field(default_factory=list)
 
 
+class LivePlayerState(BaseModel):
+    """Live game state for a single player (synced from match host's phone)"""
+    player_id: str
+    life: int = 40
+    eliminated: bool = False
+    eliminated_by_player_id: Optional[str] = None
+    elimination_type: Optional[str] = None  # "kill" | "scoop"
+
+
+class LiveGameState(BaseModel):
+    """Snapshot of an in-progress game (synced from match host's phone)"""
+    elapsed_seconds: int = 0
+    player_states: dict[str, LivePlayerState] = Field(default_factory=dict)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class PodAssignment(BaseModel):
     """A single pod (table) within a tournament round"""
     pod_index: int  # 0-based pod number
@@ -25,6 +41,7 @@ class PodAssignment(BaseModel):
     match_id: Optional[str] = None
     match_status: str = "pending"  # "pending" | "in_progress" | "completed"
     player_decks: dict[str, PlayerDeckInfo] = Field(default_factory=dict)
+    live_game_state: Optional[LiveGameState] = None
 
 
 class RoundResult(BaseModel):
