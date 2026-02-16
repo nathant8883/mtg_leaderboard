@@ -1061,7 +1061,7 @@ export function EventLiveView() {
   const [error, setError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const [animationState, setAnimationState] = useState<'none' | 'shuffle' | 'reseed'>('none');
+  const [animationState, setAnimationState] = useState<'none' | 'shuffle' | 'reseed' | 'closing'>('none');
   const [previousStandings, setPreviousStandings] = useState<StandingsEntry[] | null>(null);
   const prevStatusRef = useRef<string | null>(null);
   const prevRoundRef = useRef<number>(0);
@@ -1094,6 +1094,14 @@ export function EventLiveView() {
               setPreviousStandings([...currentEvent.standings].sort((a, b) => b.total_points - a.total_points));
             }
             setAnimationState('reseed');
+          }
+          // Tournament completed
+          else if (prevStatusRef.current === 'active' && data.status === 'completed') {
+            const currentEvent = eventRef.current;
+            if (currentEvent) {
+              setPreviousStandings([...currentEvent.standings].sort((a, b) => b.total_points - a.total_points));
+            }
+            setAnimationState('closing');
           }
         }
 
