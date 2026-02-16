@@ -64,17 +64,17 @@ export function CinematicClosing({ event, previousStandings, onComplete }: Cinem
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase('final-standings'), 2500),
-      setTimeout(() => setShowNewRanks(true), 3300),
-      setTimeout(() => setPhase('champion'), 6000),
-      setTimeout(() => setPhase('podium'), 9500),
-      setTimeout(() => setPhase('done'), 12500),
+      setTimeout(() => setPhase('final-standings'), 5000),
+      setTimeout(() => setShowNewRanks(true), 6600),
+      setTimeout(() => setPhase('champion'), 12000),
+      setTimeout(() => setPhase('podium'), 19000),
+      setTimeout(() => setPhase('done'), 25000),
       setTimeout(() => {
         if (!completedRef.current) {
           completedRef.current = true;
           onCompleteRef.current();
         }
-      }, 14000),
+      }, 28000),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);

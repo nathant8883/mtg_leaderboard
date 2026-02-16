@@ -62,18 +62,18 @@ export function CinematicReseed({ event, previousStandings, onComplete }: Cinema
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase('rank-shift'), 2000),
+      setTimeout(() => setPhase('rank-shift'), 4000),
       // Trigger the re-sort after a brief pause so users see the old order first
-      setTimeout(() => setShowNewRanks(true), 2800),
-      setTimeout(() => setPhase('reseeding'), 5000),
-      setTimeout(() => setPhase('fly-to-pods'), 7500),
-      setTimeout(() => setPhase('settled'), 10000),
+      setTimeout(() => setShowNewRanks(true), 5600),
+      setTimeout(() => setPhase('reseeding'), 10000),
+      setTimeout(() => setPhase('fly-to-pods'), 15000),
+      setTimeout(() => setPhase('settled'), 20000),
       setTimeout(() => {
         if (!completedRef.current) {
           completedRef.current = true;
           onCompleteRef.current();
         }
-      }, 11500),
+      }, 23000),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);

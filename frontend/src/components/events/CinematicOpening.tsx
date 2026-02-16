@@ -23,16 +23,16 @@ export function CinematicOpening({ event, onComplete }: CinematicOpeningProps) {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase('roll-call'), 2000),
-      setTimeout(() => setPhase('seeding'), 5000),
-      setTimeout(() => setPhase('fly-to-pods'), 7500),
-      setTimeout(() => setPhase('settled'), 10000),
+      setTimeout(() => setPhase('roll-call'), 4000),
+      setTimeout(() => setPhase('seeding'), 10000),
+      setTimeout(() => setPhase('fly-to-pods'), 15000),
+      setTimeout(() => setPhase('settled'), 20000),
       setTimeout(() => {
         if (!completedRef.current) {
           completedRef.current = true;
           onCompleteRef.current();
         }
-      }, 11500),
+      }, 23000),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
