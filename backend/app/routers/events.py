@@ -50,6 +50,12 @@ class RegisterDraftDeckRequest(BaseModel):
     commander_image_url: Optional[str] = None
 
 
+class UpdateGameStateRequest(BaseModel):
+    """Game state update from match host's phone"""
+    elapsed_seconds: int = 0
+    player_states: dict[str, dict] = Field(default_factory=dict)
+
+
 # ==================== HELPERS ====================
 
 def serialize_event(event: Event) -> dict:
@@ -1084,3 +1090,48 @@ async def get_live_event(event_id: PydanticObjectId):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
 
     return serialize_event(event)
+
+
+@router.put("/{event_id}/rounds/{round_num}/pods/{pod_index}/game-state")
+async def update_game_state(
+    event_id: PydanticObjectId,
+    round_num: int,
+    pod_index: int,
+    request: UpdateGameStateRequest,
+):
+    """Update live game state for a pod (NO AUTH — called by match host's phone)"""
+    player_states = {}
+    for pid, state in request.player_states.items():
+        player_states[pid] = {
+            "player_id": pid,
+            "life": state.get("life", 40),
+            "eliminated": state.get("eliminated", False),
+            "eliminated_by_player_id": state.get("eliminated_by_player_id"),
+            "elimination_type": state.get("elimination_type"),
+        }
+
+    game_state_doc = {
+        "elapsed_seconds": request.elapsed_seconds,
+        "player_states": player_states,
+        "updated_at": datetime.utcnow(),
+    }
+
+    collection = Event.get_settings().pymongo_collection
+    result = await collection.update_one(
+        {"_id": event_id, "status": "active"},
+        {"$set": {
+            f"rounds.$[r].pods.$[p].live_game_state": game_state_doc,
+        }},
+        array_filters=[
+            {"r.round_number": round_num},
+            {"p.pod_index": pod_index},
+        ],
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event, round, or pod not found (or event not active)",
+        )
+
+    return {"status": "ok"}
