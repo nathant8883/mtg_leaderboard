@@ -181,12 +181,27 @@ export interface PlayerDeckInfo {
   colors: string[];
 }
 
+export interface LivePlayerState {
+  player_id: string;
+  life: number;
+  eliminated: boolean;
+  eliminated_by_player_id?: string;
+  elimination_type?: 'kill' | 'scoop';
+}
+
+export interface LiveGameState {
+  elapsed_seconds: number;
+  player_states: Record<string, LivePlayerState>;
+  updated_at: string;
+}
+
 export interface PodAssignment {
   pod_index: number;
   player_ids: string[];
   match_id?: string;
   match_status: 'pending' | 'in_progress' | 'completed';
   player_decks: Record<string, PlayerDeckInfo>;
+  live_game_state?: LiveGameState | null;
 }
 
 export interface RoundResult {
@@ -1140,6 +1155,15 @@ export const eventApi = {
   getLive: async (id: string): Promise<TournamentEvent> => {
     const response = await axios.get(`/api/events/${id}/live`);
     return response.data;
+  },
+
+  updateGameState: async (
+    eventId: string,
+    round: number,
+    podIndex: number,
+    state: { elapsed_seconds: number; player_states: Record<string, { player_id: string; life: number; eliminated: boolean; eliminated_by_player_id?: string; elimination_type?: string }> },
+  ): Promise<void> => {
+    await axios.put(`/api/events/${eventId}/rounds/${round}/pods/${podIndex}/game-state`, state);
   },
 
   searchSets: async (query: string): Promise<DraftSet[]> => {
