@@ -350,16 +350,13 @@ function StandingsPanel({
         </div>
       ) : (
         <div
-          className="grid grid-cols-[2.5rem_3.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem] items-center px-6 py-3 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
+          className="grid grid-cols-[2.5rem_3.5rem_1fr_4rem] items-center px-6 py-3 text-xs text-[#5C5F66] border-b border-[#2C2E33]/50 uppercase font-bold"
           style={{ fontFamily: "'Chakra Petch', sans-serif", letterSpacing: '0.15em' }}
         >
           <span>#</span>
           <span></span>
           <span>Player</span>
-          <span className="text-right text-[#667eea]" title="Placement Points">Plc</span>
-          <span className="text-right text-[#51CF66]" title="Bonus Points">Bon</span>
-          <span className="text-right text-[#E03131]" title="Penalties">Pen</span>
-          <span className="text-right">Tot</span>
+          <span className="text-right">Pts</span>
         </div>
       )}
 
@@ -418,23 +415,11 @@ function StandingsPanel({
             );
           }
 
-          // Tournament: Full point breakdown
-          let placementPts = 0;
-          let bonusPts = 0;
-          let penaltyPts = 0;
-          for (const round of event.rounds) {
-            const result = round.results.find((r) => r.player_id === entry.player_id);
-            if (result) {
-              placementPts += result.placement_points;
-              bonusPts += result.kill_points + result.alt_win_points;
-              penaltyPts += result.scoop_penalty;
-            }
-          }
-
+          // Tournament: Placement-based scoring
           return (
             <div
               key={entry.player_id}
-              className={`grid grid-cols-[2.5rem_3.5rem_1fr_3.5rem_3.5rem_3.5rem_4rem] items-center px-6 py-4 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
+              className={`grid grid-cols-[2.5rem_3.5rem_1fr_4rem] items-center px-6 py-4 border-b border-[#2C2E33]/20 last:border-b-0 transition-colors ${
                 isChampion
                   ? 'bg-[#FFD700]/8'
                   : isTopThree
@@ -463,9 +448,6 @@ function StandingsPanel({
               >
                 {entry.player_name}
               </span>
-              <span className="text-right text-[#667eea] font-medium" style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}>{placementPts}</span>
-              <span className="text-right text-[#51CF66] font-medium" style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}>{bonusPts > 0 ? `+${bonusPts}` : '0'}</span>
-              <span className="text-right text-[#E03131] font-medium" style={{ fontSize: '18px', fontFamily: "'JetBrains Mono', monospace" }}>{penaltyPts < 0 ? penaltyPts : '0'}</span>
               <div className="text-right flex items-center justify-end gap-1.5">
                 <span
                   className={`font-bold ${isChampion ? 'text-[#FFD700]' : 'text-white'}`}
@@ -513,9 +495,8 @@ function ScoringRulesPanel() {
         Scoring
       </h3>
 
-      {/* Placement */}
-      <div className="mb-5">
-        <p className="text-xs font-semibold text-[#667eea] uppercase tracking-wider mb-2.5">Placement</p>
+      {/* Placement Points */}
+      <div>
         <div className="grid grid-cols-2 gap-2.5">
           {placements.map(([label, pts, color]) => (
             <div
@@ -533,42 +514,6 @@ function ScoringRulesPanel() {
         </div>
       </div>
 
-      {/* Bonuses & Penalties side-by-side */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Bonuses */}
-        <div>
-          <p className="text-xs font-semibold text-[#51CF66] uppercase tracking-wider mb-2.5">Bonuses</p>
-          <div className="space-y-2">
-            {[
-              ['Kill', '+1'],
-              ['Alt Win', '+4'],
-            ].map(([label, pts]) => (
-              <div
-                key={label}
-                className="flex items-center justify-between bg-[#1A1B1E] rounded-[8px] px-4 py-3"
-                style={{ borderLeft: '4px solid #51CF66' }}
-              >
-                <span className="text-sm text-[#909296]">{label}</span>
-                <span className="text-sm font-bold text-[#51CF66]">{pts}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Penalties */}
-        <div>
-          <p className="text-xs font-semibold text-[#E03131] uppercase tracking-wider mb-2.5">Penalties</p>
-          <div className="space-y-2">
-            <div
-              className="flex items-center justify-between bg-[#1A1B1E] rounded-[8px] px-4 py-3"
-              style={{ borderLeft: '4px solid #E03131' }}
-            >
-              <span className="text-sm text-[#909296]">Scoop</span>
-              <span className="text-sm font-bold text-[#E03131]">−1</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

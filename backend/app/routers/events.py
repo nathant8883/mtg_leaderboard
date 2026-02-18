@@ -168,78 +168,29 @@ def _calculate_match_points(match: Match, is_alt_win: bool) -> list[RoundResult]
     """
     Calculate tournament points for each player in a match.
 
-    Normal match scoring:
-      - 1st place (elimination_order=1): 3 placement points
-      - 2nd place (elimination_order=2): 2 placement points
-      - 3rd place (elimination_order=3): 1 placement point
-      - 4th place (elimination_order=4): 0 placement points
-      - Per kill: +1 point (count players where eliminated_by_player_id matches this player AND elimination_type=="kill")
-      - Per scoop: -1 point (if this player's elimination_type=="scoop")
+    Scoring is purely placement-based:
+      - 1st place (elimination_order=1): 3 points
+      - 2nd place (elimination_order=2): 2 points
+      - 3rd place (elimination_order=3): 1 point
+      - 4th place (elimination_order=4): 0 points
 
-    Alternative win scoring (is_alt_win=True):
-      - Winner: 4 alt_win_points, no placement or kill points
-      - Players still in game (not eliminated or elimination_order <= 1): 2 placement_points
-      - Players eliminated before alt-win: normal placement points
-      - No kill points for anyone
-      - Scoop penalty still applies to anyone who scooped
+    Kill/alt-win/scoop data is still tracked on matches but does not affect scoring.
+    The is_alt_win flag is preserved as metadata only.
     """
     placement_map = {1: 3, 2: 2, 3: 1, 4: 0}
     results = []
 
-    if is_alt_win:
-        for mp in match.players:
-            placement_points = 0
-            kill_points = 0
-            alt_win_points = 0
-            scoop_penalty = 0
+    for mp in match.players:
+        placement_points = placement_map.get(mp.elimination_order, 0) if mp.elimination_order else 0
 
-            if mp.is_winner:
-                # Winner gets alt-win bonus, no placement or kill points
-                alt_win_points = 4
-            elif mp.elimination_order is None or mp.elimination_order == 1:
-                # Still in the game when alt-win happened: 2 placement points
-                placement_points = 2
-            else:
-                # Eliminated before alt-win: normal placement scoring
-                placement_points = placement_map.get(mp.elimination_order, 0)
-
-            # Scoop penalty applies regardless
-            if mp.elimination_type == "scoop":
-                scoop_penalty = -1
-
-            total = placement_points + kill_points + alt_win_points + scoop_penalty
-
-            results.append(RoundResult(
-                player_id=mp.player_id,
-                placement_points=placement_points,
-                kill_points=kill_points,
-                alt_win_points=alt_win_points,
-                scoop_penalty=scoop_penalty,
-                total=total,
-            ))
-    else:
-        # Normal match scoring
-        # Build kill counts: for each player, count how many other players they eliminated via "kill"
-        kill_counts: dict[str, int] = {}
-        for mp in match.players:
-            if mp.eliminated_by_player_id and mp.elimination_type == "kill":
-                kill_counts[mp.eliminated_by_player_id] = kill_counts.get(mp.eliminated_by_player_id, 0) + 1
-
-        for mp in match.players:
-            placement_points = placement_map.get(mp.elimination_order, 0) if mp.elimination_order else 0
-            kill_points = kill_counts.get(mp.player_id, 0)
-            scoop_penalty = -1 if mp.elimination_type == "scoop" else 0
-
-            total = placement_points + kill_points + scoop_penalty
-
-            results.append(RoundResult(
-                player_id=mp.player_id,
-                placement_points=placement_points,
-                kill_points=kill_points,
-                alt_win_points=0,
-                scoop_penalty=scoop_penalty,
-                total=total,
-            ))
+        results.append(RoundResult(
+            player_id=mp.player_id,
+            placement_points=placement_points,
+            kill_points=0,
+            alt_win_points=0,
+            scoop_penalty=0,
+            total=placement_points,
+        ))
 
     return results
 
