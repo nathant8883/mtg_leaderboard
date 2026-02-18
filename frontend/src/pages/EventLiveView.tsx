@@ -670,6 +670,116 @@ function PodPlayerCard({
   );
 }
 
+// ─── Live Pod Card ──────────────────────────────────────────────
+
+function LivePodCard({
+  event,
+  pod,
+}: {
+  event: TournamentEvent;
+  pod: PodAssignment;
+}) {
+  const gameState = pod.live_game_state;
+  if (!gameState) return null;
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getLifeColor = (life: number, eliminated: boolean) => {
+    if (eliminated) return 'text-[#5C5F66]';
+    if (life > 30) return 'text-[#51CF66]';
+    if (life > 15) return 'text-[#FCC419]';
+    return 'text-[#FF6B6B]';
+  };
+
+  return (
+    <div className="space-y-1.5">
+      {/* Timer */}
+      <div className="flex items-center justify-end gap-1.5 mb-2">
+        <IconClock size={12} className="text-[#5C5F66]" />
+        <span className="text-xs font-mono text-[#5C5F66]">
+          {formatTime(gameState.elapsed_seconds)}
+        </span>
+      </div>
+
+      {/* Player rows */}
+      {pod.player_ids.map((pid) => {
+        const ps = gameState.player_states[pid];
+        if (!ps) return null;
+
+        const playerName = findPlayerName(event, pid);
+        const avatar = findPlayerAvatar(event, pid);
+        const deckInfo = pod.player_decks[pid];
+        const killerName = ps.eliminated_by_player_id
+          ? findPlayerName(event, ps.eliminated_by_player_id)
+          : null;
+
+        return (
+          <div
+            key={pid}
+            className={`flex items-center gap-3 px-3 py-2 rounded-[8px] transition-all ${
+              ps.eliminated
+                ? 'bg-[#1A1B1E]/30 opacity-50'
+                : 'bg-[#1A1B1E]/60'
+            }`}
+          >
+            {/* Status indicator */}
+            <span className="text-sm flex-shrink-0">
+              {ps.eliminated ? '\uD83D\uDC80' : '\uD83D\uDFE2'}
+            </span>
+
+            {/* Avatar */}
+            <PlayerAvatar
+              playerName={playerName}
+              customAvatar={avatar}
+              size="small"
+              className={`!w-8 !h-8 !text-xs flex-shrink-0 ${
+                ps.eliminated ? 'grayscale' : ''
+              }`}
+            />
+
+            {/* Name + deck */}
+            <div className="flex-1 min-w-0">
+              <div className={`text-sm font-semibold truncate ${
+                ps.eliminated ? 'text-[#5C5F66] line-through' : 'text-white'
+              }`}>
+                {playerName}
+              </div>
+              {deckInfo && (
+                <div className="text-[10px] text-[#5C5F66] truncate">
+                  {deckInfo.deck_name}
+                </div>
+              )}
+            </div>
+
+            {/* Life total */}
+            <span
+              className={`text-xl font-bold tabular-nums flex-shrink-0 ${getLifeColor(ps.life, ps.eliminated)}`}
+              style={{ fontFamily: "'Chakra Petch', sans-serif", minWidth: '2.5rem', textAlign: 'right' }}
+            >
+              {ps.life}
+            </span>
+
+            {/* Elimination info */}
+            {ps.eliminated && (
+              <span className="text-[10px] text-[#5C5F66] flex-shrink-0 w-20 text-right truncate">
+                {ps.elimination_type === 'scoop'
+                  ? 'scooped'
+                  : killerName
+                    ? `by ${killerName}`
+                    : 'eliminated'}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Round Card ──────────────────────────────────────────────────
 
 function RoundCard({
@@ -812,42 +922,48 @@ function RoundCard({
 
               {/* Players in pod */}
               {event.event_type === 'draft' && pod.player_ids.length === 2 ? (
-                <div className="flex items-center justify-center gap-4">
-                  {pod.player_ids.map((pid, i) => {
-                    const isThisWinner = winner?.playerId === pid;
-                    const isLoser = isPodCompleted && !isThisWinner;
-                    return (
-                      <div key={pid} className="contents">
-                        {i === 1 && <span className="text-lg text-[#5C5F66] font-bold">vs</span>}
-                        <div
-                          className={`flex items-center gap-3 px-4 py-3 rounded-[10px] ${
-                            isThisWinner
-                              ? 'bg-[rgba(255,215,0,0.12)] border border-[rgba(255,215,0,0.4)]'
-                              : isLoser
-                                ? 'bg-[rgba(37,38,43,0.2)] opacity-50'
-                                : 'bg-[rgba(37,38,43,0.3)]'
-                          }`}
-                        >
-                          {isThisWinner && <span className="text-xl">👑</span>}
-                          <PlayerAvatar
-                            playerName={findPlayerName(event, pid)}
-                            customAvatar={findPlayerAvatar(event, pid)}
-                            size="small"
-                            className={`!w-12 !h-12 !text-lg border-2 ${isThisWinner ? 'border-[#FFD700]' : 'border-[#2C2E33]'}`}
-                          />
-                          <span
-                            className={`text-xl font-medium ${
-                              isThisWinner ? 'text-[#FFD700] font-bold' : isLoser ? 'text-[#5C5F66]' : 'text-white'
+                isPodLive && pod.live_game_state ? (
+                  <LivePodCard event={event} pod={pod} />
+                ) : (
+                  <div className="flex items-center justify-center gap-4">
+                    {pod.player_ids.map((pid, i) => {
+                      const isThisWinner = winner?.playerId === pid;
+                      const isLoser = isPodCompleted && !isThisWinner;
+                      return (
+                        <div key={pid} className="contents">
+                          {i === 1 && <span className="text-lg text-[#5C5F66] font-bold">vs</span>}
+                          <div
+                            className={`flex items-center gap-3 px-4 py-3 rounded-[10px] ${
+                              isThisWinner
+                                ? 'bg-[rgba(255,215,0,0.12)] border border-[rgba(255,215,0,0.4)]'
+                                : isLoser
+                                  ? 'bg-[rgba(37,38,43,0.2)] opacity-50'
+                                  : 'bg-[rgba(37,38,43,0.3)]'
                             }`}
-                            style={{ fontFamily: "'Chakra Petch', sans-serif" }}
                           >
-                            {findPlayerName(event, pid)}
-                          </span>
+                            {isThisWinner && <span className="text-xl">👑</span>}
+                            <PlayerAvatar
+                              playerName={findPlayerName(event, pid)}
+                              customAvatar={findPlayerAvatar(event, pid)}
+                              size="small"
+                              className={`!w-12 !h-12 !text-lg border-2 ${isThisWinner ? 'border-[#FFD700]' : 'border-[#2C2E33]'}`}
+                            />
+                            <span
+                              className={`text-xl font-medium ${
+                                isThisWinner ? 'text-[#FFD700] font-bold' : isLoser ? 'text-[#5C5F66]' : 'text-white'
+                              }`}
+                              style={{ fontFamily: "'Chakra Petch', sans-serif" }}
+                            >
+                              {findPlayerName(event, pid)}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )
+              ) : isPodLive && pod.live_game_state ? (
+                <LivePodCard event={event} pod={pod} />
               ) : (
                 <div className="space-y-2">
                   {pod.player_ids.map((pid) => {
@@ -1099,7 +1215,7 @@ export function EventLiveView() {
   const eventRef = useRef<TournamentEvent | null>(null);
   eventRef.current = event;
 
-  // Poll every 5 seconds
+  // Poll every 3 seconds
   useEffect(() => {
     if (!eventId) return;
 
@@ -1150,7 +1266,7 @@ export function EventLiveView() {
 
     fetchLive(); // Initial fetch
 
-    const interval = setInterval(fetchLive, 5000);
+    const interval = setInterval(fetchLive, 3000);
     return () => clearInterval(interval);
   }, [eventId]);
 
