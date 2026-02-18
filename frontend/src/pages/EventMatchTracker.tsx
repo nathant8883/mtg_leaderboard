@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { eventApi, matchApi } from '../services/api';
 import type { TournamentEvent, CreateMatchRequest, DraftDeck } from '../services/api';
@@ -169,6 +169,63 @@ export function EventMatchTracker() {
     localStorage.setItem(storageKey, JSON.stringify(savedState));
     localStorage.setItem(EVENT_MATCH_POINTER_KEY, JSON.stringify({ eventId, podIndex }));
   }, [matchState, isAltWin, eventId, podIndex, event, storageKey]);
+
+  // Sync game state to backend for live broadcast view
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSyncedEliminationCount = useRef<number>(0);
+
+  useEffect(() => {
+    if (!eventId || !event || !matchState?.gameState || matchState.currentStep !== 'game') return;
+
+    const gameState = matchState.gameState;
+    const players = matchState.players;
+
+    // Build player-ID-keyed state from position-keyed state
+    const playerStates: Record<string, { player_id: string; life: number; eliminated: boolean; eliminated_by_player_id?: string; elimination_type?: string }> = {};
+    for (const player of players) {
+      if (!player.playerId) continue;
+      const ps = gameState.playerStates[player.position];
+      if (!ps) continue;
+      playerStates[player.playerId] = {
+        player_id: player.playerId,
+        life: ps.life,
+        eliminated: ps.eliminated,
+        eliminated_by_player_id: ps.eliminatedByPlayerId,
+        elimination_type: ps.eliminationType,
+      };
+    }
+
+    const payload = {
+      elapsed_seconds: gameState.elapsedSeconds,
+      player_states: playerStates,
+    };
+
+    // Check if an elimination just happened (immediate sync)
+    const currentEliminationCount = Object.values(gameState.playerStates).filter(ps => ps.eliminated).length;
+    const isNewElimination = currentEliminationCount > lastSyncedEliminationCount.current;
+
+    if (isNewElimination) {
+      lastSyncedEliminationCount.current = currentEliminationCount;
+      // Immediate sync for eliminations
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      eventApi.updateGameState(eventId, event.current_round, podIndex, payload).catch(err =>
+        console.warn('[EventMatchTracker] Failed to sync game state:', err)
+      );
+      return;
+    }
+
+    // Debounced sync for regular updates (life changes, timer)
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = setTimeout(() => {
+      eventApi.updateGameState(eventId, event.current_round, podIndex, payload).catch(err =>
+        console.warn('[EventMatchTracker] Failed to sync game state:', err)
+      );
+    }, 1500);
+
+    return () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [matchState?.gameState, matchState?.players, matchState?.currentStep, eventId, event, podIndex]);
 
   // Report individual deck selection to backend for TV live view (progressive reveal)
   const handleDeckSelected = useCallback(
