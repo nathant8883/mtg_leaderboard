@@ -1390,7 +1390,16 @@ export function EventDashboard() {
       setShowShuffle(true);
     } catch (err: any) {
       console.error('Error starting tournament:', err);
-      toast.error(err?.response?.data?.detail || 'Failed to start tournament');
+      const detail = err?.response?.data?.detail;
+      if (err?.response?.status === 409 && detail && typeof detail === 'object' && detail.conflicts) {
+        const lines = detail.conflicts.map(
+          (c: { player_name: string; event_name: string }) => `${c.player_name} is in "${c.event_name}"`,
+        );
+        toast.error(`Can't start: ${lines.join(', ')}`, { duration: 5000 });
+      } else {
+        const message = typeof detail === 'string' ? detail : detail?.message || 'Failed to start tournament';
+        toast.error(message);
+      }
     }
   };
 

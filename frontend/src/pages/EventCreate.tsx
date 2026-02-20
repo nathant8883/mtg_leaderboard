@@ -14,7 +14,6 @@ import {
   IconCheck,
   IconLoader2,
   IconUserCheck,
-  IconAlertTriangle,
 } from '@tabler/icons-react';
 
 const VALID_PLAYER_COUNTS = [4, 8, 12];
@@ -66,7 +65,6 @@ export function EventCreate() {
   // Busy player constraint state
   const [busyPlayerIds, setBusyPlayerIds] = useState<Set<string>>(new Set());
   const [busyPlayerEvents, setBusyPlayerEvents] = useState<Record<string, string>>({});
-  const [organizerEvent, setOrganizerEvent] = useState<{ event_id: string; event_name: string; status: string } | null>(null);
   const [loadingConstraints, setLoadingConstraints] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,7 +94,6 @@ export function EventCreate() {
       const data = await eventApi.getBusyPlayers();
       setBusyPlayerIds(new Set(data.busy_player_ids));
       setBusyPlayerEvents(data.busy_player_events);
-      setOrganizerEvent(data.organizer_active_event);
     } catch (err) {
       console.error('Error loading busy players:', err);
       // Fail gracefully - backend still enforces
@@ -167,7 +164,7 @@ export function EventCreate() {
     : getTargetCount(selectedCount);
   const isNameValid = eventName.trim().length > 0;
   const isRoundCountValid = Number(roundCount) >= 1 && Number(roundCount) <= 10;
-  const canSubmit = isNameValid && isValidPlayerCount && isRoundCountValid && !submitting && !organizerEvent && !loadingConstraints;
+  const canSubmit = isNameValid && isValidPlayerCount && isRoundCountValid && !submitting && !loadingConstraints;
 
   // Submit handler
   const handleSubmit = async () => {
@@ -229,25 +226,6 @@ export function EventCreate() {
           <p className="text-sm text-[#909296]">{currentPod.name}</p>
         </div>
       </div>
-
-      {/* Organizer limit warning */}
-      {organizerEvent && (
-        <div className="bg-[#FFA94D]/10 border border-[#FFA94D]/30 rounded-[12px] p-4 mb-4 flex items-start gap-3">
-          <IconAlertTriangle size={20} className="text-[#FFA94D] flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[#FFA94D]">You already have an active event</p>
-            <p className="text-xs text-[#909296] mt-1">
-              "{organizerEvent.event_name}" is still {organizerEvent.status}. Complete or delete it before creating a new one.
-            </p>
-            <button
-              onClick={() => navigate(`/event/${organizerEvent.event_id}`)}
-              className="text-xs text-[#667eea] hover:text-[#764ba2] mt-2 transition-colors"
-            >
-              Go to event
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Event Type Toggle */}
       <div className="bg-[#1A1B1E] rounded-[12px] border border-[#2C2E33] p-4 mb-4">

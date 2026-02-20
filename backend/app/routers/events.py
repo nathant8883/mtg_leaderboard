@@ -268,7 +268,7 @@ async def get_busy_players(current_player: Player = Depends(get_current_player))
     """Return players currently in non-completed events and organizer active event info"""
     player_id_str = str(current_player.id)
     active_events = await Event.find(
-        {"status": {"$in": ["setup", "active"]}}
+        {"status": "active"}
     ).to_list()
 
     busy_map: dict[str, str] = {}
@@ -305,24 +305,6 @@ async def create_event(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You must be a pod member to create an event",
-        )
-
-    # Organizer limit: one active event at a time
-    existing = await Event.find_one({"creator_id": player_id_str, "status": {"$in": ["setup", "active"]}})
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f'You already have an active event: "{existing.name}". Complete or delete it before creating a new one.',
-        )
-
-    # Player exclusivity: no player can be in two active events
-    active_events = await Event.find({"status": {"$in": ["setup", "active"]}}).to_list()
-    busy_ids = {ep.player_id for ev in active_events for ep in ev.players}
-    conflicts = set(request.player_ids) & busy_ids
-    if conflicts:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail={"message": "Some players are already in active events", "busy_player_ids": list(conflicts)},
         )
 
     # Validate player count
@@ -529,6 +511,37 @@ async def start_tournament(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Event must be in 'setup' status to start",
+        )
+
+    # Organizer limit: one active event at a time
+    existing_active = await Event.find_one({"creator_id": player_id_str, "status": "active"})
+    if existing_active:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f'You already have an active event: "{existing_active.name}". Complete or cancel it before starting another.',
+        )
+
+    # Player exclusivity: no player can be in two active events
+    active_events = await Event.find({"status": "active"}).to_list()
+    busy_ids: dict[str, str] = {}
+    for ev in active_events:
+        for ep in ev.players:
+            if ep.player_id not in busy_ids:
+                busy_ids[ep.player_id] = ev.name
+    event_player_ids = {ep.player_id for ep in event.players}
+    conflict_ids = event_player_ids & set(busy_ids.keys())
+    if conflict_ids:
+        conflicts = [
+            {"player_id": pid, "player_name": next((ep.player_name for ep in event.players if ep.player_id == pid), pid), "event_name": busy_ids[pid]}
+            for pid in conflict_ids
+        ]
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Some players are already in an active event",
+                "busy_player_ids": list(conflict_ids),
+                "conflicts": conflicts,
+            },
         )
 
     # Randomly shuffle player IDs for round 1 seeding

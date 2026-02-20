@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # API settings
     api_title: str = "Pod Pal API"
-    api_version: str = "3.0.7"
+    api_version: str = "3.0.8"
     api_description: str = "API for tracking MTG Commander games and leaderboards"
 
     # CORS settings
