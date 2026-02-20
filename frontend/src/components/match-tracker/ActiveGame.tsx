@@ -165,7 +165,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           if (updated[pos] && !updated[pos].isStopped) {
             updated[pos] = {
               ...updated[pos],
-              currentValue: Math.floor(Math.random() * 10) + 1,
+              currentValue: Math.floor(Math.random() * 20) + 1,
             };
           }
         });
@@ -181,7 +181,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     const initialDiceStates: Record<number, DieState> = {};
     players.forEach(player => {
       initialDiceStates[player.position] = {
-        currentValue: Math.floor(Math.random() * 10) + 1,
+        currentValue: Math.floor(Math.random() * 20) + 1,
         finalValue: null,
         isStopped: false,
         isWinner: false,
@@ -214,7 +214,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
     shuffledPositions.forEach((position, index) => {
       setTimeout(() => {
-        const finalValue = Math.floor(Math.random() * 10) + 1;
+        const finalValue = Math.floor(Math.random() * 20) + 1;
 
         setDiceStates(prev => ({
           ...prev,
@@ -289,7 +289,7 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
       const updated = { ...prev };
       tiedPositions.forEach(pos => {
         updated[pos] = {
-          currentValue: Math.floor(Math.random() * 10) + 1,
+          currentValue: Math.floor(Math.random() * 20) + 1,
           finalValue: null,
           isStopped: false,
           isWinner: false,
