@@ -145,6 +145,13 @@ export function EventMatchTracker() {
         console.error('[EventMatchTracker] Failed to load data:', err);
         const message = err?.response?.data?.detail || 'Failed to load event data';
         setError(message);
+
+        // If the event no longer exists (404), clear localStorage pointers
+        // so the user isn't stuck being redirected to a dead event
+        if (err?.response?.status === 404) {
+          localStorage.removeItem(storageKey);
+          localStorage.removeItem(EVENT_MATCH_POINTER_KEY);
+        }
       } finally {
         setLoading(false);
       }
@@ -469,12 +476,24 @@ export function EventMatchTracker() {
         <div className="text-center max-w-[400px] px-4">
           <div className="text-[32px] mb-4">⚠️</div>
           <div className="text-[#ff6b6b] text-sm mb-4">{error || 'Failed to load match data'}</div>
-          <button
-            className="py-2 px-6 bg-[#2c2e33] border border-[#3c3e43] rounded-[8px] text-white text-sm font-semibold cursor-pointer transition-all hover:bg-[#3c3e43]"
-            onClick={() => navigate(eventId ? `/event/${eventId}` : '/')}
-          >
-            Back to Event
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              className="py-2 px-6 bg-[#2c2e33] border border-[#3c3e43] rounded-[8px] text-white text-sm font-semibold cursor-pointer transition-all hover:bg-[#3c3e43]"
+              onClick={() => navigate(eventId ? `/event/${eventId}` : '/')}
+            >
+              Back to Event
+            </button>
+            <button
+              className="py-2 px-6 bg-[#2c2e33] border border-[#3c3e43] rounded-[8px] text-white text-sm font-semibold cursor-pointer transition-all hover:bg-[#3c3e43]"
+              onClick={() => {
+                localStorage.removeItem(storageKey);
+                localStorage.removeItem(EVENT_MATCH_POINTER_KEY);
+                navigate('/');
+              }}
+            >
+              Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
