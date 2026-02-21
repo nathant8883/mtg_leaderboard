@@ -169,15 +169,15 @@ def _calculate_match_points(match: Match, is_alt_win: bool) -> list[RoundResult]
     Calculate tournament points for each player in a match.
 
     Scoring is purely placement-based:
-      - 1st place (elimination_order=1): 3 points
-      - 2nd place (elimination_order=2): 2 points
-      - 3rd place (elimination_order=3): 1 point
-      - 4th place (elimination_order=4): 0 points
+      - 1st place (elimination_order=1): 4 points
+      - 2nd place (elimination_order=2): 3 points
+      - 3rd place (elimination_order=3): 2 points
+      - 4th place (elimination_order=4): 1 point
 
     Kill/alt-win/scoop data is still tracked on matches but does not affect scoring.
     The is_alt_win flag is preserved as metadata only.
     """
-    placement_map = {1: 3, 2: 2, 3: 1, 4: 0}
+    placement_map = {1: 4, 2: 3, 3: 2, 4: 1}
     results = []
 
     for mp in match.players:

@@ -476,10 +476,10 @@ function StandingsPanel({
 
 function ScoringRulesPanel() {
   const placements: [string, string, string][] = [
-    ['1st', '3', '#FFD700'],
-    ['2nd', '2', '#C0C0C0'],
-    ['3rd', '1', '#CD7F32'],
-    ['4th', '0', '#555'],
+    ['1st', '4', '#FFD700'],
+    ['2nd', '3', '#C0C0C0'],
+    ['3rd', '2', '#CD7F32'],
+    ['4th', '1', '#555'],
   ];
 
   return (
