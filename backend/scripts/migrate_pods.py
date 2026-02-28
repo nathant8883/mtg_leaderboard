@@ -10,7 +10,7 @@ This script:
 """
 
 import asyncio
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 import sys
 import os
@@ -29,7 +29,7 @@ async def migrate():
     print("🚀 Starting pod migration...")
 
     # Initialize database connection
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     database = client[settings.database_name]
 
     # Initialize Beanie

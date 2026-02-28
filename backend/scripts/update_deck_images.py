@@ -9,7 +9,7 @@ This script:
 
 import asyncio
 import httpx
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 import sys
 import os
@@ -58,7 +58,7 @@ async def update_deck_images():
     print("Starting deck image update...")
 
     # Initialize database connection
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     database = client[settings.database_name]
 
     # Initialize Beanie

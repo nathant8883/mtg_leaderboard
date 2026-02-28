@@ -17,7 +17,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 from app.config import settings
@@ -30,7 +30,7 @@ from app.services.elo_service import recalculate_pod_elo
 
 async def init_db():
     """Initialize database connection"""
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     database = client[settings.database_name]
 
     await init_beanie(

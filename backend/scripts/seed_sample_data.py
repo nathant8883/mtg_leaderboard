@@ -16,7 +16,7 @@ import asyncio
 import random
 from datetime import datetime, date, timedelta
 from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 
 # MongoDB connection
 MONGODB_URL = "mongodb://localhost:27017"
@@ -248,7 +248,7 @@ async def main():
     print("=" * 60)
 
     # Connect to MongoDB
-    client = AsyncIOMotorClient(MONGODB_URL)
+    client = AsyncMongoClient(MONGODB_URL)
     db = client[DATABASE_NAME]
 
     try:

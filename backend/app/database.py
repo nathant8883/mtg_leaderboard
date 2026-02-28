@@ -1,4 +1,4 @@
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 from app.config import settings
@@ -11,7 +11,7 @@ from app.models.event import Event
 
 async def init_db():
     """Initialize database connection and Beanie ODM"""
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     database = client[settings.database_name]
 
     # Initialize Beanie with all document models
@@ -25,5 +25,4 @@ async def init_db():
 
 async def close_db():
     """Close database connection"""
-    # Motor doesn't require explicit closing, but we can add cleanup logic here if needed
     pass

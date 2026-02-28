@@ -11,7 +11,7 @@ Or with uv:
 
 import asyncio
 import sys
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 from app.config import settings
@@ -23,7 +23,7 @@ async def make_superuser(email: str):
     """Upgrade a user to superuser status by email"""
 
     # Initialize database connection
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client = AsyncMongoClient(settings.mongodb_url)
     database = client[settings.database_name]
 
     # Initialize Beanie with all document models

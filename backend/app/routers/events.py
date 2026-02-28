@@ -760,7 +760,7 @@ async def set_pod_deck(
     }
 
     # Atomic update — targets the exact nested path using array filters
-    # Use the motor collection via Beanie's settings to avoid read-modify-write races
+    # Use the pymongo collection via Beanie's settings to avoid read-modify-write races
     collection = Event.get_settings().pymongo_collection
     result = await collection.update_one(
         {"_id": event_id, "status": "active"},
