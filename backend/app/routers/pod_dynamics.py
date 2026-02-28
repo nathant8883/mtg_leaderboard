@@ -1249,9 +1249,26 @@ async def get_elimination_stats(
             for pid in archetype_scores:
                 normalized_scores[pid][cat] = (archetype_scores[pid][cat] - min_val) / range_val
 
-        player_archetypes: Dict[str, str] = {}
+        # Greedy draft: strongest claim picks first, each archetype assigned at most once
+        # Build all (score, player_id, archetype) claims sorted by score descending
+        all_claims = []
         for pid in normalized_scores:
-            player_archetypes[pid] = max(normalized_scores[pid], key=normalized_scores[pid].get)
+            for cat in categories:
+                all_claims.append((normalized_scores[pid][cat], pid, cat))
+        all_claims.sort(key=lambda x: -x[0])
+
+        player_archetypes: Dict[str, str] = {}
+        taken_archetypes: set = set()
+        for score, pid, cat in all_claims:
+            if pid in player_archetypes or cat in taken_archetypes:
+                continue
+            player_archetypes[pid] = cat
+            taken_archetypes.add(cat)
+
+        # Any remaining players (more players than archetypes) get their best available
+        for pid in normalized_scores:
+            if pid not in player_archetypes:
+                player_archetypes[pid] = max(normalized_scores[pid], key=normalized_scores[pid].get)
     else:
         player_archetypes = {}
 
