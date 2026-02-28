@@ -49,7 +49,7 @@ export default function HuntingAsymmetry({ pairs }: HuntingAsymmetryProps) {
                   className="w-9 h-9 rounded-full ring-2 ring-red-500/40"
                 />
                 <div className="min-w-0">
-                  <div className="text-white font-medium text-sm truncate">{pair.hunter_name}</div>
+                  <div className="text-white font-medium text-sm">{pair.hunter_name.split(' ')[0]}</div>
                   <div className="text-[10px] text-red-400">Hunter</div>
                 </div>
               </div>
@@ -67,7 +67,7 @@ export default function HuntingAsymmetry({ pairs }: HuntingAsymmetryProps) {
               {/* Prey */}
               <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
                 <div className="min-w-0 text-right">
-                  <div className="text-white/75 font-medium text-sm truncate">{pair.prey_name}</div>
+                  <div className="text-white/75 font-medium text-sm">{pair.prey_name.split(' ')[0]}</div>
                   <div className="text-[10px] text-[#888]">Prey</div>
                 </div>
                 <img
