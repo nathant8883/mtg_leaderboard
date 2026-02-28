@@ -231,6 +231,31 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
     }
   };
 
+  const handleBorrowSelect = (deck: Deck, ownerId: string, ownerName: string) => {
+    if (selectionPhase.type !== 'deck-select') return;
+
+    const { position, playerId, playerName, killMessages } = selectionPhase;
+    const updatedPlayers = [...players];
+    updatedPlayers[position - 1] = {
+      position,
+      playerId,
+      playerName,
+      deckId: deck.id!,
+      deckName: deck.name,
+      commanderName: deck.commander,
+      commanderImageUrl: deck.commander_image_url || '',
+      isGuest: false,
+      killMessages,
+      borrowedFromPlayerId: ownerId,
+      borrowedFromPlayerName: ownerName,
+    };
+    setPlayers(updatedPlayers);
+    setSelectionPhase({ type: 'grid' });
+    if (onDeckSelected && playerId && deck.id) {
+      onDeckSelected(playerId, deck.id);
+    }
+  };
+
   const handleStartGame = async () => {
     if (isDraft && eventId) {
       // Update player slots with latest draft deck info before completing
@@ -273,6 +298,10 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
       onComplete(players);
     }
   };
+
+  const assignedDeckIds = players
+    .filter(p => p.deckId)
+    .map(p => p.deckId!);
 
   const allSlotsFilled = players.filter(p => p.playerId !== null).length >= playerCount;
 
@@ -390,6 +419,11 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
                     ) : (
                       <>
                         <div className="text-[13px] opacity-85 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">{slot.deckName}</div>
+                        {slot.borrowedFromPlayerName && (
+                          <div className="text-[10px] text-amber-400/80 truncate">
+                            Borrowed from {slot.borrowedFromPlayerName}
+                          </div>
+                        )}
                         {slot.isGuest && <div className="inline-block py-1 px-2 bg-black/30 rounded-md text-[11px] mt-1">Guest</div>}
                       </>
                     )}
@@ -427,7 +461,9 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
           playerCount={playerCount}
           playerId={selectionPhase.playerId}
           playerName={selectionPhase.playerName}
+          assignedDeckIds={assignedDeckIds}
           onSelect={handleDeckSelect}
+          onBorrowSelect={handleBorrowSelect}
           onBack={() => setSelectionPhase({ type: 'player-select', position: selectionPhase.position })}
         />
       )}
