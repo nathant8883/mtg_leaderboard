@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { KillLeaderboard } from './KillLeaderboard';
 import { ScoopShame } from './ScoopShame';
-import { HuntingAsymmetry } from './HuntingAsymmetry';
-import { FirstBlood } from './FirstBlood';
+import HuntingAsymmetry from './HuntingAsymmetry';
+import FirstBlood from './FirstBlood';
 import { podDynamicsApi } from '../../services/api';
 import type { EliminationStatsData } from '../../services/api';
 import { Swords, Skull, Flag, Target, Flame, Sparkles } from 'lucide-react';
