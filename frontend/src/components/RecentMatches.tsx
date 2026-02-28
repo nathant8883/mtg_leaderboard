@@ -17,6 +17,7 @@ interface EnrichedMatchPlayer {
   elo_change?: number;
   elo_after?: number;
   went_first?: boolean;
+  borrowed_from_player_name?: string;
 }
 
 interface RecentMatchesProps {
@@ -231,6 +232,11 @@ function WinnerSection({
         <div className="text-[#909296] text-sm truncate mb-2">
           {player.deck_name}
         </div>
+        {player.borrowed_from_player_name && (
+          <div className="text-[10px] text-amber-400/80">
+            Borrowed from {player.borrowed_from_player_name}
+          </div>
+        )}
         {isPending ? (
           <span className="text-[#FFA500] text-xs">Calculating ELO...</span>
         ) : (
@@ -280,6 +286,11 @@ function PlayerPlacement({
         <div className="text-[#909296] text-xs truncate">
           {player.deck_name}
         </div>
+        {player.borrowed_from_player_name && (
+          <div className="text-[9px] text-amber-400/70">
+            Borrowed from {player.borrowed_from_player_name}
+          </div>
+        )}
       </div>
 
       {/* ELO change */}
