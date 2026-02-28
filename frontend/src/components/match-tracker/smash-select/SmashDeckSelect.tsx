@@ -3,13 +3,16 @@ import { deckApi, type Deck } from '../../../services/api';
 import SmashHeader from './SmashHeader';
 import DeckTile from './DeckTile';
 import QuickDeckForm from '../../QuickDeckForm';
+import BorrowDeckSelect from './BorrowDeckSelect';
 
 interface SmashDeckSelectProps {
   seatNumber: number;
   playerCount: number; // Total players in game (for rotation calculation)
   playerId: string;
   playerName: string;
+  assignedDeckIds: string[];
   onSelect: (deck: Deck) => void;
+  onBorrowSelect: (deck: Deck, ownerId: string, ownerName: string) => void;
   onBack: () => void;
 }
 
@@ -31,12 +34,15 @@ function SmashDeckSelect({
   playerCount,
   playerId,
   playerName,
+  assignedDeckIds,
   onSelect,
+  onBorrowSelect,
   onBack,
 }: SmashDeckSelectProps) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [showQuickDeckForm, setShowQuickDeckForm] = useState(false);
+  const [showBorrowSelect, setShowBorrowSelect] = useState(false);
 
   // Determine if this seat should be rotated (top row faces opposite direction)
   const shouldRotate = (() => {
@@ -76,7 +82,7 @@ function SmashDeckSelect({
   };
 
   // Account for the "+" quick add tile in layout
-  const gridLayout = useMemo(() => getGridLayout(decks.length + 1), [decks.length]);
+  const gridLayout = useMemo(() => getGridLayout(decks.length + 2), [decks.length]);
 
   const handleQuickDeckCreated = (newDeck: Deck) => {
     // Add to local state and auto-select
@@ -146,6 +152,17 @@ function SmashDeckSelect({
                   <span className="smash-quick-add-label">Quick Add</span>
                 </div>
               </button>
+              {/* Borrow Deck tile */}
+              <button
+                className="smash-deck-tile smash-quick-add-tile"
+                style={{ animationDelay: `${(decks.length + 1) * 50}ms` }}
+                onClick={() => setShowBorrowSelect(true)}
+              >
+                <div className="smash-quick-add-content">
+                  <span className="smash-quick-add-icon">🤝</span>
+                  <span className="smash-quick-add-label">Borrow</span>
+                </div>
+              </button>
             </div>
           )}
         </div>
@@ -158,6 +175,20 @@ function SmashDeckSelect({
           targetPlayerName={playerName}
           onSubmit={handleQuickDeckCreated}
           onCancel={() => setShowQuickDeckForm(false)}
+        />
+      )}
+
+      {showBorrowSelect && (
+        <BorrowDeckSelect
+          seatNumber={seatNumber}
+          playerCount={playerCount}
+          currentPlayerId={playerId}
+          assignedDeckIds={assignedDeckIds}
+          onSelect={(deck, ownerId, ownerName) => {
+            setShowBorrowSelect(false);
+            onBorrowSelect(deck, ownerId, ownerName);
+          }}
+          onBack={() => setShowBorrowSelect(false)}
         />
       )}
     </div>
