@@ -15,6 +15,23 @@ from app.services.elo_service import get_rising_star
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
+def _player_borrowed_in_match(match: Match, player_id: str) -> bool:
+    """Check if a player was borrowing a deck in a given match."""
+    for p in match.players:
+        if p.player_id == player_id and p.borrowed_from_player_id:
+            return True
+    return False
+
+
+def _deck_borrowed_in_match(match: Match, deck_id: str) -> bool:
+    """Check if a deck was being borrowed (played by someone other than owner) in a match."""
+    for p in match.players:
+        if p.deck_id == deck_id and p.borrowed_from_player_id:
+            return True
+    return False
+
+
 # Minimum games required for a player/deck to be ranked on the leaderboard
 MIN_GAMES_FOR_RANKING = 4
 
@@ -63,10 +80,10 @@ async def get_player_leaderboard(
         player_id = str(player.id)
 
         # Count games where this player participated
-        games_played = sum(1 for match in matches if any(p.player_id == player_id for p in match.players))
+        games_played = sum(1 for match in matches if any(p.player_id == player_id and not p.borrowed_from_player_id for p in match.players))
 
         # Count wins
-        wins = sum(1 for match in matches if match.winner_player_id == player_id)
+        wins = sum(1 for match in matches if match.winner_player_id == player_id and not _player_borrowed_in_match(match, player_id))
 
         # Calculate win rate
         win_rate = (wins / games_played * 100) if games_played > 0 else 0
@@ -168,10 +185,10 @@ async def get_deck_leaderboard(
         owner_name = owner_info["name"]
 
         # Count games where this deck was played
-        games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
+        games_played = sum(1 for match in matches if any(p.deck_id == deck_id and not p.borrowed_from_player_id for p in match.players))
 
         # Count wins
-        wins = sum(1 for match in matches if match.winner_deck_id == deck_id)
+        wins = sum(1 for match in matches if match.winner_deck_id == deck_id and not _deck_borrowed_in_match(match, deck_id))
 
         # Calculate win rate
         win_rate = (wins / games_played * 100) if games_played > 0 else 0
@@ -264,7 +281,7 @@ async def get_dashboard_stats(
         player_game_counts = []
         for player in players:
             player_id = str(player.id)
-            games_played = sum(1 for match in matches if any(p.player_id == player_id for p in match.players))
+            games_played = sum(1 for match in matches if any(p.player_id == player_id and not p.borrowed_from_player_id for p in match.players))
             if games_played > 0:
                 player_game_counts.append({
                     "player_name": player.name,
@@ -288,7 +305,7 @@ async def get_dashboard_stats(
         deck_game_counts = []
         for deck in enabled_decks:
             deck_id = str(deck.id)
-            games_played = sum(1 for match in matches if any(p.deck_id == deck_id for p in match.players))
+            games_played = sum(1 for match in matches if any(p.deck_id == deck_id and not p.borrowed_from_player_id for p in match.players))
             if games_played > 0:
                 owner_info = player_lookup_stats.get(deck.player_id, {"name": "Unknown", "picture": None, "custom_avatar": None})
                 deck_game_counts.append({
@@ -384,7 +401,10 @@ async def get_dashboard_stats(
     if current_player and current_player.current_pod_id and len(matches) >= 5:
         # Get last 30 matches for balance calculation
         recent_matches = sorted(matches, key=lambda m: m.created_at, reverse=True)[:30]
-        win_counts = Counter(match.winner_player_id for match in recent_matches)
+        win_counts = Counter(
+            match.winner_player_id for match in recent_matches
+            if not _player_borrowed_in_match(match, match.winner_player_id)
+        )
         total_wins = sum(win_counts.values())
 
         if total_wins > 0:
