@@ -983,6 +983,10 @@ export interface PlayerEliminationStats {
   fourth_plus: number;
 
   games_played: number;
+
+  // Combat archetype
+  kills_in_losses: number;
+  archetype: string;
 }
 
 export interface NemesisPair {
@@ -1007,6 +1011,30 @@ export interface KillStreak {
   victims: string[];
 }
 
+export interface FirstBloodEntry {
+  player_id: string;
+  player_name: string;
+  avatar?: string | null;
+  first_blood_count: number;
+  first_blood_rate: number;
+  conversion_rate: number;
+  games_played: number;
+}
+
+export interface HuntingPair {
+  hunter_id: string;
+  hunter_name: string;
+  hunter_avatar?: string | null;
+  prey_id: string;
+  prey_name: string;
+  prey_avatar?: string | null;
+  hunter_kills: number;
+  prey_kills: number;
+  kill_ratio: number;
+  games_together: number;
+  label: string | null;
+}
+
 export interface EliminationStatsData {
   kill_leaders: PlayerEliminationStats[];
   scoop_leaders: PlayerEliminationStats[];
@@ -1018,6 +1046,8 @@ export interface EliminationStatsData {
   total_games_with_elimination_data: number;
   scoop_rate_pod: number;
   avg_kills_per_game: number;
+  hunting_pairs: HuntingPair[];
+  first_blood_leaders: FirstBloodEntry[];
 }
 
 // Pod Dynamics API Functions
