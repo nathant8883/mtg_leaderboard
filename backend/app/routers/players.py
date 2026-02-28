@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from beanie import PydanticObjectId
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from app.models.player import Player, Deck
 from app.models.match import Match
 from app.models.pod import Pod
+from app.models.event import Event
 from app.middleware.auth import get_current_player, get_optional_player
 
 router = APIRouter()
@@ -222,6 +223,54 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
         "favorite_color_combo": favorite_color_combo,
         "decks": deck_stats  # Include all decks (enabled and disabled) with disabled flag
     }
+
+
+@router.get("/{player_id}/event-placements")
+async def get_player_event_placements(
+    player_id: PydanticObjectId,
+    pod_id: Optional[str] = Query(None),
+) -> List[Dict[str, Any]]:
+    """Get events where the player placed 1st, 2nd, or 3rd"""
+    player = await Player.get(player_id)
+    if not player:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Player not found")
+
+    player_id_str = str(player.id)
+
+    # Query completed events, optionally filtered by pod
+    query = {"status": "completed"}
+    if pod_id:
+        query["pod_id"] = pod_id
+
+    events = await Event.find(query).to_list()
+
+    placements = []
+    for event in events:
+        if not event.standings:
+            continue
+
+        # Sort standings by total_points descending to derive placement
+        sorted_standings = sorted(event.standings, key=lambda s: s.total_points, reverse=True)
+
+        for rank, entry in enumerate(sorted_standings[:3], start=1):
+            if entry.player_id == player_id_str:
+                placement_data: Dict[str, Any] = {
+                    "event_id": str(event.id),
+                    "event_name": event.name,
+                    "event_type": event.event_type,
+                    "event_date": event.event_date.isoformat() if event.event_date else None,
+                    "placement": rank,
+                    "total_points": entry.total_points,
+                    "custom_image": event.custom_image,
+                    "set_icon_svg_uri": event.sets[0].icon_svg_uri if event.sets else None,
+                }
+                placements.append(placement_data)
+                break
+
+    # Sort by date descending (most recent first)
+    placements.sort(key=lambda p: p["event_date"] or "", reverse=True)
+
+    return placements
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)

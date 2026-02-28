@@ -6,8 +6,9 @@ import ProfileEditModal from './ProfileEditModal';
 import PendingDeckReview from './PendingDeckReview';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import { playerApi, deckApi, analyticsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck } from '../services/api';
+import { playerApi, deckApi, analyticsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck, type EventPlacement } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
+import EventBadges from './EventBadges';
 
 function PlayerDetail() {
   const { playerId } = useParams<{ playerId: string }>();
@@ -24,6 +25,8 @@ function PlayerDetail() {
   const [kingmakerLoading, setKingmakerLoading] = useState(false);
   const [pendingDecks, setPendingDecks] = useState<PendingQuickDeck[]>([]);
   const [pendingDecksLoading, setPendingDecksLoading] = useState(false);
+  const [eventPlacements, setEventPlacements] = useState<EventPlacement[]>([]);
+  const [eventPlacementsLoading, setEventPlacementsLoading] = useState(false);
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
@@ -70,6 +73,25 @@ function PlayerDetail() {
     };
 
     loadKingmakerData();
+  }, [playerId, currentPod]);
+
+  // Load event placements
+  useEffect(() => {
+    const loadEventPlacements = async () => {
+      if (!playerId) return;
+      try {
+        setEventPlacementsLoading(true);
+        const data = await playerApi.getEventPlacements(playerId, currentPod?.id);
+        setEventPlacements(data);
+      } catch (err) {
+        console.error('Error loading event placements:', err);
+        setEventPlacements([]);
+      } finally {
+        setEventPlacementsLoading(false);
+      }
+    };
+
+    loadEventPlacements();
   }, [playerId, currentPod]);
 
   // Load pending quick decks (only for own profile)
@@ -314,6 +336,22 @@ function PlayerDetail() {
               )}
             </div>
           </div>
+
+          {/* Event Badges Section */}
+          {eventPlacementsLoading ? (
+            <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-6 mb-4 md:mb-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">🏆</span>
+                <h3 className="text-lg font-semibold text-white">Event Badges</h3>
+              </div>
+              <div className="text-center py-4">
+                <div className="loading-spinner"></div>
+                <p className="text-[#909296] text-sm mt-2">Loading badges...</p>
+              </div>
+            </div>
+          ) : eventPlacements.length > 0 ? (
+            <EventBadges placements={eventPlacements} />
+          ) : null}
 
           {/* Kingmaker Section */}
           {kingmakerLoading ? (

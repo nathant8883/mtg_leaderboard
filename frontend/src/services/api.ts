@@ -95,6 +95,13 @@ export const playerApi = {
     });
     return response.data;
   },
+
+  getEventPlacements: async (playerId: string, podId?: string): Promise<EventPlacement[]> => {
+    const response = await api.get(`/players/${playerId}/event-placements`, {
+      params: podId ? { pod_id: podId } : undefined
+    });
+    return response.data;
+  },
 };
 
 // Deck Types
@@ -423,6 +430,18 @@ export interface PlayerDetail {
   favorite_single_color: string | null;
   favorite_color_combo: string[] | null;
   decks: PlayerDeckStats[];
+}
+
+// Event Placement Types
+export interface EventPlacement {
+  event_id: string;
+  event_name: string;
+  event_type: string;
+  event_date: string | null;
+  placement: number;
+  total_points: number;
+  custom_image: string | null;
+  set_icon_svg_uri: string | null;
 }
 
 // Analytics Types
