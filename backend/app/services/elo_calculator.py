@@ -56,6 +56,9 @@ def calculate_multiplayer_elo_changes(
         >>> changes["p2"]  # Highest rated loser loses most
         -12.3
     """
+    if winner_id is None:
+        return {}  # No Elo changes if winner was borrowing
+
     n = len(player_elos)
     if n < 3:
         return {}
