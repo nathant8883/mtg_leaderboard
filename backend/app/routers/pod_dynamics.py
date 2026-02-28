@@ -1048,11 +1048,11 @@ async def get_elimination_stats(
     Get elimination/scoop statistics for the pod.
 
     Returns:
-    - Kill leaderboard (players with most kills)
+    - Kill leaderboard (players with most kills, with combat archetypes and kills_in_losses)
     - Scoop rate leaderboard
     - Average placement leaderboard
-    - Nemesis pairs (who kills who most)
-    - Kill streak highlights
+    - Hunting pairs (asymmetric kill relationships, 2:1+ ratio)
+    - First blood leaderboard (who draws first blood most often)
     """
     if not current_player or not current_player.current_pod_id:
         return {
@@ -1196,17 +1196,20 @@ async def get_elimination_stats(
                     "victims": victims
                 })
 
+        # --- NEW: Determine winner for this match (used by multiple sections below) ---
+        winner = next((p for p in match.players if p.is_winner), None)
+        winner_id = winner.player_id if winner else None
+
         # --- NEW: First blood detection ---
         kill_eliminations = [
             p for p in match.players
-            if p.elimination_type == "kill" and p.elimination_order is not None
+            if p.elimination_type == "kill" and p.elimination_order is not None and p.elimination_order > 1
         ]
         if kill_eliminations:
             first_eliminated_player = max(kill_eliminations, key=lambda p: p.elimination_order)
             if first_eliminated_player.eliminated_by_player_id:
                 killer_id = first_eliminated_player.eliminated_by_player_id
                 first_blood_counts[killer_id] += 1
-                winner = next((p for p in match.players if p.is_winner), None)
                 if winner and winner.player_id == killer_id:
                     first_blood_wins[killer_id] += 1
 
@@ -1218,10 +1221,6 @@ async def get_elimination_stats(
         if players_with_order:
             first_to_die = max(players_with_order, key=lambda p: p.elimination_order)
             first_eliminated_counts[first_to_die.player_id] += 1
-
-        # --- NEW: Track wins and kills_in_losses ---
-        winner = next((p for p in match.players if p.is_winner), None)
-        winner_id = winner.player_id if winner else None
         if winner_id:
             wins_per_player[winner_id] += 1
 
