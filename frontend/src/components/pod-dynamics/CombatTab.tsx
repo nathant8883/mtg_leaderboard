@@ -4,7 +4,7 @@ import { ScoopShame } from './ScoopShame';
 import HuntingAsymmetry from './HuntingAsymmetry';
 import { podDynamicsApi } from '../../services/api';
 import type { EliminationStatsData } from '../../services/api';
-import { Swords, Skull, Flag, Target, Sparkles } from 'lucide-react';
+import { Swords, Skull, Flag, Sparkles } from 'lucide-react';
 
 export function CombatTab() {
   const [data, setData] = useState<EliminationStatsData | null>(null);
@@ -117,14 +117,7 @@ export function CombatTab() {
 
       {/* Hunting Asymmetry */}
       {hasHuntingPairs && (
-        <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
-          <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
-            <Target size={18} className="text-[#C0392B]" />
-            Hunting Asymmetry
-          </h3>
-          <p className="text-[#909296] text-xs mb-4">Who hunts who?</p>
-          <HuntingAsymmetry pairs={data.hunting_pairs} />
-        </div>
+        <HuntingAsymmetry pairs={data.hunting_pairs} />
       )}
 
     </div>

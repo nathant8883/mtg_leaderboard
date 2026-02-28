@@ -1353,8 +1353,16 @@ async def get_elimination_stats(
                 "label": label,
             })
 
+    # Sort by kill ratio descending, then deduplicate so each hunter appears only once
+    # (keeping their most lopsided relationship)
     hunting_pairs.sort(key=lambda x: -x["kill_ratio"])
-    hunting_pairs = hunting_pairs[:10]
+    seen_hunters = set()
+    unique_hunting_pairs = []
+    for pair in hunting_pairs:
+        if pair["hunter_id"] not in seen_hunters:
+            seen_hunters.add(pair["hunter_id"])
+            unique_hunting_pairs.append(pair)
+    hunting_pairs = unique_hunting_pairs[:10]
 
     # Pod-wide calculations
     total_games = len(matches_with_data)

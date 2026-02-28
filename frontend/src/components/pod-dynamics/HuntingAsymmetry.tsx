@@ -11,12 +11,12 @@ export default function HuntingAsymmetry({ pairs }: HuntingAsymmetryProps) {
   }
 
   return (
-    <div className="mt-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Target className="w-5 h-5 text-orange-400" />
-        <h3 className="text-lg font-bold text-white">Hunting Grounds</h3>
-        <span className="text-[11px] text-[#888] ml-1">Lopsided kill relationships</span>
-      </div>
+    <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
+      <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
+        <Target className="w-[18px] h-[18px] text-[#C0392B]" />
+        Hunting Grounds
+      </h3>
+      <p className="text-[#909296] text-xs mb-4">Each player's most lopsided kill relationship</p>
 
       <div className="space-y-3">
         {pairs.map((pair, index) => (
