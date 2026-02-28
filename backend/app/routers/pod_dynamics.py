@@ -1059,8 +1059,6 @@ async def get_elimination_stats(
             "kill_leaders": [],
             "scoop_leaders": [],
             "placement_leaders": [],
-            "nemesis_pairs": [],
-            "top_kill_streaks": [],
             "hunting_pairs": [],
             "first_blood_leaders": [],
             "total_kills": 0,
@@ -1079,8 +1077,6 @@ async def get_elimination_stats(
             "kill_leaders": [],
             "scoop_leaders": [],
             "placement_leaders": [],
-            "nemesis_pairs": [],
-            "top_kill_streaks": [],
             "hunting_pairs": [],
             "first_blood_leaders": [],
             "total_kills": 0,
@@ -1110,8 +1106,6 @@ async def get_elimination_stats(
             "kill_leaders": [],
             "scoop_leaders": [],
             "placement_leaders": [],
-            "nemesis_pairs": [],
-            "top_kill_streaks": [],
             "hunting_pairs": [],
             "first_blood_leaders": [],
             "total_kills": 0,
@@ -1141,9 +1135,6 @@ async def get_elimination_stats(
 
     # Track nemesis pairs (killer_id, victim_id) -> count
     kill_pairs: Counter = Counter()
-
-    # Track kills per match per player for kill streaks
-    match_kill_records: List[Dict[str, Any]] = []
 
     # Pod-wide totals
     total_kills = 0
@@ -1178,23 +1169,11 @@ async def get_elimination_stats(
                 player_stats[player_id]["times_scooped"] += 1
                 total_scoops += 1
 
-        # Record kill streaks for this match
+        # Update max kills in game per player
         for killer_id, victims in match_kills_by_player.items():
-            if len(victims) >= 1:
-                kills_count = len(victims)
-                # Update max kills in game for this player
-                if kills_count > player_stats[killer_id]["max_kills_in_game"]:
-                    player_stats[killer_id]["max_kills_in_game"] = kills_count
-
-                match_kill_records.append({
-                    "player_id": killer_id,
-                    "player_name": player_stats[killer_id]["name"],
-                    "avatar": player_avatars.get(killer_id),
-                    "kills_in_game": kills_count,
-                    "match_id": str(match.id),
-                    "match_date": match.match_date.isoformat(),
-                    "victims": victims
-                })
+            kills_count = len(victims)
+            if kills_count > player_stats[killer_id]["max_kills_in_game"]:
+                player_stats[killer_id]["max_kills_in_game"] = kills_count
 
         # --- NEW: Determine winner for this match (used by multiple sections below) ---
         winner = next((p for p in match.players if p.is_winner), None)
@@ -1419,6 +1398,4 @@ async def get_elimination_stats(
         "total_games_with_elimination_data": total_games,
         "scoop_rate_pod": scoop_rate_pod,
         "avg_kills_per_game": avg_kills_per_game,
-        "nemesis_pairs": [],
-        "top_kill_streaks": [],
     }

@@ -989,28 +989,6 @@ export interface PlayerEliminationStats {
   archetype: string;
 }
 
-export interface NemesisPair {
-  killer_id: string;
-  killer_name: string;
-  killer_avatar?: string | null;
-  victim_id: string;
-  victim_name: string;
-  victim_avatar?: string | null;
-  kill_count: number;
-  games_together: number;
-  kill_rate: number;
-}
-
-export interface KillStreak {
-  player_id: string;
-  player_name: string;
-  avatar?: string | null;
-  kills_in_game: number;
-  match_id: string;
-  match_date: string;
-  victims: string[];
-}
-
 export interface FirstBloodEntry {
   player_id: string;
   player_name: string;
@@ -1039,8 +1017,6 @@ export interface EliminationStatsData {
   kill_leaders: PlayerEliminationStats[];
   scoop_leaders: PlayerEliminationStats[];
   placement_leaders: PlayerEliminationStats[];
-  nemesis_pairs: NemesisPair[];
-  top_kill_streaks: KillStreak[];
   total_kills: number;
   total_scoops: number;
   total_games_with_elimination_data: number;
