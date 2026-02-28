@@ -18,7 +18,7 @@ export default function HuntingAsymmetry({ pairs }: HuntingAsymmetryProps) {
       </h3>
 
       <div className="space-y-3">
-        {pairs.map((pair, index) => (
+        {pairs.map((pair) => (
           <div
             key={`${pair.hunter_id}-${pair.prey_id}`}
             className="p-3 rounded-[10px] border border-[#2C2E33]"
