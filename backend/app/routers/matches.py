@@ -15,7 +15,7 @@ router = APIRouter()
 
 class CreateMatchRequest(BaseModel):
     """Request body for creating a match"""
-    player_deck_pairs: list[dict[str, str]]  # [{"player_id": "...", "deck_id": "..."}, ...]
+    player_deck_pairs: list[dict[str, str]]  # [{"player_id": "...", "deck_id": "...", "borrowed_from_player_id"?: "..."}, ...]
     winner_player_id: str
     winner_deck_id: str
     match_date: date
@@ -51,7 +51,9 @@ def serialize_match(match: Match) -> dict:
                 "elimination_order": p.elimination_order,
                 "is_winner": p.is_winner,
                 "eliminated_by_player_id": p.eliminated_by_player_id,
-                "elimination_type": p.elimination_type
+                "elimination_type": p.elimination_type,
+                "borrowed_from_player_id": p.borrowed_from_player_id,
+                "borrowed_from_player_name": p.borrowed_from_player_name
             }
             for p in match.players
         ],
@@ -140,6 +142,7 @@ async def create_match(
     for pair in request.player_deck_pairs:
         player_id = pair["player_id"]
         deck_id = pair["deck_id"]
+        borrowed_from_player_id = pair.get("borrowed_from_player_id")
         player_ids.append(player_id)
 
         # Fetch player and deck data
@@ -165,6 +168,12 @@ async def create_match(
             deck_name = deck.name
             deck_colors = deck.colors or []
 
+        # If borrowing, snapshot the lender's name
+        borrowed_from_player_name = None
+        if borrowed_from_player_id:
+            lender = await Player.get(PydanticObjectId(borrowed_from_player_id))
+            borrowed_from_player_name = lender.name if lender else "Unknown"
+
         # Create MatchPlayer with snapshot data
         is_winner = (player_id == request.winner_player_id and deck_id == request.winner_deck_id)
         elimination_order = request.elimination_orders.get(player_id) if request.elimination_orders else None
@@ -181,7 +190,9 @@ async def create_match(
             elimination_order=elimination_order,  # Player placement (1=winner, 2=2nd, etc.)
             is_winner=is_winner,
             eliminated_by_player_id=elim_detail.get('eliminated_by_player_id'),
-            elimination_type=elim_detail.get('elimination_type')
+            elimination_type=elim_detail.get('elimination_type'),
+            borrowed_from_player_id=borrowed_from_player_id,
+            borrowed_from_player_name=borrowed_from_player_name,
         ))
 
     # Validate winner is in the match
