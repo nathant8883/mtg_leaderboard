@@ -28,6 +28,8 @@ export interface PlayerSlot {
   commanderImageUrl: string;
   isGuest: boolean;
   killMessages?: string[];  // Custom messages displayed when this player eliminates someone
+  borrowedFromPlayerId?: string | null;
+  borrowedFromPlayerName?: string | null;
 }
 
 export interface PlayerGameState {
@@ -309,6 +311,7 @@ function MatchTracker() {
         .map(p => ({
           player_id: p.playerId!,
           deck_id: p.deckId!,
+          ...(p.borrowedFromPlayerId ? { borrowed_from_player_id: p.borrowedFromPlayerId } : {}),
         }));
 
       if (playerDeckPairs.length < 2) {
@@ -448,6 +451,7 @@ function MatchTracker() {
         .map(p => ({
           player_id: p.playerId!,
           deck_id: p.deckId!,
+          ...(p.borrowedFromPlayerId ? { borrowed_from_player_id: p.borrowedFromPlayerId } : {}),
         }));
 
       if (playerDeckPairs.length < 2) {
