@@ -1112,6 +1112,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                   {player.playerName}
                 </div>
                 <div className="text-xs opacity-90 text-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">{player.deckName}</div>
+                {player.borrowedFromPlayerName && (
+                  <span className="text-[9px] text-amber-400/70 font-medium">
+                    Borrowed
+                  </span>
+                )}
               </div>
 
               {/* First Player Selection Mode - Show selection overlay or dice block */}
@@ -1323,6 +1328,11 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     <div className="text-center w-full">
                       <div className="text-[13px] font-semibold mb-0.5 leading-tight">{player.playerName}</div>
                       <div className="text-[10px] text-[#6b7280] leading-tight">{player.deckName}</div>
+                      {player.borrowedFromPlayerName && (
+                        <span className="text-[9px] text-amber-400/70 font-medium">
+                          Borrowed
+                        </span>
+                      )}
                     </div>
                     {playerState.eliminated && (
                       <div className="absolute top-1.5 right-1.5 w-[18px] h-[18px] bg-[#ef4444] rounded-full flex items-center justify-center text-[11px] font-bold text-white">✕</div>
