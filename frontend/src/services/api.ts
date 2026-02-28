@@ -989,16 +989,6 @@ export interface PlayerEliminationStats {
   archetype: string;
 }
 
-export interface FirstBloodEntry {
-  player_id: string;
-  player_name: string;
-  avatar?: string | null;
-  first_blood_count: number;
-  first_blood_rate: number;
-  conversion_rate: number;
-  games_played: number;
-}
-
 export interface HuntingPair {
   hunter_id: string;
   hunter_name: string;
@@ -1023,7 +1013,6 @@ export interface EliminationStatsData {
   scoop_rate_pod: number;
   avg_kills_per_game: number;
   hunting_pairs: HuntingPair[];
-  first_blood_leaders: FirstBloodEntry[];
 }
 
 // Pod Dynamics API Functions

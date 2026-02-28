@@ -1060,7 +1060,6 @@ async def get_elimination_stats(
             "scoop_leaders": [],
             "placement_leaders": [],
             "hunting_pairs": [],
-            "first_blood_leaders": [],
             "total_kills": 0,
             "total_scoops": 0,
             "total_games_with_elimination_data": 0,
@@ -1078,7 +1077,6 @@ async def get_elimination_stats(
             "scoop_leaders": [],
             "placement_leaders": [],
             "hunting_pairs": [],
-            "first_blood_leaders": [],
             "total_kills": 0,
             "total_scoops": 0,
             "total_games_with_elimination_data": 0,
@@ -1107,7 +1105,6 @@ async def get_elimination_stats(
             "scoop_leaders": [],
             "placement_leaders": [],
             "hunting_pairs": [],
-            "first_blood_leaders": [],
             "total_kills": 0,
             "total_scoops": 0,
             "total_games_with_elimination_data": 0,
@@ -1130,7 +1127,6 @@ async def get_elimination_stats(
     kills_in_losses: Dict[str, int] = defaultdict(int)
     wins_per_player: Dict[str, int] = defaultdict(int)
     first_blood_counts: Dict[str, int] = defaultdict(int)
-    first_blood_wins: Dict[str, int] = defaultdict(int)
     first_eliminated_counts: Dict[str, int] = defaultdict(int)
 
     # Track nemesis pairs (killer_id, victim_id) -> count
@@ -1189,8 +1185,6 @@ async def get_elimination_stats(
             if first_eliminated_player.eliminated_by_player_id:
                 killer_id = first_eliminated_player.eliminated_by_player_id
                 first_blood_counts[killer_id] += 1
-                if winner and winner.player_id == killer_id:
-                    first_blood_wins[killer_id] += 1
 
         # --- NEW: First eliminated tracking ---
         players_with_order = [
@@ -1362,25 +1356,6 @@ async def get_elimination_stats(
     hunting_pairs.sort(key=lambda x: -x["kill_ratio"])
     hunting_pairs = hunting_pairs[:10]
 
-    # Build first blood leaderboard
-    first_blood_leaders = []
-    for player_id in first_blood_counts:
-        if first_blood_counts[player_id] == 0:
-            continue
-        games = player_stats[player_id]["games_played"]
-        fb_count = first_blood_counts[player_id]
-        fb_wins = first_blood_wins.get(player_id, 0)
-        first_blood_leaders.append({
-            "player_id": player_id,
-            "player_name": player_stats[player_id]["name"],
-            "avatar": player_avatars.get(player_id),
-            "first_blood_count": fb_count,
-            "first_blood_rate": round(fb_count / max(games, 1) * 100, 1),
-            "conversion_rate": round(fb_wins / max(fb_count, 1) * 100, 1),
-            "games_played": games,
-        })
-    first_blood_leaders.sort(key=lambda x: (-x["first_blood_count"], -x["first_blood_rate"]))
-
     # Pod-wide calculations
     total_games = len(matches_with_data)
     total_eliminations = total_kills + total_scoops
@@ -1392,7 +1367,6 @@ async def get_elimination_stats(
         "scoop_leaders": scoop_leaders,
         "placement_leaders": placement_leaders,
         "hunting_pairs": hunting_pairs,
-        "first_blood_leaders": first_blood_leaders,
         "total_kills": total_kills,
         "total_scoops": total_scoops,
         "total_games_with_elimination_data": total_games,
