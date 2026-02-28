@@ -16,6 +16,8 @@ class MatchPlayer(BaseModel):
     eliminated_by_player_id: Optional[str] = None  # player_id of who eliminated this player (null if scooped or winner)
     elimination_type: Optional[str] = None  # "kill" | "scoop" | None (winner has None)
     is_alt_win: bool = False  # True if this match ended via alternative win condition
+    borrowed_from_player_id: Optional[str] = None  # If set, deck was borrowed from this player
+    borrowed_from_player_name: Optional[str] = None  # Snapshot of lender's name at match creation
 
 
 class Match(Document):
