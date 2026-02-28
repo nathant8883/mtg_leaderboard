@@ -3,6 +3,7 @@ import { X, ArrowLeft } from 'lucide-react';
 import { playerApi, deckApi, eventApi, type Player, type Deck, type DraftDeck } from '../../services/api';
 import type { PlayerSlot, LayoutType } from '../../pages/MatchTracker';
 import { SmashPlayerSelect, SmashDeckSelect } from './smash-select';
+import { getCachedPodMemberIds } from '../../contexts/PodContext';
 
 interface PlayerAssignmentProps {
   playerCount: number;
@@ -92,11 +93,20 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
   const loadPlayers = async () => {
     try {
       const data = await playerApi.getAll();
-      const filtered = allowedPlayerIds
+
+      // First filter: allowedPlayerIds (event-specific scoping)
+      let filtered = allowedPlayerIds
         ? data.filter(p => p.id && allowedPlayerIds.includes(p.id))
         : data;
+
+      // Second filter: pod member IDs (offline safety net)
+      const cachedMemberIds = getCachedPodMemberIds();
+      if (cachedMemberIds && !allowedPlayerIds) {
+        filtered = filtered.filter(p => p.id && cachedMemberIds.includes(p.id));
+      }
+
       setAvailablePlayers(filtered);
-      console.log(`[PlayerAssignment] Loaded ${filtered.length} players${allowedPlayerIds ? ` (filtered from ${data.length})` : ''}`);
+      console.log(`[PlayerAssignment] Loaded ${filtered.length} players${allowedPlayerIds ? ` (event-filtered from ${data.length})` : cachedMemberIds ? ` (pod-filtered from ${data.length})` : ''}`);
 
       // Preload commander images for faster deck selection
       const allDecks = await deckApi.getAll();

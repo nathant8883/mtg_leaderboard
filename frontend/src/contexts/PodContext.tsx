@@ -19,6 +19,17 @@ interface PodContextType {
 const PodContext = createContext<PodContextType | undefined>(undefined);
 
 const CURRENT_POD_KEY = 'mtg_current_pod_id';
+const POD_MEMBERS_KEY = 'mtg_current_pod_member_ids';
+
+export const getCachedPodMemberIds = (): string[] | null => {
+  const stored = localStorage.getItem(POD_MEMBERS_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return null;
+  }
+};
 
 export const PodProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { currentPlayer, refreshPlayer } = useAuth();
@@ -35,6 +46,7 @@ export const PodProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setUserPods([]);
       setCurrentPod(null);
       setPendingInvites([]);
+      localStorage.removeItem(POD_MEMBERS_KEY);
       setLoading(false);
     }
   }, [currentPlayer?.id]);
@@ -56,6 +68,7 @@ export const PodProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (pod) {
           setCurrentPod(pod);
           localStorage.setItem(CURRENT_POD_KEY, pod.id!);
+          localStorage.setItem(POD_MEMBERS_KEY, JSON.stringify(pod.member_ids));
         } else if (pods.length > 0) {
           // Fallback to first pod if current_pod_id is invalid
           await switchPod(pods[0].id!);
@@ -90,10 +103,22 @@ export const PodProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (pod) {
         setCurrentPod(pod);
         localStorage.setItem(CURRENT_POD_KEY, podId);
+        localStorage.setItem(POD_MEMBERS_KEY, JSON.stringify(pod.member_ids));
       }
 
       // Refresh player data to get updated current_pod_id
       await refreshPlayer();
+
+      // Clear pod-scoped API caches so stale data from previous pod doesn't persist
+      if ('caches' in window) {
+        try {
+          await caches.delete('api-players-cache');
+          await caches.delete('api-decks-cache');
+          console.log('[PodContext] Cleared API caches for pod switch');
+        } catch (e) {
+          console.warn('[PodContext] Failed to clear API caches:', e);
+        }
+      }
 
       // Trigger data refresh in other components
       window.dispatchEvent(new CustomEvent('podSwitched', { detail: { podId } }));
@@ -113,12 +138,14 @@ export const PodProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const updatedPod = pods.find(p => p.id === currentPod.id);
         if (updatedPod) {
           setCurrentPod(updatedPod);
+          localStorage.setItem(POD_MEMBERS_KEY, JSON.stringify(updatedPod.member_ids));
         } else {
           // Current pod no longer exists (removed), switch to first pod
           if (pods.length > 0) {
             await switchPod(pods[0].id!);
           } else {
             setCurrentPod(null);
+            localStorage.removeItem(POD_MEMBERS_KEY);
           }
         }
       }

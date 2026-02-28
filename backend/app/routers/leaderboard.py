@@ -23,20 +23,14 @@ MIN_GAMES_FOR_RANKING = 4
 async def get_player_leaderboard(
     current_player: Optional[Player] = Depends(get_optional_player)
 ) -> list[Dict[str, Any]]:
-    """Get leaderboard by player from current pod (or all non-guests if no pod context)"""
-    # Get players and matches, filtered by pod if available
+    """Get leaderboard by player from current pod. Returns empty list if no pod context."""
     if not current_player or not current_player.current_pod_id:
-        # No pod context - return all non-guest players (backward compatibility)
-        players = await Player.find(
-            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-        ).to_list()
-        matches = await Match.find_all().to_list()
+        players = []
+        matches = []
     else:
-        # Pod context - filter to current pod
         try:
             pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
             if pod:
-                # Get players in the current pod (excluding guests)
                 players = await Player.find(
                     {
                         "$and": [
@@ -45,20 +39,15 @@ async def get_player_leaderboard(
                         ]
                     }
                 ).to_list()
-                # Get matches from the current pod
                 matches = await Match.find(Match.pod_id == current_player.current_pod_id).to_list()
             else:
-                # Fallback if pod not found
-                players = await Player.find(
-                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-                ).to_list()
-                matches = await Match.find_all().to_list()
-        except Exception:
-            # Fallback on error
-            players = await Player.find(
-                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-            ).to_list()
-            matches = await Match.find_all().to_list()
+                logger.warning(f"Pod {current_player.current_pod_id} not found for player {current_player.id}")
+                players = []
+                matches = []
+        except Exception as e:
+            logger.warning(f"Error fetching pod {current_player.current_pod_id}: {e}")
+            players = []
+            matches = []
 
     # Build Elo lookup if we have pod context
     elo_lookup: Dict[str, PlayerEloRating] = {}
@@ -123,21 +112,15 @@ async def get_player_leaderboard(
 async def get_deck_leaderboard(
     current_player: Optional[Player] = Depends(get_optional_player)
 ) -> list[Dict[str, Any]]:
-    """Get leaderboard by deck from current pod (or all enabled decks if no pod context)"""
-    # Get decks, matches, and players filtered by pod if available
+    """Get leaderboard by deck from current pod. Returns empty list if no pod context."""
     if not current_player or not current_player.current_pod_id:
-        # No pod context - return all enabled decks (backward compatibility)
-        decks = await Deck.find(Deck.disabled != True).to_list()
-        matches = await Match.find_all().to_list()
-        players = await Player.find(
-            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-        ).to_list()
+        decks = []
+        matches = []
+        players = []
     else:
-        # Pod context - filter to current pod
         try:
             pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
             if pod:
-                # Get players in the pod
                 players = await Player.find(
                     {
                         "$and": [
@@ -146,7 +129,6 @@ async def get_deck_leaderboard(
                         ]
                     }
                 ).to_list()
-                # Get decks owned by pod members (and not disabled)
                 decks = await Deck.find(
                     {
                         "$and": [
@@ -155,22 +137,17 @@ async def get_deck_leaderboard(
                         ]
                     }
                 ).to_list()
-                # Get matches from the current pod
                 matches = await Match.find(Match.pod_id == current_player.current_pod_id).to_list()
             else:
-                # Fallback if pod not found
-                decks = await Deck.find(Deck.disabled != True).to_list()
-                matches = await Match.find_all().to_list()
-                players = await Player.find(
-                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-                ).to_list()
-        except Exception:
-            # Fallback on error
-            decks = await Deck.find(Deck.disabled != True).to_list()
-            matches = await Match.find_all().to_list()
-            players = await Player.find(
-                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-            ).to_list()
+                logger.warning(f"Pod {current_player.current_pod_id} not found for player {current_player.id}")
+                decks = []
+                matches = []
+                players = []
+        except Exception as e:
+            logger.warning(f"Error fetching pod {current_player.current_pod_id}: {e}")
+            decks = []
+            matches = []
+            players = []
 
     # Create player lookup (excludes guests) - include avatar info
     player_lookup = {
@@ -229,21 +206,15 @@ async def get_deck_leaderboard(
 async def get_dashboard_stats(
     current_player: Optional[Player] = Depends(get_optional_player)
 ) -> Dict[str, Any]:
-    """Get overall statistics for the dashboard from current pod (or all stats if no pod context)"""
-    # Get players, matches, and decks filtered by pod if available
+    """Get dashboard statistics from current pod. Returns zeroed stats if no pod context."""
     if not current_player or not current_player.current_pod_id:
-        # No pod context - return all stats (backward compatibility)
-        players = await Player.find(
-            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-        ).to_list()
-        matches = await Match.find_all().to_list()
-        decks = await Deck.find_all().to_list()
+        players = []
+        matches = []
+        decks = []
     else:
-        # Pod context - filter to current pod
         try:
             pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
             if pod:
-                # Get players in the pod
                 players = await Player.find(
                     {
                         "$and": [
@@ -252,24 +223,18 @@ async def get_dashboard_stats(
                         ]
                     }
                 ).to_list()
-                # Get decks owned by pod members
                 decks = await Deck.find({"player_id": {"$in": pod.member_ids}}).to_list()
-                # Get matches from the current pod
                 matches = await Match.find(Match.pod_id == current_player.current_pod_id).to_list()
             else:
-                # Fallback if pod not found
-                players = await Player.find(
-                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-                ).to_list()
-                matches = await Match.find_all().to_list()
-                decks = await Deck.find_all().to_list()
-        except Exception:
-            # Fallback on error
-            players = await Player.find(
-                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-            ).to_list()
-            matches = await Match.find_all().to_list()
-            decks = await Deck.find_all().to_list()
+                logger.warning(f"Pod {current_player.current_pod_id} not found for player {current_player.id}")
+                players = []
+                matches = []
+                decks = []
+        except Exception as e:
+            logger.warning(f"Error fetching pod {current_player.current_pod_id}: {e}")
+            players = []
+            matches = []
+            decks = []
 
     # Filter out disabled decks for stats
     enabled_decks = [deck for deck in decks if not deck.disabled]

@@ -8,7 +8,7 @@ import WinnerScreen from '../components/match-tracker/WinnerScreen';
 import LandscapePrompt from '../components/LandscapePrompt';
 import ExitConfirmModal from '../components/match-tracker/ExitConfirmModal';
 import { useAuth } from '../contexts/AuthContext';
-import { usePod } from '../contexts/PodContext';
+import { usePod, getCachedPodMemberIds } from '../contexts/PodContext';
 import { playerApi, deckApi, Player, Deck } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
@@ -141,6 +141,7 @@ function MatchTracker() {
   }, [matchState]);
 
   // Load players and decks - SW cache will serve if available
+  // Re-runs on pod switch to pick up new pod-scoped data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -149,15 +150,30 @@ function MatchTracker() {
           playerApi.getAll(),
           deckApi.getAll(),
         ]);
-        setPlayers(playersData);
-        setDecks(decksData);
-        console.log(`[MatchTracker] ✅ Loaded ${playersData.length} players and ${decksData.length} decks`);
+
+        // Client-side pod filter: safety net against stale/unscoped cached data
+        const cachedMemberIds = getCachedPodMemberIds();
+        if (cachedMemberIds && !isGuest) {
+          const filteredPlayers = playersData.filter(p => p.id && cachedMemberIds.includes(p.id));
+          const filteredDecks = decksData.filter(d => d.player_id && cachedMemberIds.includes(d.player_id));
+          setPlayers(filteredPlayers);
+          setDecks(filteredDecks);
+          console.log(`[MatchTracker] ✅ Loaded ${filteredPlayers.length} players and ${filteredDecks.length} decks (filtered from ${playersData.length}/${decksData.length})`);
+        } else {
+          setPlayers(playersData);
+          setDecks(decksData);
+          console.log(`[MatchTracker] ✅ Loaded ${playersData.length} players and ${decksData.length} decks`);
+        }
       } catch (error) {
         console.error('[MatchTracker] ❌ Failed to load data:', error);
       }
     };
     loadData();
-  }, []);
+
+    const handlePodSwitch = () => loadData();
+    window.addEventListener('podSwitched', handlePodSwitch);
+    return () => window.removeEventListener('podSwitched', handlePodSwitch);
+  }, [isGuest]);
 
   const handleGameConfig = (playerCount: number, startingLife: number, quickPlay?: boolean) => {
     // In quick play mode, skip assignment and auto-generate players

@@ -73,12 +73,10 @@ async def get_all_matches(
     skip: int = 0,
     current_player: Optional[Player] = Depends(get_optional_player)
 ):
-    """Get all matches from current pod (or all matches if no pod context)"""
-    # If no current player or no current pod, return all matches (backward compatibility)
+    """Get all matches from current pod. Returns empty list if no pod context."""
     if not current_player or not current_player.current_pod_id:
-        matches = await Match.find_all().sort(-Match.match_date, -Match.created_at).skip(skip).limit(limit).to_list()
+        matches = []
     else:
-        # Filter matches by current pod
         matches = await Match.find(
             Match.pod_id == current_player.current_pod_id
         ).sort(-Match.match_date, -Match.created_at).skip(skip).limit(limit).to_list()
@@ -91,12 +89,10 @@ async def get_recent_matches(
     limit: int = 10,
     current_player: Optional[Player] = Depends(get_optional_player)
 ):
-    """Get recent matches from current pod (or all recent if no pod context)"""
-    # If no current player or no current pod, return all recent matches (backward compatibility)
+    """Get recent matches from current pod. Returns empty list if no pod context."""
     if not current_player or not current_player.current_pod_id:
-        matches = await Match.find_all().sort(-Match.match_date, -Match.created_at).limit(limit).to_list()
+        matches = []
     else:
-        # Filter matches by current pod
         matches = await Match.find(
             Match.pod_id == current_player.current_pod_id
         ).sort(-Match.match_date, -Match.created_at).limit(limit).to_list()

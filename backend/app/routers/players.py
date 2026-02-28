@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from beanie import PydanticObjectId
 from typing import Dict, Any, Optional, List
@@ -8,12 +9,14 @@ from app.models.pod import Pod
 from app.models.event import Event
 from app.middleware.auth import get_current_player, get_optional_player
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
 @router.get("/")
 async def get_all_players(current_player: Optional[Player] = Depends(get_optional_player)):
-    """Get all players in current pod (or all non-guest players if no pod context)
+    """Get all players in current pod. Returns empty list if no pod context.
     Superusers always see all players regardless of pod membership."""
 
     # Superusers always see all non-guest players
@@ -21,17 +24,14 @@ async def get_all_players(current_player: Optional[Player] = Depends(get_optiona
         players = await Player.find(
             {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
         ).to_list()
-    # If no current player or no current pod, return all non-guest players (backward compatibility)
+    # No auth or no pod — return empty (pod context required)
     elif not current_player or not current_player.current_pod_id:
-        players = await Player.find(
-            {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-        ).to_list()
+        players = []
     else:
         # Get pod members
         try:
             pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
             if pod:
-                # Get players who are members of the current pod (and not guests)
                 players = await Player.find(
                     {
                         "$and": [
@@ -41,15 +41,11 @@ async def get_all_players(current_player: Optional[Player] = Depends(get_optiona
                     }
                 ).to_list()
             else:
-                # Fallback to all non-guest players if pod not found
-                players = await Player.find(
-                    {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-                ).to_list()
-        except Exception:
-            # Fallback to all non-guest players on error
-            players = await Player.find(
-                {"$or": [{"is_guest": False}, {"is_guest": {"$exists": False}}]}
-            ).to_list()
+                logger.warning(f"Pod {current_player.current_pod_id} not found for player {current_player.id}")
+                players = []
+        except Exception as e:
+            logger.warning(f"Error fetching pod {current_player.current_pod_id}: {e}")
+            players = []
 
     # Convert _id to id for frontend compatibility
     return [

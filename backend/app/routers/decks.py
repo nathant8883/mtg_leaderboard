@@ -34,16 +34,15 @@ class CreateQuickDeckRequest(BaseModel):
 
 @router.get("/")
 async def get_all_decks(current_player: Optional[Player] = Depends(get_optional_player)):
-    """Get all enabled decks from current pod (or all enabled decks if no pod context)"""
-    # If no current player or no current pod, return all enabled decks (backward compatibility)
+    """Get all enabled decks from current pod. Returns empty list if no pod context."""
+    # No auth or no pod — return empty (pod context required)
     if not current_player or not current_player.current_pod_id:
-        decks = await Deck.find(Deck.disabled != True).to_list()
+        decks = []
     else:
         # Two-step filtering: get pod members, then get their decks
         try:
             pod = await Pod.get(PydanticObjectId(current_player.current_pod_id))
             if pod:
-                # Get decks owned by pod members (and not disabled)
                 decks = await Deck.find(
                     {
                         "$and": [
@@ -53,11 +52,11 @@ async def get_all_decks(current_player: Optional[Player] = Depends(get_optional_
                     }
                 ).to_list()
             else:
-                # Fallback to all enabled decks if pod not found
-                decks = await Deck.find(Deck.disabled != True).to_list()
-        except Exception:
-            # Fallback to all enabled decks on error
-            decks = await Deck.find(Deck.disabled != True).to_list()
+                logger.warning(f"Pod {current_player.current_pod_id} not found for player {current_player.id}")
+                decks = []
+        except Exception as e:
+            logger.warning(f"Error fetching pod {current_player.current_pod_id}: {e}")
+            decks = []
 
     # Convert _id to id for frontend compatibility
     return [
