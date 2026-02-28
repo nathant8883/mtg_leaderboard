@@ -6,7 +6,7 @@ import ProfileEditModal from './ProfileEditModal';
 import PendingDeckReview from './PendingDeckReview';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import { playerApi, deckApi, analyticsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck, type EventPlacement } from '../services/api';
+import { playerApi, deckApi, analyticsApi, podDynamicsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck, type EventPlacement } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
 import EventBadges from './EventBadges';
 
@@ -27,6 +27,7 @@ function PlayerDetail() {
   const [pendingDecksLoading, setPendingDecksLoading] = useState(false);
   const [eventPlacements, setEventPlacements] = useState<EventPlacement[]>([]);
   const [eventPlacementsLoading, setEventPlacementsLoading] = useState(false);
+  const [archetype, setArchetype] = useState<string | null>(null);
 
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentPlayer?.id === playerId;
@@ -115,6 +116,21 @@ function PlayerDetail() {
 
     loadPendingDecks();
   }, [isOwnProfile]);
+
+  // Load combat archetype
+  useEffect(() => {
+    const loadArchetype = async () => {
+      if (!playerId || !currentPod) return;
+      try {
+        const data = await podDynamicsApi.getEliminationStats();
+        const player = data.kill_leaders.find(p => p.player_id === playerId);
+        setArchetype(player?.archetype || null);
+      } catch {
+        setArchetype(null);
+      }
+    };
+    loadArchetype();
+  }, [playerId, currentPod]);
 
   const loadPlayerDetail = async () => {
     if (!playerId) return;
@@ -293,9 +309,33 @@ function PlayerDetail() {
                 </button>
               )}
             </div>
-            <div className="text-center text-[#909296] text-sm mb-5">
+            <div className="text-center text-[#909296] text-sm mb-3">
               {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'} • Member since {formatMemberSince(playerDetail.member_since)}
             </div>
+
+            {archetype && (() => {
+              const ARCHETYPE_STYLES: Record<string, { color: string; bg: string; icon: string }> = {
+                'Assassin':      { color: '#FF4444', bg: 'rgba(255, 68, 68, 0.12)',   icon: '🗡️' },
+                'Kingmaker':     { color: '#FFD700', bg: 'rgba(255, 215, 0, 0.12)',   icon: '👑' },
+                'Warlord':       { color: '#C0392B', bg: 'rgba(192, 57, 43, 0.12)',   icon: '⚔️' },
+                'Berserker':     { color: '#FF6B35', bg: 'rgba(255, 107, 53, 0.12)',  icon: '🔥' },
+                'Target':        { color: '#FF69B4', bg: 'rgba(255, 105, 180, 0.12)', icon: '🎯' },
+                'Survivor':      { color: '#33D9B2', bg: 'rgba(51, 217, 178, 0.12)',  icon: '🛡️' },
+                'Table Flipper': { color: '#9B59B6', bg: 'rgba(155, 89, 182, 0.12)',  icon: '🪑' },
+              };
+              const cfg = ARCHETYPE_STYLES[archetype] || { color: '#888', bg: 'rgba(136,136,136,0.1)', icon: '' };
+              return (
+                <div className="flex justify-center mb-4">
+                  <span
+                    className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wider px-3 py-1 rounded-[6px] leading-none"
+                    style={{ color: cfg.color, backgroundColor: cfg.bg }}
+                  >
+                    <span className="text-[12px] leading-none">{cfg.icon}</span>
+                    {archetype}
+                  </span>
+                </div>
+              );
+            })()}
 
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">

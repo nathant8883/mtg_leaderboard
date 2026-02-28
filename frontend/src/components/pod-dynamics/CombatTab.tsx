@@ -183,6 +183,16 @@ export function CombatTab() {
                 </div>
 
                 <div className="flex items-center gap-3 p-3 bg-[#141517] rounded-lg">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(192, 57, 43, 0.2)' }}>
+                    <span className="text-lg">⚔️</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm" style={{ color: '#C0392B' }}>Warlord</div>
+                    <div className="text-[#909296] text-xs">Most kills and wins — aggression that converts</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-[#141517] rounded-lg">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 107, 53, 0.2)' }}>
                     <span className="text-lg">🔥</span>
                   </div>
@@ -214,7 +224,7 @@ export function CombatTab() {
 
                 <div className="flex items-center gap-3 p-3 bg-[#141517] rounded-lg">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(155, 89, 182, 0.2)' }}>
-                    <span className="text-lg">🃏</span>
+                    <span className="text-lg">🪑</span>
                   </div>
                   <div>
                     <div className="font-semibold text-sm" style={{ color: '#9B59B6' }}>Table Flipper</div>

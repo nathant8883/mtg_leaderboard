@@ -1228,9 +1228,13 @@ async def get_elimination_stats(
         else:
             kingmaker_score = 0.0
 
+        # Warlord: high kills AND high wins — the Berserker who actually closes
+        warlord_score = kill_rate * win_rate if win_rate >= avg_pod_win_rate else 0.0
+
         archetype_scores[player_id] = {
             "Assassin": kills_in_losses.get(player_id, 0) / games_lost,
             "Kingmaker": kingmaker_score,
+            "Warlord": warlord_score,
             "Berserker": first_blood_counts.get(player_id, 0) / games,
             "Target": first_eliminated_counts.get(player_id, 0) / games,
             "Survivor": (1 - win_rate) * (1 / max(sum(stats["placements"]) / max(len(stats["placements"]), 1), 1)) * (1 - min(kill_rate, 1)) if stats["placements"] else 0,
@@ -1238,7 +1242,7 @@ async def get_elimination_stats(
         }
 
     if archetype_scores:
-        categories = ["Assassin", "Kingmaker", "Berserker", "Target", "Survivor", "Table Flipper"]
+        categories = ["Assassin", "Kingmaker", "Warlord", "Berserker", "Target", "Survivor", "Table Flipper"]
         normalized_scores: Dict[str, Dict[str, float]] = {pid: {} for pid in archetype_scores}
 
         for cat in categories:
