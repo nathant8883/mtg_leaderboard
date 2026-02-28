@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { KillLeaderboard } from './KillLeaderboard';
 import { ScoopShame } from './ScoopShame';
-import { NemesisList } from './NemesisList';
-import { KillStreakHighlights } from './KillStreakHighlights';
+import { HuntingAsymmetry } from './HuntingAsymmetry';
+import { FirstBlood } from './FirstBlood';
 import { podDynamicsApi } from '../../services/api';
 import type { EliminationStatsData } from '../../services/api';
 import { Swords, Skull, Flag, Target, Flame, Sparkles } from 'lucide-react';
@@ -64,8 +64,8 @@ export function CombatTab() {
 
   const hasKillLeaders = data.kill_leaders.some(p => p.total_kills > 0);
   const hasScoopData = data.scoop_leaders.some(p => p.times_scooped > 0);
-  const hasNemesisPairs = data.nemesis_pairs.length > 0;
-  const hasKillStreaks = data.top_kill_streaks.length > 0;
+  const hasHuntingPairs = data.hunting_pairs.length > 0;
+  const hasFirstBloodLeaders = data.first_blood_leaders.length > 0;
 
   return (
     <div className="space-y-6">
@@ -116,27 +116,27 @@ export function CombatTab() {
         </div>
       )}
 
-      {/* Nemesis Pairs */}
-      {hasNemesisPairs && (
+      {/* Hunting Asymmetry */}
+      {hasHuntingPairs && (
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
           <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
             <Target size={18} className="text-[#C0392B]" />
-            Rivalries
+            Hunting Asymmetry
           </h3>
           <p className="text-[#909296] text-xs mb-4">Who hunts who?</p>
-          <NemesisList pairs={data.nemesis_pairs} />
+          <HuntingAsymmetry pairs={data.hunting_pairs} />
         </div>
       )}
 
-      {/* Kill Streaks */}
-      {hasKillStreaks && (
+      {/* First Blood */}
+      {hasFirstBloodLeaders && (
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
           <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
             <Flame size={18} className="text-[#FFA500]" />
-            Kill Streaks
+            First Blood
           </h3>
-          <p className="text-[#909296] text-xs mb-4">Multi-kill highlights</p>
-          <KillStreakHighlights streaks={data.top_kill_streaks} />
+          <p className="text-[#909296] text-xs mb-4">Who draws first blood?</p>
+          <FirstBlood leaders={data.first_blood_leaders} />
         </div>
       )}
     </div>
