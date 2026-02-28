@@ -1061,6 +1061,8 @@ async def get_elimination_stats(
             "placement_leaders": [],
             "nemesis_pairs": [],
             "top_kill_streaks": [],
+            "hunting_pairs": [],
+            "first_blood_leaders": [],
             "total_kills": 0,
             "total_scoops": 0,
             "total_games_with_elimination_data": 0,
@@ -1079,6 +1081,8 @@ async def get_elimination_stats(
             "placement_leaders": [],
             "nemesis_pairs": [],
             "top_kill_streaks": [],
+            "hunting_pairs": [],
+            "first_blood_leaders": [],
             "total_kills": 0,
             "total_scoops": 0,
             "total_games_with_elimination_data": 0,
@@ -1108,6 +1112,8 @@ async def get_elimination_stats(
             "placement_leaders": [],
             "nemesis_pairs": [],
             "top_kill_streaks": [],
+            "hunting_pairs": [],
+            "first_blood_leaders": [],
             "total_kills": 0,
             "total_scoops": 0,
             "total_games_with_elimination_data": 0,
@@ -1125,6 +1131,13 @@ async def get_elimination_stats(
         "games_played": 0,
         "max_kills_in_game": 0
     })
+
+    # --- NEW: Additional tracking for combat redesign ---
+    kills_in_losses: Dict[str, int] = defaultdict(int)
+    wins_per_player: Dict[str, int] = defaultdict(int)
+    first_blood_counts: Dict[str, int] = defaultdict(int)
+    first_blood_wins: Dict[str, int] = defaultdict(int)
+    first_eliminated_counts: Dict[str, int] = defaultdict(int)
 
     # Track nemesis pairs (killer_id, victim_id) -> count
     kill_pairs: Counter = Counter()
@@ -1183,6 +1196,79 @@ async def get_elimination_stats(
                     "victims": victims
                 })
 
+        # --- NEW: First blood detection ---
+        kill_eliminations = [
+            p for p in match.players
+            if p.elimination_type == "kill" and p.elimination_order is not None
+        ]
+        if kill_eliminations:
+            first_eliminated_player = max(kill_eliminations, key=lambda p: p.elimination_order)
+            if first_eliminated_player.eliminated_by_player_id:
+                killer_id = first_eliminated_player.eliminated_by_player_id
+                first_blood_counts[killer_id] += 1
+                winner = next((p for p in match.players if p.is_winner), None)
+                if winner and winner.player_id == killer_id:
+                    first_blood_wins[killer_id] += 1
+
+        # --- NEW: First eliminated tracking ---
+        players_with_order = [
+            p for p in match.players
+            if p.elimination_order is not None and p.elimination_order > 1
+        ]
+        if players_with_order:
+            first_to_die = max(players_with_order, key=lambda p: p.elimination_order)
+            first_eliminated_counts[first_to_die.player_id] += 1
+
+        # --- NEW: Track wins and kills_in_losses ---
+        winner = next((p for p in match.players if p.is_winner), None)
+        winner_id = winner.player_id if winner else None
+        if winner_id:
+            wins_per_player[winner_id] += 1
+
+        for killer_id, victims in match_kills_by_player.items():
+            if killer_id != winner_id:
+                kills_in_losses[killer_id] += len(victims)
+
+    # --- Combat Archetype Assignment ---
+    archetype_scores: Dict[str, Dict[str, float]] = {}
+    for player_id, stats in player_stats.items():
+        games = stats["games_played"]
+        if games == 0:
+            continue
+        player_wins = wins_per_player.get(player_id, 0)
+        games_lost = max(games - player_wins, 1)
+        win_rate = player_wins / games
+        kill_rate = stats["total_kills"] / games
+        total_deaths = stats["times_killed"] + stats["times_scooped"]
+        scoop_rate = stats["times_scooped"] / total_deaths if total_deaths > 0 else 0
+
+        archetype_scores[player_id] = {
+            "Assassin": kills_in_losses.get(player_id, 0) / games_lost,
+            "Kingmaker": kill_rate * (1 - win_rate),
+            "Berserker": first_blood_counts.get(player_id, 0) / games,
+            "Target": first_eliminated_counts.get(player_id, 0) / games,
+            "Survivor": (1 - win_rate) * (1 / max(sum(stats["placements"]) / max(len(stats["placements"]), 1), 1)) * (1 - min(kill_rate, 1)) if stats["placements"] else 0,
+            "Table Flipper": scoop_rate,
+        }
+
+    if archetype_scores:
+        categories = ["Assassin", "Kingmaker", "Berserker", "Target", "Survivor", "Table Flipper"]
+        normalized_scores: Dict[str, Dict[str, float]] = {pid: {} for pid in archetype_scores}
+
+        for cat in categories:
+            values = [archetype_scores[pid][cat] for pid in archetype_scores]
+            min_val = min(values)
+            max_val = max(values)
+            range_val = max_val - min_val if max_val != min_val else 1
+            for pid in archetype_scores:
+                normalized_scores[pid][cat] = (archetype_scores[pid][cat] - min_val) / range_val
+
+        player_archetypes: Dict[str, str] = {}
+        for pid in normalized_scores:
+            player_archetypes[pid] = max(normalized_scores[pid], key=normalized_scores[pid].get)
+    else:
+        player_archetypes = {}
+
     # Build leaderboards
     kill_leaders = []
     scoop_leaders = []
@@ -1222,7 +1308,9 @@ async def get_elimination_stats(
             "second_place": second_place,
             "third_place": third_place,
             "fourth_plus": fourth_plus,
-            "games_played": games
+            "games_played": games,
+            "kills_in_losses": kills_in_losses.get(player_id, 0),
+            "archetype": player_archetypes.get(player_id, "Survivor"),
         }
 
         kill_leaders.append(player_entry)
@@ -1234,35 +1322,86 @@ async def get_elimination_stats(
     scoop_leaders.sort(key=lambda x: (-x["scoop_rate"], -x["times_scooped"]))
     placement_leaders.sort(key=lambda x: (x["average_placement"] if x["average_placement"] > 0 else 999, -x["games_with_placement"]))
 
-    # Build nemesis pairs (top killer-victim relationships)
-    nemesis_pairs = []
-    for (killer_id, victim_id), kill_count in kill_pairs.most_common(10):
-        if kill_count >= 2:  # Only show meaningful rivalries
-            # Calculate games together
+    # Build hunting pairs (asymmetric kill relationships)
+    hunting_pairs = []
+    player_ids_in_data = list(player_stats.keys())
+    seen_pairs = set()
+    for i, pid_a in enumerate(player_ids_in_data):
+        for pid_b in player_ids_in_data[i+1:]:
+            pair_key = tuple(sorted([pid_a, pid_b]))
+            if pair_key in seen_pairs:
+                continue
+            seen_pairs.add(pair_key)
+
+            kills_a_to_b = kill_pairs.get((pid_a, pid_b), 0)
+            kills_b_to_a = kill_pairs.get((pid_b, pid_a), 0)
+            total_pair_kills = kills_a_to_b + kills_b_to_a
+            if total_pair_kills == 0:
+                continue
+
             games_together = sum(
                 1 for m in matches_with_data
-                if killer_id in [p.player_id for p in m.players]
-                and victim_id in [p.player_id for p in m.players]
+                if pid_a in [p.player_id for p in m.players]
+                and pid_b in [p.player_id for p in m.players]
             )
-            kill_rate = round(kill_count / games_together * 100, 1) if games_together > 0 else 0
 
-            nemesis_pairs.append({
-                "killer_id": killer_id,
-                "killer_name": player_stats[killer_id]["name"],
-                "killer_avatar": player_avatars.get(killer_id),
-                "victim_id": victim_id,
-                "victim_name": player_stats[victim_id]["name"],
-                "victim_avatar": player_avatars.get(victim_id),
-                "kill_count": kill_count,
+            if games_together < 5:
+                continue
+
+            if kills_a_to_b >= kills_b_to_a:
+                hunter_id, prey_id = pid_a, pid_b
+                hunter_kills, prey_kills = kills_a_to_b, kills_b_to_a
+            else:
+                hunter_id, prey_id = pid_b, pid_a
+                hunter_kills, prey_kills = kills_b_to_a, kills_a_to_b
+
+            kill_ratio = round(hunter_kills / max(prey_kills, 1), 1)
+
+            if kill_ratio < 2.0:
+                continue
+
+            if kill_ratio >= 5.0:
+                label = "Arch-Nemesis"
+            elif kill_ratio >= 3.0:
+                label = "Nemesis"
+            else:
+                label = None
+
+            hunting_pairs.append({
+                "hunter_id": hunter_id,
+                "hunter_name": player_stats[hunter_id]["name"],
+                "hunter_avatar": player_avatars.get(hunter_id),
+                "prey_id": prey_id,
+                "prey_name": player_stats[prey_id]["name"],
+                "prey_avatar": player_avatars.get(prey_id),
+                "hunter_kills": hunter_kills,
+                "prey_kills": prey_kills,
+                "kill_ratio": kill_ratio,
                 "games_together": games_together,
-                "kill_rate": kill_rate
+                "label": label,
             })
 
-    # Get top kill streaks (multi-kill games, 2+ kills)
-    top_kill_streaks = sorted(
-        [r for r in match_kill_records if r["kills_in_game"] >= 2],
-        key=lambda x: (-x["kills_in_game"], x["match_date"]),
-    )[:10]
+    hunting_pairs.sort(key=lambda x: -x["kill_ratio"])
+    hunting_pairs = hunting_pairs[:10]
+
+    # Build first blood leaderboard
+    first_blood_leaders = []
+    for player_id in first_blood_counts:
+        if first_blood_counts[player_id] == 0:
+            continue
+        games = player_stats[player_id]["games_played"]
+        fb_count = first_blood_counts[player_id]
+        fb_wins = first_blood_wins.get(player_id, 0)
+        first_blood_leaders.append({
+            "player_id": player_id,
+            "player_name": player_stats[player_id]["name"],
+            "avatar": player_avatars.get(player_id),
+            "first_blood_count": fb_count,
+            "first_blood_rate": round(fb_count / max(games, 1) * 100, 1),
+            "conversion_rate": round(fb_wins / max(fb_count, 1) * 100, 1),
+            "games_played": games,
+        })
+    first_blood_leaders.sort(key=lambda x: (-x["first_blood_count"], -x["first_blood_rate"]))
 
     # Pod-wide calculations
     total_games = len(matches_with_data)
@@ -1274,11 +1413,13 @@ async def get_elimination_stats(
         "kill_leaders": kill_leaders,
         "scoop_leaders": scoop_leaders,
         "placement_leaders": placement_leaders,
-        "nemesis_pairs": nemesis_pairs,
-        "top_kill_streaks": top_kill_streaks,
+        "hunting_pairs": hunting_pairs,
+        "first_blood_leaders": first_blood_leaders,
         "total_kills": total_kills,
         "total_scoops": total_scoops,
         "total_games_with_elimination_data": total_games,
         "scoop_rate_pod": scoop_rate_pod,
-        "avg_kills_per_game": avg_kills_per_game
+        "avg_kills_per_game": avg_kills_per_game,
+        "nemesis_pairs": [],
+        "top_kill_streaks": [],
     }
