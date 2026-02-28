@@ -159,6 +159,8 @@ export interface MatchPlayer {
   is_winner: boolean;
   eliminated_by_player_id?: string;  // player_id of who eliminated this player (null if scooped)
   elimination_type?: 'kill' | 'scoop';  // Type of elimination
+  borrowed_from_player_id?: string;
+  borrowed_from_player_name?: string;
 }
 
 export interface Match {
@@ -295,7 +297,11 @@ export interface CreateEventRequest {
 }
 
 export interface CreateMatchRequest {
-  player_deck_pairs: Array<{ player_id: string; deck_id: string }>;
+  player_deck_pairs: Array<{
+    player_id: string;
+    deck_id: string;
+    borrowed_from_player_id?: string;
+  }>;
   winner_player_id: string;
   winner_deck_id: string;
   match_date: string;  // ISO date string (YYYY-MM-DD)
