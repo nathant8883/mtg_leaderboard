@@ -1202,6 +1202,13 @@ async def get_elimination_stats(
                 kills_in_losses[killer_id] += len(victims)
 
     # --- Combat Archetype Assignment ---
+    # Compute pod average win rate for Kingmaker calculation
+    pod_win_rates = []
+    for pid, st in player_stats.items():
+        if st["games_played"] > 0:
+            pod_win_rates.append(wins_per_player.get(pid, 0) / st["games_played"])
+    avg_pod_win_rate = sum(pod_win_rates) / len(pod_win_rates) if pod_win_rates else 0.25
+
     archetype_scores: Dict[str, Dict[str, float]] = {}
     for player_id, stats in player_stats.items():
         games = stats["games_played"]
@@ -1214,9 +1221,16 @@ async def get_elimination_stats(
         total_deaths = stats["times_killed"] + stats["times_scooped"]
         scoop_rate = stats["times_scooped"] / total_deaths if total_deaths > 0 else 0
 
+        # Kingmaker: high kills but below-average win rate
+        # Score is 0 if win rate >= pod average (can't be a kingmaker if you win more than average)
+        if win_rate < avg_pod_win_rate:
+            kingmaker_score = kill_rate * (avg_pod_win_rate - win_rate) / avg_pod_win_rate
+        else:
+            kingmaker_score = 0.0
+
         archetype_scores[player_id] = {
             "Assassin": kills_in_losses.get(player_id, 0) / games_lost,
-            "Kingmaker": kill_rate * (1 - win_rate),
+            "Kingmaker": kingmaker_score,
             "Berserker": first_blood_counts.get(player_id, 0) / games,
             "Target": first_eliminated_counts.get(player_id, 0) / games,
             "Survivor": (1 - win_rate) * (1 / max(sum(stats["placements"]) / max(len(stats["placements"]), 1), 1)) * (1 - min(kill_rate, 1)) if stats["placements"] else 0,
