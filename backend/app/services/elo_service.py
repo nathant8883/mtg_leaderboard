@@ -19,14 +19,6 @@ from app.services.elo_calculator import (
 )
 
 
-def _player_borrowed_in_match(match, player_id):
-    """Check if a player was borrowing a deck in a given match."""
-    for p in match.players:
-        if p.player_id == player_id and p.borrowed_from_player_id:
-            return True
-    return False
-
-
 async def get_or_create_player_elo(player_id: str, pod_id: str) -> PlayerEloRating:
     """
     Get existing Elo rating for a player in a pod, or create with defaults.
@@ -63,18 +55,11 @@ async def process_match_elo(match: Match) -> Dict[str, float]:
     # Get current Elo for all players in the match
     player_elos = []
     for mp in match.players:
-        if mp.borrowed_from_player_id:
-            continue  # Borrowed deck players don't affect Elo
         rating = await get_or_create_player_elo(mp.player_id, match.pod_id)
         player_elos.append((mp.player_id, rating.current_elo))
 
-    # If the winner was borrowing, they're excluded - no Elo changes
-    actual_winner = match.winner_player_id
-    if _player_borrowed_in_match(match, actual_winner):
-        actual_winner = None
-
     # Calculate Elo changes
-    changes = calculate_multiplayer_elo_changes(player_elos, actual_winner)
+    changes = calculate_multiplayer_elo_changes(player_elos, match.winner_player_id)
 
     # Apply changes to each player
     for player_id, change in changes.items():
