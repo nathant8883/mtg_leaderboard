@@ -57,7 +57,7 @@ def calculate_multiplayer_elo_changes(
         -12.3
     """
     if winner_id is None:
-        return {}  # No Elo changes if winner was borrowing
+        return {}  # No Elo changes when there is no winner
 
     n = len(player_elos)
     if n < 3:
