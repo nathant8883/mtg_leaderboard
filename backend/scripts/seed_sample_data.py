@@ -277,22 +277,32 @@ async def main():
         # Create matches
         await create_matches(db, players, decks, pod_id)
 
-        # Add Dev User to the pod (created on first dev login)
+        # Create Dev User and add to the pod as superuser
         print("\nConfiguring Dev User...")
         dev_user = await db.players.find_one({"email": "dev@test.local"})
-        if dev_user:
-            await db.players.update_one(
-                {"_id": dev_user["_id"]},
-                {"$set": {"pod_ids": [pod_id], "current_pod_id": pod_id, "is_superuser": True}}
-            )
-            await db.pods.update_one(
-                {"_id": ObjectId(pod_id)},
-                {"$addToSet": {"member_ids": str(dev_user["_id"])}}
-            )
-            print(f"  Dev User added to Test Pod and made superuser")
-        else:
-            print(f"  Dev User not found (will be added on first dev login)")
-            print(f"  Run this script again after logging in once to add Dev User to pod")
+        if not dev_user:
+            insert_result = await db.players.insert_one({
+                "name": "Dev User",
+                "email": "dev@test.local",
+                "avatar": "D",
+                "picture": "https://api.dicebear.com/7.x/avataaars/svg?seed=Dev",
+                "deck_ids": [],
+                "pod_ids": [],
+                "current_pod_id": None,
+                "is_superuser": False,
+                "created_at": datetime.now(),
+            })
+            dev_user = {"_id": insert_result.inserted_id}
+            print(f"  Dev User created")
+        await db.players.update_one(
+            {"_id": dev_user["_id"]},
+            {"$set": {"pod_ids": [pod_id], "current_pod_id": pod_id, "is_superuser": True}}
+        )
+        await db.pods.update_one(
+            {"_id": ObjectId(pod_id)},
+            {"$addToSet": {"member_ids": str(dev_user["_id"])}}
+        )
+        print(f"  Dev User added to Test Pod and made superuser")
 
         print("\n" + "=" * 60)
         print("Sample data seeding complete!")
