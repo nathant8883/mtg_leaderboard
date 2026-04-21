@@ -12,22 +12,6 @@ from app.middleware.auth import get_current_player, get_optional_player
 logger = logging.getLogger(__name__)
 
 
-def _player_borrowed_in_match(match, player_id: str) -> bool:
-    """Check if a player was borrowing a deck in a given match."""
-    for p in match.players:
-        if p.player_id == player_id and p.borrowed_from_player_id:
-            return True
-    return False
-
-
-def _deck_borrowed_in_match(match, deck_id: str) -> bool:
-    """Check if a deck was being borrowed in a match."""
-    for p in match.players:
-        if p.deck_id == deck_id and p.borrowed_from_player_id:
-            return True
-    return False
-
-
 router = APIRouter()
 
 
@@ -146,8 +130,8 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
     all_players = await Player.find_all().to_list()
 
     # Calculate this player's stats
-    games_played = sum(1 for match in all_matches if any(p.player_id == player_id_str and not p.borrowed_from_player_id for p in match.players))
-    wins = sum(1 for match in all_matches if match.winner_player_id == player_id_str and not _player_borrowed_in_match(match, player_id_str))
+    games_played = sum(1 for match in all_matches if any(p.player_id == player_id_str for p in match.players))
+    wins = sum(1 for match in all_matches if match.winner_player_id == player_id_str)
     losses = games_played - wins
     win_rate = (wins / games_played * 100) if games_played > 0 else 0
 
@@ -155,8 +139,8 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
     player_records = []
     for p in all_players:
         p_id = str(p.id)
-        p_games = sum(1 for match in all_matches if any(mp.player_id == p_id and not mp.borrowed_from_player_id for mp in match.players))
-        p_wins = sum(1 for match in all_matches if match.winner_player_id == p_id and not _player_borrowed_in_match(match, p_id))
+        p_games = sum(1 for match in all_matches if any(mp.player_id == p_id for mp in match.players))
+        p_wins = sum(1 for match in all_matches if match.winner_player_id == p_id)
         p_win_rate = (p_wins / p_games * 100) if p_games > 0 else 0
         player_records.append({
             "player_id": p_id,
@@ -174,8 +158,8 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
 
     for deck in player_decks:
         deck_id = str(deck.id)
-        deck_games = sum(1 for match in all_matches if any(p.deck_id == deck_id and not p.borrowed_from_player_id for p in match.players))
-        deck_wins = sum(1 for match in all_matches if match.winner_deck_id == deck_id and not _deck_borrowed_in_match(match, deck_id))
+        deck_games = sum(1 for match in all_matches if any(p.deck_id == deck_id for p in match.players))
+        deck_wins = sum(1 for match in all_matches if match.winner_deck_id == deck_id)
         deck_losses = deck_games - deck_wins
         deck_win_rate = (deck_wins / deck_games * 100) if deck_games > 0 else 0
 
