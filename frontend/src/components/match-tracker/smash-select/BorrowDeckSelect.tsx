@@ -124,7 +124,7 @@ function BorrowDeckSelect({
                   <div
                     className="grid gap-2"
                     style={{
-                      gridTemplateColumns: `repeat(${Math.min(group.decks.length, 3)}, 1fr)`,
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                     }}
                   >
                     {group.decks.map((deck, index) => {
