@@ -108,7 +108,7 @@ function BorrowDeckSelect({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-4 p-3">
+            <div className="flex flex-col gap-4 p-3 flex-1 w-full">
               {deckGroups.map(group => (
                 <div key={group.playerId}>
                   <div className="flex items-center gap-2 mb-2 px-1">
@@ -132,6 +132,7 @@ function BorrowDeckSelect({
                       return (
                         <div
                           key={deck.id}
+                          className="smash-borrow-tile-wrap"
                           style={{ opacity: isAssigned ? 0.3 : 1, pointerEvents: isAssigned ? 'none' : 'auto' }}
                         >
                           <DeckTile

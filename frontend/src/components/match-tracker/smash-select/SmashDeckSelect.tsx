@@ -159,7 +159,7 @@ function SmashDeckSelect({
                 onClick={() => setShowBorrowSelect(true)}
               >
                 <div className="smash-quick-add-content">
-                  <span className="smash-quick-add-icon">🤝</span>
+                  <span className="smash-quick-add-icon">⇄</span>
                   <span className="smash-quick-add-label">Borrow</span>
                 </div>
               </button>

@@ -3302,6 +3302,17 @@
   min-height: 0;
 }
 
+/* Borrow view: grid rows have no intrinsic height, so give each cell
+   an aspect-ratio and let the tile fill it. */
+.smash-borrow-tile-wrap {
+  aspect-ratio: 1.4 / 1;
+  display: flex;
+}
+.smash-borrow-tile-wrap > .smash-deck-tile {
+  width: 100%;
+  height: 100%;
+}
+
 .smash-deck-tile:active {
   transform: scale(0.97);
   border-color: #30e8a7;
