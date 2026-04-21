@@ -1141,9 +1141,6 @@ async def get_elimination_stats(
         match_kills_by_player: Dict[str, List[str]] = defaultdict(list)
 
         for p in match.players:
-            if p.borrowed_from_player_id:
-                continue  # Skip borrowed deck players from combat stats
-
             player_id = p.player_id
             player_stats[player_id]["name"] = p.player_name
             player_stats[player_id]["games_played"] += 1
@@ -1157,17 +1154,12 @@ async def get_elimination_stats(
                 player_stats[player_id]["times_killed"] += 1
                 total_kills += 1
 
-                # Credit the killer (skip if killer is a borrowed deck player)
+                # Credit the killer
                 if p.eliminated_by_player_id:
                     killer_id = p.eliminated_by_player_id
-                    killer_is_borrowed = any(
-                        mp.player_id == killer_id and mp.borrowed_from_player_id
-                        for mp in match.players
-                    )
-                    if not killer_is_borrowed:
-                        player_stats[killer_id]["total_kills"] += 1
-                        kill_pairs[(killer_id, player_id)] += 1
-                        match_kills_by_player[killer_id].append(p.player_name)
+                    player_stats[killer_id]["total_kills"] += 1
+                    kill_pairs[(killer_id, player_id)] += 1
+                    match_kills_by_player[killer_id].append(p.player_name)
 
             elif p.elimination_type == "scoop":
                 player_stats[player_id]["times_scooped"] += 1
@@ -1181,32 +1173,23 @@ async def get_elimination_stats(
 
         # --- NEW: Determine winner for this match (used by multiple sections below) ---
         winner = next((p for p in match.players if p.is_winner), None)
-        if winner and winner.borrowed_from_player_id:
-            winner = None
         winner_id = winner.player_id if winner else None
 
         # --- NEW: First blood detection ---
         kill_eliminations = [
             p for p in match.players
             if p.elimination_type == "kill" and p.elimination_order is not None and p.elimination_order > 1
-            and not p.borrowed_from_player_id
         ]
         if kill_eliminations:
             first_eliminated_player = max(kill_eliminations, key=lambda p: p.elimination_order)
             if first_eliminated_player.eliminated_by_player_id:
                 killer_id = first_eliminated_player.eliminated_by_player_id
-                killer_is_borrowed = any(
-                    mp.player_id == killer_id and mp.borrowed_from_player_id
-                    for mp in match.players
-                )
-                if not killer_is_borrowed:
-                    first_blood_counts[killer_id] += 1
+                first_blood_counts[killer_id] += 1
 
         # --- NEW: First eliminated tracking ---
         players_with_order = [
             p for p in match.players
             if p.elimination_order is not None and p.elimination_order > 1
-            and not p.borrowed_from_player_id
         ]
         if players_with_order:
             first_to_die = max(players_with_order, key=lambda p: p.elimination_order)
