@@ -15,6 +15,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   backend:
     build:
@@ -28,9 +29,9 @@ services:
     environment:
       - MONGODB_URL=mongodb://mongodb:27017
       - DATABASE_NAME=mtg_leaderboard
-      - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost"]
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost","https://podpal.app","https://mtg.turner-labs.net"]
       - environment=production
-      - FRONTEND_URL=https://mtg.turner-labs.net
+      - FRONTEND_URL=https://podpal.app
     depends_on:
       mongodb:
         condition: service_healthy
@@ -57,6 +58,8 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=homeserver"
 
+      # mtg.turner-labs.net (legacy)
+
       - "traefik.http.routers.mtg-secure.rule=Host(`mtg.turner-labs.net`)"
       - "traefik.http.routers.mtg-secure.entrypoints=https"
       - "traefik.http.routers.mtg-secure.tls=true"
@@ -66,6 +69,17 @@ services:
       - "traefik.http.routers.mtg.rule=Host(`mtg.turner-labs.net`)"
       - "traefik.http.routers.mtg.entrypoints=http"
       - "traefik.http.middlewares.mtg-https-redirect.redirectscheme.scheme=https"
+
+      # podpal.app (primary)
+      - "traefik.http.routers.podpal-secure.rule=Host(`podpal.app`)"
+      - "traefik.http.routers.podpal-secure.entrypoints=https"
+      - "traefik.http.routers.podpal-secure.tls=true"
+      - "traefik.http.routers.podpal-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.podpal-secure.service=mtg"
+
+      - "traefik.http.routers.podpal.rule=Host(`podpal.app`)"
+      - "traefik.http.routers.podpal.entrypoints=http"
+      - "traefik.http.routers.podpal.middlewares=mtg-https-redirect"
       - "traefik.http.routers.mtg.middlewares=mtg-https-redirect"
 
 networks:
