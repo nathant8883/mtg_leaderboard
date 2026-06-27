@@ -34,6 +34,20 @@ export const ERROR_STRATEGIES: Record<number | string, ErrorStrategy> = {
 const MAX_BACKOFF_MS = 30 * 1000;
 
 /**
+ * How long a match may sit in 'syncing' before it's treated as stuck/orphaned.
+ *
+ * A match is set to 'syncing' at the start of syncMatch and cleared (synced or
+ * 'error') when it finishes. If the app is closed/reloaded mid-sync (common on
+ * mobile — the phone is backgrounded right after a game), it can be stranded in
+ * 'syncing' forever: invisible to getPendingMatches/getPendingCount/syncAll but
+ * still shown as "Syncing to server..." on the dashboard, with no way to retry
+ * or remove it. Any 'syncing' match older than this is considered orphaned and
+ * recovered. The threshold is well above a normal create round-trip so a
+ * genuinely in-flight sync is never disturbed.
+ */
+const STUCK_SYNCING_THRESHOLD_MS = 90 * 1000;
+
+/**
  * Calculate exponential backoff delay
  * @param retryCount - Number of retries attempted
  * @returns Delay in milliseconds, capped at MAX_BACKOFF_MS
@@ -148,10 +162,46 @@ export const offlineQueue = {
   },
 
   /**
+   * Recover matches orphaned in 'syncing' status.
+   *
+   * If a sync was interrupted (app closed/reloaded mid-request), the match is
+   * left in 'syncing' and becomes invisible to the queue UI and auto-sync.
+   * This flips any sufficiently-old 'syncing' match to 'error' with an
+   * actionable message so it reappears in the Sync Queue and can be republished
+   * or removed. In-flight syncs (recent submittedAt) are left untouched.
+   *
+   * @returns Number of matches recovered
+   */
+  async recoverStuckMatches(): Promise<number> {
+    const now = Date.now();
+    const stuck = await db.queuedMatches.where('status').equals('syncing').toArray();
+
+    let recovered = 0;
+    for (const match of stuck) {
+      const lastAttempt = match.metadata.submittedAt ?? match.metadata.queuedAt;
+      if (now - lastAttempt < STUCK_SYNCING_THRESHOLD_MS) continue; // still in flight
+
+      const recoveryError: QueueError = {
+        code: 0,
+        message: 'Sync was interrupted before it finished. Tap Republish to try again, or Remove if this match already shows in your history.',
+        timestamp: now,
+      };
+      await db.queuedMatches.update(match.id, { status: 'error', lastError: recoveryError });
+      recovered++;
+    }
+
+    if (recovered > 0) {
+      console.log(`[OfflineQueue] Recovered ${recovered} stuck match(es) from 'syncing'`);
+    }
+    return recovered;
+  },
+
+  /**
    * Get all pending matches (not yet synced)
    * @returns Array of queued matches with status 'pending' or 'error'
    */
   async getPendingMatches(): Promise<QueuedMatch[]> {
+    await this.recoverStuckMatches();
     return await db.queuedMatches
       .where('status')
       .anyOf(['pending', 'error'])
@@ -453,6 +503,7 @@ export const offlineQueue = {
    * @returns Number of matches with status 'pending' or 'error'
    */
   async getPendingCount(): Promise<number> {
+    await this.recoverStuckMatches();
     return await db.queuedMatches
       .where('status')
       .anyOf(['pending', 'error'])

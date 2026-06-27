@@ -81,6 +81,19 @@ export function MainLayout() {
     };
   }, []);
 
+  // Let a stuck/pending match card (RecentMatches) open the sync queue so users
+  // can republish or remove matches orphaned by an interrupted sync.
+  useEffect(() => {
+    const handleOpenSyncQueue = () => {
+      setShowSyncQueue(true);
+    };
+
+    window.addEventListener('openSyncQueue', handleOpenSyncQueue);
+    return () => {
+      window.removeEventListener('openSyncQueue', handleOpenSyncQueue);
+    };
+  }, []);
+
   const loadPlayersAndDecks = async () => {
     try {
       const [playersData, decksData] = await Promise.all([

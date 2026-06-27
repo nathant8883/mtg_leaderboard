@@ -378,12 +378,16 @@ function MatchCard({
 
   return (
     <div
-      className={`bg-[rgba(37,38,43,0.5)] rounded-[12px] p-4 border transition-all duration-200 ${
+      className={`bg-[rgba(37,38,43,0.5)] rounded-[12px] p-4 border transition-all duration-200 cursor-pointer ${
         isPending
-          ? 'border-[rgba(255,165,0,0.4)] bg-[rgba(255,165,0,0.05)]'
-          : 'border-[#2C2E33] hover:bg-[#25262B] hover:border-[#667eea] cursor-pointer'
+          ? 'border-[rgba(255,165,0,0.4)] bg-[rgba(255,165,0,0.05)] hover:bg-[rgba(255,165,0,0.1)]'
+          : 'border-[#2C2E33] hover:bg-[#25262B] hover:border-[#667eea]'
       }`}
-      onClick={() => !isPending && onClick?.()}
+      onClick={() =>
+        isPending
+          ? window.dispatchEvent(new CustomEvent('openSyncQueue'))
+          : onClick?.()
+      }
     >
       {/* Pending Badge */}
       {isPending && (
@@ -392,6 +396,7 @@ function MatchCard({
           <span className="text-[#FFA500] text-xs font-semibold">
             Syncing to server...
           </span>
+          <span className="text-[#FFA500]/70 text-xs ml-auto">Tap to manage</span>
         </div>
       )}
 

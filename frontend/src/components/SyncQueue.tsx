@@ -66,8 +66,9 @@ function SyncQueue({ onClose, onEditMatch, onReauth }: SyncQueueProps) {
   };
 
   const handleRetryAll = async () => {
-    const failed = queuedMatches.filter(m => m.status === 'error');
-    for (const match of failed) {
+    // Republish every queued match (all are pending/error here). Sequential to
+    // avoid hammering the server and to keep ordering stable.
+    for (const match of queuedMatches) {
       await handleRetry(match.id);
     }
   };
@@ -126,36 +127,13 @@ function SyncQueue({ onClose, onEditMatch, onReauth }: SyncQueueProps) {
     }
   };
 
-  const getActionButton = (match: QueuedMatch) => {
+  // Republish (manual sync) is always available so a user can force any stuck
+  // match through, including ones recovered from an interrupted sync. This
+  // returns the *contextual* action that some errors additionally need.
+  const getContextualButton = (match: QueuedMatch) => {
     if (!match.lastError) return null;
-
-    const strategy = ERROR_STRATEGIES[match.lastError.code] || ERROR_STRATEGIES[500];
-    const isSyncing = syncingIds.has(match.id);
-
-    if (strategy.retry && match.retryCount < (strategy.maxAttempts || Infinity)) {
-      return (
-        <button
-          onClick={() => handleRetry(match.id)}
-          disabled={isSyncing}
-          className="px-3 py-1.5 bg-[#667eea] text-white rounded-[6px] text-sm font-semibold hover:bg-[#5568d3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-        >
-          {isSyncing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Retrying...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4" />
-              Retry
-            </>
-          )}
-        </button>
-      );
-    }
-
-    // Non-retryable errors require user action
-    switch (strategy.userAction) {
+    const strategy = ERROR_STRATEGIES[match.lastError.code];
+    switch (strategy?.userAction) {
       case 'edit':
         return (
           <button
@@ -174,17 +152,6 @@ function SyncQueue({ onClose, onEditMatch, onReauth }: SyncQueueProps) {
           >
             <LogIn className="w-4 h-4" />
             Log In Again
-          </button>
-        );
-      case 'remove':
-      case 'resolve':
-        return (
-          <button
-            onClick={() => handleRemove(match.id)}
-            className="px-3 py-1.5 bg-[#FF6B6B] text-white rounded-[6px] text-sm font-semibold hover:bg-[#E55555] transition-colors flex items-center gap-1.5"
-          >
-            <Trash2 className="w-4 h-4" />
-            Remove
           </button>
         );
       default:
@@ -308,13 +275,32 @@ function SyncQueue({ onClose, onEditMatch, onReauth }: SyncQueueProps) {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 pt-2 border-t border-[#2C2E33]">
-                      {getActionButton(match)}
+                      <button
+                        onClick={() => handleRetry(match.id)}
+                        disabled={syncingIds.has(match.id)}
+                        className="px-3 py-1.5 bg-[#667eea] text-white rounded-[6px] text-sm font-semibold hover:bg-[#5568d3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                      >
+                        {syncingIds.has(match.id) ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Republishing...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4" />
+                            Republish
+                          </>
+                        )}
+                      </button>
+                      {getContextualButton(match)}
+                      <div className="flex-1" />
                       <button
                         onClick={() => handleRemove(match.id)}
-                        className="p-1.5 rounded-[6px] hover:bg-[rgba(255,107,107,0.1)] transition-colors text-[#909296] hover:text-[#FF6B6B]"
-                        title="Remove from queue"
+                        className="px-3 py-1.5 bg-[rgba(255,107,107,0.1)] text-[#FF6B6B] rounded-[6px] text-sm font-semibold hover:bg-[rgba(255,107,107,0.2)] transition-colors flex items-center gap-1.5"
+                        title="Remove this match from your device"
                       >
                         <Trash2 className="w-4 h-4" />
+                        Remove
                       </button>
                     </div>
                   </div>
@@ -333,7 +319,7 @@ function SyncQueue({ onClose, onEditMatch, onReauth }: SyncQueueProps) {
                 className="px-4 py-2 bg-[#667eea] text-white rounded-[8px] font-semibold hover:bg-[#5568d3] transition-colors flex items-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
-                Retry All Failed
+                Republish All
               </button>
               <button
                 onClick={handleDeleteAll}
