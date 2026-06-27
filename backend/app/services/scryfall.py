@@ -46,7 +46,11 @@ class ScryfallService:
     @staticmethod
     async def search_commanders(query: str, limit: int = 20) -> list[dict]:
         """
-        Search for legendary creatures that can be commanders.
+        Search for cards that can be commanders.
+
+        Uses Scryfall's `is:commander` filter, which matches every card eligible
+        to be a commander: legendary creatures as well as planeswalkers (and
+        other cards) whose rules text says they "can be your commander".
 
         Args:
             query: Search query string
@@ -59,8 +63,8 @@ class ScryfallService:
             return []
 
         async with httpx.AsyncClient() as client:
-            # Search for legendary creatures using Scryfall's search syntax
-            search_query = f'(t:legendary t:creature) name:"{query}"'
+            # Search for any commander-eligible card using Scryfall's search syntax
+            search_query = f'is:commander name:"{query}"'
             params = {
                 "q": search_query,
                 "unique": "cards",
@@ -128,18 +132,22 @@ class ScryfallService:
             # Extract card data (handles both single and double-faced cards)
             card_data = ScryfallService._extract_card_data(card)
 
-            # Verify it's a legendary creature
-            # For DFCs, check the front face type line
-            type_line = card_data["type_line"].lower()
-            if "legendary" not in type_line or "creature" not in type_line:
-                return None
-
             # Get oracle text (for DFCs, use the front face)
             oracle_text = ""
             if "card_faces" in card and len(card["card_faces"]) > 0:
                 oracle_text = card["card_faces"][0].get("oracle_text", "")
             else:
                 oracle_text = card.get("oracle_text", "")
+
+            # Verify the card can be a commander. Eligible cards are legendary
+            # creatures, or any card whose rules text grants commander eligibility
+            # (e.g. planeswalkers that "can be your commander").
+            # For DFCs, check the front face type line.
+            type_line = card_data["type_line"].lower()
+            is_legendary_creature = "legendary" in type_line and "creature" in type_line
+            can_be_commander = "can be your commander" in oracle_text.lower()
+            if not (is_legendary_creature or can_be_commander):
+                return None
 
             return {
                 "name": card["name"],

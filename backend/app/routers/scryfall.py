@@ -11,7 +11,7 @@ async def search_commanders(
     limit: int = Query(20, ge=1, le=50, description="Maximum number of results")
 ):
     """
-    Search for legendary creatures that can be commanders.
+    Search for cards that can be commanders.
 
     Args:
         q: Search query string (minimum 2 characters)
@@ -63,7 +63,7 @@ async def get_commander_details(name: str):
     try:
         result = await scryfall_service.get_commander_details(name)
         if not result:
-            raise HTTPException(status_code=404, detail="Commander not found or is not a legendary creature")
+            raise HTTPException(status_code=404, detail="Commander not found or cannot be a commander")
         return result
     except HTTPException:
         raise

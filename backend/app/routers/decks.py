@@ -156,7 +156,7 @@ async def create_deck(
 
     Requires authentication. Deck will be created for the authenticated user,
     unless a player_id is provided and the current user is a superuser.
-    Validates that the commander is a legendary creature and fetches
+    Validates that the commander can legally be a commander and fetches
     commander image and color identity from Scryfall if not provided.
     """
     # Determine which player the deck should be created for
@@ -178,12 +178,12 @@ async def create_deck(
             )
         target_player_id = deck_request.player_id
 
-    # Verify commander exists and is a legendary creature via Scryfall
+    # Verify commander exists and can be a commander via Scryfall
     commander_details = await scryfall_service.get_commander_details(deck_request.commander)
     if not commander_details:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Commander '{deck_request.commander}' not found or is not a legendary creature"
+            detail=f"Commander '{deck_request.commander}' not found or cannot be a commander"
         )
 
     # Auto-populate commander image and colors from Scryfall if not provided
@@ -240,12 +240,12 @@ async def create_quick_deck(
             detail=f"Player with ID '{deck_request.target_player_id}' not found"
         )
 
-    # Verify commander exists and is a legendary creature via Scryfall
+    # Verify commander exists and can be a commander via Scryfall
     commander_details = await scryfall_service.get_commander_details(deck_request.commander)
     if not commander_details:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Commander '{deck_request.commander}' not found or is not a legendary creature"
+            detail=f"Commander '{deck_request.commander}' not found or cannot be a commander"
         )
 
     # Get commander image and colors from Scryfall
@@ -347,7 +347,7 @@ async def update_deck(
         if not commander_details:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Commander '{deck_request.commander}' not found or is not a legendary creature"
+                detail=f"Commander '{deck_request.commander}' not found or cannot be a commander"
             )
 
         # Update image and colors from Scryfall - use art_crop for cropped artwork

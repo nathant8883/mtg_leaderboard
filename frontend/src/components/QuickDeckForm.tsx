@@ -182,7 +182,7 @@ function QuickDeckForm({ targetPlayerId, targetPlayerName, onSubmit, onCancel }:
               disabled={isSubmitting}
             />
             <div className="text-[#909296] text-xs mt-1">
-              Start typing to search for legendary creatures
+              Start typing to search for commanders
             </div>
           </div>
 
