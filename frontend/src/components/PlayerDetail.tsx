@@ -242,9 +242,27 @@ function PlayerDetail() {
       await deckApi.delete(deckId);
       // Remove from pending list
       setPendingDecks(prev => prev.filter(d => d.id !== deckId));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting deck:', err);
-      alert('Failed to delete deck');
+      const detail = err?.response?.data?.detail || 'Failed to delete deck';
+      alert(detail);
+    }
+  };
+
+  const handleDeleteDeck = async (deckId: string, deckName: string) => {
+    setOpenMenuDeckId(null);
+    // Only offered for decks with no match history; decks with games show
+    // "Disable" instead, since the backend refuses to delete them.
+    if (!window.confirm(`Are you sure you want to permanently delete "${deckName}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await deckApi.delete(deckId);
+      loadPlayerDetail();
+    } catch (err: any) {
+      console.error('Error deleting deck:', err);
+      const detail = err?.response?.data?.detail || 'Failed to delete deck';
+      alert(detail);
     }
   };
 
@@ -529,6 +547,14 @@ function PlayerDetail() {
                               >
                                 {deck.disabled ? '✓ Enable Deck' : '✕ Disable Deck'}
                               </button>
+                              {deck.games_played === 0 && (
+                                <button
+                                  className="w-full py-3 px-4 bg-transparent border-none text-[#ef4444] cursor-pointer font-medium text-sm text-left transition-all flex items-center gap-2 hover:bg-[#25262B] border-t border-[#2C2E33]"
+                                  onClick={() => handleDeleteDeck(deck.deck_id, deck.deck_name)}
+                                >
+                                  🗑️ Delete Deck
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -603,6 +629,14 @@ function PlayerDetail() {
                               >
                                 {deck.disabled ? '✓ Enable Deck' : '✕ Disable Deck'}
                               </button>
+                              {deck.games_played === 0 && (
+                                <button
+                                  className="w-full py-3 px-4 bg-transparent border-none text-[#ef4444] cursor-pointer font-medium text-sm text-left transition-all flex items-center gap-2 hover:bg-[#25262B] border-t border-[#2C2E33]"
+                                  onClick={() => handleDeleteDeck(deck.deck_id, deck.deck_name)}
+                                >
+                                  🗑️ Delete Deck
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

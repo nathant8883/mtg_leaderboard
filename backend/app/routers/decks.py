@@ -395,7 +395,8 @@ async def delete_deck(
             detail="You can only delete your own decks"
         )
 
-    # Prevent deletion of decks with match history
+    # Prevent deletion of decks with match history (disable instead, to preserve
+    # their leaderboard stats and keep recorded matches intact).
     match_count = await Match.find({"players.deck_id": str(deck_id)}).count()
     if match_count > 0:
         raise HTTPException(
