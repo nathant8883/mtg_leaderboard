@@ -55,10 +55,19 @@ class Match(Document):
     @field_validator('first_player_position')
     @classmethod
     def validate_first_player_position(cls, v, info):
-        if v is not None and 'players' in info.data:
-            player_count = len(info.data['players'])
-            if v < 0 or v >= player_count:
-                raise ValueError(f'first_player_position must be between 0 and {player_count - 1}')
+        # first_player_position is optional analytics data ("who went first").
+        # Older/offline clients can send -1 as a sentinel meaning "first player
+        # not recorded" (e.g. when the first player couldn't be resolved to a
+        # deck pairing, such as a borrowed deck — Array.findIndex returns -1).
+        # Treat any out-of-range value as "unspecified" rather than raising:
+        # rejecting it would 500 the whole match and permanently block
+        # re-syncing otherwise-valid offline matches.
+        if v is None:
+            return None
+        if v < 0:
+            return None
+        if 'players' in info.data and v >= len(info.data['players']):
+            return None
         return v
 
     class Settings:

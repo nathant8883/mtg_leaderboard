@@ -327,9 +327,13 @@ export function EventMatchTracker() {
           (p) => p.position === matchState.gameState!.firstPlayerPosition
         );
         if (firstPlayer?.playerId) {
-          firstPlayerPosition = playerDeckPairs.findIndex(
+          const idx = playerDeckPairs.findIndex(
             (p) => p.player_id === firstPlayer.playerId
           );
+          // findIndex returns -1 when the first player isn't in playerDeckPairs
+          // (e.g. borrowed deck / guest). Leave it undefined rather than sending
+          // -1, which the backend rejects.
+          firstPlayerPosition = idx >= 0 ? idx : undefined;
         }
       }
 
