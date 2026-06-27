@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Crown, Sword, Heart, Skull, X, Clock, Dices, Flag } from 'lucide-react';
 import type { PlayerSlot, LayoutType, ActiveGameState } from '../../pages/MatchTracker';
 import { getSeatColor } from './smash-select';
+import { usePressAndHold } from './usePressAndHold';
 
 interface ActiveGameProps {
   players: PlayerSlot[];
@@ -54,8 +55,8 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
   const [diceStates, setDiceStates] = useState<Record<number, DieState>>({});
   const rollIntervalRef = useRef<number | null>(null);
 
-  // Track active button presses for visual feedback
-  const [activeButton, setActiveButton] = useState<{ position: number; type: 'minus' | 'plus' } | null>(null);
+  // Press-and-hold input for the +/- buttons (multi-touch safe, un-stickable).
+  const pressControls = usePressAndHold();
 
   // Track shake animation for commander damage
   const [isShaking, setIsShaking] = useState(false);
@@ -88,13 +89,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     intent: null,
     playerPosition: null,
   });
-
-  // Hold button state
-  const holdTimerRef = useRef<number | null>(null);
-  const holdIntervalRef = useRef<number | null>(null);
-  const holdStartTime = useRef<number | null>(null);
-  const holdPosition = useRef<number | null>(null);
-  const holdDelta = useRef<number | null>(null);
 
   // Keep a ref to the latest gameState to avoid closure issues
   const gameStateRef = useRef(gameState);
@@ -424,78 +418,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
     checkMatchCompletion(updatedState);
   };
 
-  const clearHoldTimers = () => {
-    if (holdTimerRef.current) {
-      clearTimeout(holdTimerRef.current);
-      holdTimerRef.current = null;
-    }
-    if (holdIntervalRef.current) {
-      clearInterval(holdIntervalRef.current);
-      holdIntervalRef.current = null;
-    }
-  };
-
-  const handleLifeButtonDown = (position: number, delta: number) => {
-    // Clear any existing timers
-    clearHoldTimers();
-
-    // Set active button for visual feedback
-    setActiveButton({ position, type: delta > 0 ? 'plus' : 'minus' });
-
-    // Store button state
-    holdStartTime.current = Date.now();
-    holdPosition.current = position;
-    holdDelta.current = delta;
-
-    // After 0.5 seconds, start incrementing by 10
-    holdTimerRef.current = setTimeout(() => {
-      // First increment immediately
-      handleLifeChange(position, delta * 10);
-      // Then continue every 0.5 seconds
-      holdIntervalRef.current = setInterval(() => {
-        handleLifeChange(position, delta * 10);
-      }, 500);
-    }, 500);
-  };
-
-  const handleLifeButtonUp = () => {
-    // If swipe intent detected, don't trigger button action
-    if (gestureState.current.intent === 'swipe') {
-      // Clear button state
-      setActiveButton(null);
-      clearHoldTimers();
-      holdStartTime.current = null;
-      holdPosition.current = null;
-      holdDelta.current = null;
-      return;
-    }
-
-    // If released before 0.5 seconds, do a single increment
-    const wasHolding = holdIntervalRef.current !== null;
-
-    if (!wasHolding && holdStartTime.current !== null && holdPosition.current !== null && holdDelta.current !== null) {
-      const elapsed = Date.now() - holdStartTime.current;
-      if (elapsed < 500) {
-        handleLifeChange(holdPosition.current, holdDelta.current);
-      }
-    }
-
-    // Clear active button state
-    setActiveButton(null);
-
-    clearHoldTimers();
-    holdStartTime.current = null;
-    holdPosition.current = null;
-    holdDelta.current = null;
-  };
-
-  // Clean up timers on unmount
-  useEffect(() => {
-    return () => {
-      clearHoldTimers();
-    };
-  }, []);
-
   // Reset deltas when switching between life/commander damage modes
   useEffect(() => {
     // Clear all life change deltas
@@ -592,63 +514,6 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
 
     // Check if match should complete (only 1 remaining AND all eliminations confirmed)
     checkMatchCompletion(updatedState);
-  };
-
-  // Commander damage button handlers (reuse hold-to-increment pattern)
-  const handleCommanderDamageButtonDown = (opponentPosition: number, delta: number) => {
-    if (trackingPlayerPosition === null) return;
-
-    // Clear any existing timers
-    clearHoldTimers();
-
-    // Set active button for visual feedback
-    setActiveButton({ position: opponentPosition, type: delta > 0 ? 'plus' : 'minus' });
-
-    // Store button state
-    holdStartTime.current = Date.now();
-    holdPosition.current = opponentPosition; // Store opponent position instead of player position
-    holdDelta.current = delta;
-
-    // After 1 second, start incrementing by 5
-    holdTimerRef.current = setTimeout(() => {
-      // First increment immediately
-      handleCommanderDamageChange(opponentPosition, delta * 5);
-      // Then continue every 1 second
-      holdIntervalRef.current = setInterval(() => {
-        handleCommanderDamageChange(opponentPosition, delta * 5);
-      }, 1000);
-    }, 1000);
-  };
-
-  const handleCommanderDamageButtonUp = (opponentPosition: number) => {
-    // If swipe intent detected, don't trigger button action
-    if (gestureState.current.intent === 'swipe') {
-      // Clear button state
-      setActiveButton(null);
-      clearHoldTimers();
-      holdStartTime.current = null;
-      holdPosition.current = null;
-      holdDelta.current = null;
-      return;
-    }
-
-    // If released before 1 second, do a single increment
-    const wasHolding = holdIntervalRef.current !== null;
-
-    if (!wasHolding && holdStartTime.current !== null && holdPosition.current !== null && holdDelta.current !== null) {
-      const elapsed = Date.now() - holdStartTime.current;
-      if (elapsed < 1000) {
-        handleCommanderDamageChange(opponentPosition, holdDelta.current);
-      }
-    }
-
-    // Clear active button state
-    setActiveButton(null);
-
-    clearHoldTimers();
-    holdStartTime.current = null;
-    holdPosition.current = null;
-    holdDelta.current = null;
   };
 
   // Exit commander damage mode
@@ -819,9 +684,9 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
           gesture.intent = 'swipe';
           gesture.isIntentDetermined = true;
 
-          // Immediately clear button hold timers and active states
-          clearHoldTimers();
-          setActiveButton(null);
+          // Swipe wins the gesture: cancel any in-progress button press so it
+          // doesn't also register a tap or keep its hold-repeat running.
+          pressControls.cancelAll();
         }
       }
     }
@@ -1152,36 +1017,20 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                 <>
                   {/* Life buttons on sides */}
                   <button
-                    className={`life-btn-side life-btn-left ${activeButton?.position === player.position && activeButton?.type === 'minus' ? 'active' : ''}`}
-                    onMouseDown={() => handleLifeButtonDown(player.position, -1)}
-                    onMouseUp={handleLifeButtonUp}
-                    onMouseLeave={handleLifeButtonUp}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      handleLifeButtonDown(player.position, -1);
-                    }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      handleLifeButtonUp();
-                    }}
+                    className={`life-btn-side life-btn-left ${pressControls.isActive(`${player.position}:minus`) ? 'active' : ''}`}
+                    {...pressControls.getPointerHandlers(`${player.position}:minus`, {
+                      onStep: (isHold) => handleLifeChange(player.position, isHold ? -10 : -1),
+                    })}
                     disabled={playerState.eliminated}
                   >
                     {lifeChangeDeltaMap[player.position] < 0 ? lifeChangeDeltaMap[player.position] : '−'}
                   </button>
 
                   <button
-                    className={`life-btn-side life-btn-right ${activeButton?.position === player.position && activeButton?.type === 'plus' ? 'active' : ''}`}
-                    onMouseDown={() => handleLifeButtonDown(player.position, 1)}
-                    onMouseUp={handleLifeButtonUp}
-                    onMouseLeave={handleLifeButtonUp}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      handleLifeButtonDown(player.position, 1);
-                    }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      handleLifeButtonUp();
-                    }}
+                    className={`life-btn-side life-btn-right ${pressControls.isActive(`${player.position}:plus`) ? 'active' : ''}`}
+                    {...pressControls.getPointerHandlers(`${player.position}:plus`, {
+                      onStep: (isHold) => handleLifeChange(player.position, isHold ? 10 : 1),
+                    })}
                     disabled={playerState.eliminated}
                   >
                     {lifeChangeDeltaMap[player.position] > 0 ? `+${lifeChangeDeltaMap[player.position]}` : '+'}
@@ -1243,35 +1092,23 @@ function ActiveGame({ players, layout, gameState, onGameComplete, onExit, onUpda
                     <>
                       {/* Commander damage buttons on sides */}
                       <button
-                        className={`life-btn-side life-btn-left ${activeButton?.position === player.position && activeButton?.type === 'minus' ? 'active' : ''}`}
-                        onMouseDown={() => handleCommanderDamageButtonDown(player.position, -1)}
-                        onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
-                        onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
-                        onTouchStart={(e) => {
-                          e.preventDefault();
-                          handleCommanderDamageButtonDown(player.position, -1);
-                        }}
-                        onTouchEnd={(e) => {
-                          e.preventDefault();
-                          handleCommanderDamageButtonUp(player.position);
-                        }}
+                        className={`life-btn-side life-btn-left ${pressControls.isActive(`${player.position}:minus`) ? 'active' : ''}`}
+                        {...pressControls.getPointerHandlers(`${player.position}:minus`, {
+                          onStep: (isHold) => handleCommanderDamageChange(player.position, isHold ? -5 : -1),
+                          holdDelay: 1000,
+                          repeatInterval: 1000,
+                        })}
                       >
                         {commanderDamageDeltaMap[player.position] < 0 ? commanderDamageDeltaMap[player.position] : '−'}
                       </button>
 
                       <button
-                        className={`life-btn-side life-btn-right ${activeButton?.position === player.position && activeButton?.type === 'plus' ? 'active' : ''}`}
-                        onMouseDown={() => handleCommanderDamageButtonDown(player.position, 1)}
-                        onMouseUp={() => handleCommanderDamageButtonUp(player.position)}
-                        onMouseLeave={() => handleCommanderDamageButtonUp(player.position)}
-                        onTouchStart={(e) => {
-                          e.preventDefault();
-                          handleCommanderDamageButtonDown(player.position, 1);
-                        }}
-                        onTouchEnd={(e) => {
-                          e.preventDefault();
-                          handleCommanderDamageButtonUp(player.position);
-                        }}
+                        className={`life-btn-side life-btn-right ${pressControls.isActive(`${player.position}:plus`) ? 'active' : ''}`}
+                        {...pressControls.getPointerHandlers(`${player.position}:plus`, {
+                          onStep: (isHold) => handleCommanderDamageChange(player.position, isHold ? 5 : 1),
+                          holdDelay: 1000,
+                          repeatInterval: 1000,
+                        })}
                       >
                         {commanderDamageDeltaMap[player.position] > 0 ? `+${commanderDamageDeltaMap[player.position]}` : '+'}
                       </button>

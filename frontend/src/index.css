@@ -1764,6 +1764,9 @@
     overflow: hidden;
     touch-action: pan-y;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
     border-radius: 16px;
   }
 
@@ -2472,7 +2475,14 @@
     justify-content: center;
     transition: all 0.15s ease;
     user-select: none;
+    -webkit-user-select: none;
     z-index: 1;
+    /* Native tactile feel: a press is unambiguously a press — never a scroll
+       candidate (which would fire pointercancel mid-hold), no grey tap flash,
+       and no long-press callout/magnifier over the +/- glyph. */
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
   .life-btn-left {
