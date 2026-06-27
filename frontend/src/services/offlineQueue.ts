@@ -34,18 +34,18 @@ export const ERROR_STRATEGIES: Record<number | string, ErrorStrategy> = {
 const MAX_BACKOFF_MS = 30 * 1000;
 
 /**
- * How long a match may sit in 'syncing' before it's treated as stuck/orphaned.
+ * How long a match may sit in 'syncing' before its label is recovered.
  *
  * A match is set to 'syncing' at the start of syncMatch and cleared (synced or
  * 'error') when it finishes. If the app is closed/reloaded mid-sync (common on
- * mobile — the phone is backgrounded right after a game), it can be stranded in
- * 'syncing' forever: invisible to getPendingMatches/getPendingCount/syncAll but
- * still shown as "Syncing to server..." on the dashboard, with no way to retry
- * or remove it. Any 'syncing' match older than this is considered orphaned and
- * recovered. The threshold is well above a normal create round-trip so a
- * genuinely in-flight sync is never disturbed.
+ * mobile — the phone is backgrounded right after a game), it's stranded in
+ * 'syncing'. getPendingMatches/getPendingCount now surface every queued match
+ * regardless of status, so such a match is always visible; this threshold only
+ * controls when its label flips from a "Syncing…" spinner to a clear, actionable
+ * "interrupted — Republish" error. Kept comfortably above a normal create
+ * round-trip so a genuinely in-flight sync is never mislabeled.
  */
-const STUCK_SYNCING_THRESHOLD_MS = 90 * 1000;
+const STUCK_SYNCING_THRESHOLD_MS = 30 * 1000;
 
 /**
  * Calculate exponential backoff delay
@@ -197,15 +197,19 @@ export const offlineQueue = {
   },
 
   /**
-   * Get all pending matches (not yet synced)
-   * @returns Array of queued matches with status 'pending' or 'error'
+   * Get all matches still waiting to sync.
+   *
+   * The queue only ever holds UNSYNCED matches — successful ones are deleted in
+   * markSynced — so every queued match is "pending sync" regardless of its retry
+   * status. We therefore return them all (sorted oldest-first). Previously this
+   * excluded 'syncing', which meant a match interrupted mid-sync showed on the
+   * dashboard (getAllMatches) but was missing here, so the Sync Queue reported
+   * "0 matches pending" for a match the user could plainly see was stuck.
    */
   async getPendingMatches(): Promise<QueuedMatch[]> {
     await this.recoverStuckMatches();
-    return await db.queuedMatches
-      .where('status')
-      .anyOf(['pending', 'error'])
-      .sortBy('metadata.queuedAt');
+    const all = await db.queuedMatches.toArray();
+    return all.sort((a, b) => a.metadata.queuedAt - b.metadata.queuedAt);
   },
 
   /**
@@ -504,10 +508,7 @@ export const offlineQueue = {
    */
   async getPendingCount(): Promise<number> {
     await this.recoverStuckMatches();
-    return await db.queuedMatches
-      .where('status')
-      .anyOf(['pending', 'error'])
-      .count();
+    return await db.queuedMatches.count();
   },
 
   /**
