@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { SeasonAward } from '../services/api';
-import { getSeasonBadgeStyle, sortBadges } from '../utils/seasonBadges';
+import { getSeasonBadgeStyle, seasonName, sortBadges } from '../utils/seasonBadges';
 import ColorPips from './ColorPips';
 
 interface SeasonBadgesProps {
@@ -43,7 +43,7 @@ function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
               key={award.id}
               onClick={() => setActive(award)}
               className="relative bg-transparent border-none p-0 cursor-pointer transition-transform hover:scale-110 active:scale-95"
-              title={`Season ${award.season} ${style.label}${award.deck_name ? ` - ${award.deck_name}` : ''}`}
+              title={`${seasonName(award.season)} ${style.label}${award.deck_name ? ` - ${award.deck_name}` : ''}`}
             >
               <BadgeIcon award={award} />
               {/* Season number overlay */}
@@ -51,7 +51,7 @@ function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
                 className="absolute -bottom-0.5 -right-1 min-w-5 h-5 px-1 rounded-full flex items-center justify-center text-[10px] font-bold leading-none border-2 border-[#1A1B1E] text-[#1A1B1E]"
                 style={{ background: style.color }}
               >
-                S{award.season}
+                {award.season === 0 ? 'F' : `S${award.season}`}
               </span>
             </button>
           );
@@ -71,7 +71,7 @@ function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
             <div className="flex items-center justify-between p-4 border-b border-[#2C2E33]">
               <div className="flex items-center gap-2">
                 <span className="text-xl">{activeStyle.emoji}</span>
-                <span className="text-white font-semibold">Season {active.season} {activeStyle.label}</span>
+                <span className="text-white font-semibold">{seasonName(active.season)} {activeStyle.label}</span>
               </div>
               <button
                 onClick={() => setActive(null)}

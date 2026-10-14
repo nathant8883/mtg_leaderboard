@@ -36,9 +36,20 @@ export function getSeasonBadgeStyle(badge: Pick<SeasonBadgeRef, 'award_type' | '
   };
 }
 
-/** Short chip text, e.g. "S1 #1" or "S2 ⚡" */
+/** Full season name: "Season 3", or "Founder's Season" for season 0 */
+export function seasonName(season: number): string {
+  return season === 0 ? "Founder's Season" : `Season ${season}`;
+}
+
+/** Compact season tag: "S3", or "Founder" for season 0 */
+export function seasonShortName(season: number): string {
+  return season === 0 ? 'Founder' : `S${season}`;
+}
+
+/** Short chip text, e.g. "S1 #1", "S2 Peak", "Founder #1" */
 export function shortBadgeLabel(badge: SeasonBadgeRef): string {
-  return badge.award_type === 'peak_elo' ? `S${badge.season} Peak` : `S${badge.season} #${badge.placement}`;
+  const tag = seasonShortName(badge.season);
+  return badge.award_type === 'peak_elo' ? `${tag} Peak` : `${tag} #${badge.placement}`;
 }
 
 /** Most prestigious badges first: champion > top deck > 2nd/3rd > peak, newest season first */

@@ -374,6 +374,39 @@ export interface HallOfFameSeason {
   awards: SeasonAward[];
 }
 
+export interface SeasonRecap {
+  season: Season;
+  pod_id: string;
+  pod_name: string | null;
+  games_played: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+  rank: number | null;        // null = unranked (fewer than 4 games)
+  ranked_count: number;
+  games_needed: number;
+  elo: number | null;
+  peak_elo: number | null;
+  top_deck: {
+    deck_id: string;
+    deck_name: string;
+    commander: string | null;
+    commander_image_url: string | null;
+    colors: string[];
+    games_played: number;
+    wins: number;
+  } | null;
+  awards: SeasonAward[];
+  champion: {
+    player_id: string;
+    player_name: string;
+    picture?: string | null;
+    custom_avatar?: string | null;
+    elo?: number | null;
+  } | null;
+  total_games: number;
+}
+
 export interface SeasonStandings {
   season: Season;
   total_games: number;
@@ -705,6 +738,21 @@ export const seasonApi = {
   getStandings: async (seasonNumber: number, limit = 3): Promise<SeasonStandings> => {
     const response = await api.get(`/seasons/${seasonNumber}/standings/`, { params: { limit } });
     return response.data;
+  },
+
+  /** Recap to pop up after a season ends (null if none or already dismissed) */
+  getPendingRecap: async (): Promise<SeasonRecap | null> => {
+    const response = await api.get('/seasons/recap/pending/');
+    return response.data;
+  },
+
+  getRecap: async (seasonNumber: number): Promise<SeasonRecap> => {
+    const response = await api.get(`/seasons/${seasonNumber}/recap/`);
+    return response.data;
+  },
+
+  markRecapSeen: async (seasonNumber: number): Promise<void> => {
+    await api.post(`/seasons/${seasonNumber}/recap/seen/`);
   },
 };
 

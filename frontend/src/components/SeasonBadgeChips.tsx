@@ -1,5 +1,5 @@
 import type { SeasonBadgeRef } from '../services/api';
-import { getSeasonBadgeStyle, shortBadgeLabel, sortBadges } from '../utils/seasonBadges';
+import { getSeasonBadgeStyle, seasonName, shortBadgeLabel, sortBadges } from '../utils/seasonBadges';
 
 interface SeasonBadgeChipsProps {
   badges?: SeasonBadgeRef[];
@@ -25,7 +25,7 @@ function SeasonBadgeChips({ badges, max = 2, className = '' }: SeasonBadgeChipsP
             key={`${badge.season}-${badge.award_type}-${badge.placement}`}
             className="inline-flex items-center gap-0.5 px-1.5 py-[1px] rounded-full text-[10px] font-bold leading-4 whitespace-nowrap border"
             style={{ color: style.color, borderColor: `${style.color}55`, background: `${style.color}14` }}
-            title={`Season ${badge.season} ${style.label}`}
+            title={`${seasonName(badge.season)} ${style.label}`}
           >
             <span aria-hidden>{style.emoji}</span>
             {shortBadgeLabel(badge)}

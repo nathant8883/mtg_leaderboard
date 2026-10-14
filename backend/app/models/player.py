@@ -52,6 +52,9 @@ class Player(Document):
     pod_ids: list[str] = Field(default_factory=list)  # IDs of pods this player belongs to
     current_pod_id: Optional[str] = None  # Currently active pod for this player
 
+    # Season recap popups already dismissed, as "<pod_id>:<season>"
+    seen_season_recaps: list[str] = Field(default_factory=list)
+
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:

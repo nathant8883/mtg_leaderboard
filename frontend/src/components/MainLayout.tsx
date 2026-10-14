@@ -22,6 +22,7 @@ import type { Player, Deck, CreateMatchRequest } from '../services/api';
 import { playerApi, deckApi } from '../services/api';
 import offlineQueue from '../services/offlineQueue';
 import toast from 'react-hot-toast';
+import SeasonRecapPrompt from './SeasonRecapPrompt';
 
 /**
  * MainLayout component - Shared layout for all main app pages
@@ -380,6 +381,8 @@ export function MainLayout() {
           <Outlet />
         </PageTransition>
       </div>
+
+      <SeasonRecapPrompt />
 
       {/* Match Form Modal */}
       {showMatchForm && (

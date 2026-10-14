@@ -2,8 +2,8 @@
 Season calendar: quarterly seasons derived purely from dates.
 
 Season 1 is Q4 2026 (Oct 1 - Dec 31 2026); each calendar quarter after that
-is the next season. Matches dated before Season 1 are "preseason" and only
-count toward all-time stats.
+is the next season. Everything played before Season 1 is the Founder's
+Season (season 0): one long, already-finished season.
 """
 
 from dataclasses import dataclass
@@ -18,6 +18,10 @@ SEASON_1_QUARTER = 4
 
 # Absolute quarter index of Season 1 (year * 4 + zero-based quarter)
 _SEASON_1_INDEX = SEASON_1_YEAR * 4 + (SEASON_1_QUARTER - 1)
+
+# Season 0: every match before Season 1
+FOUNDERS_SEASON = 0
+_FOUNDERS_START = date(2000, 1, 1)  # Earlier than any match; keeps Mongo date bounds sane
 
 
 def _quarter_start(year: int, quarter: int) -> date:
@@ -38,10 +42,14 @@ class Season:
 
     @property
     def label(self) -> str:
+        if self.number == FOUNDERS_SEASON:
+            return "Founder's Season"
         return f"Season {self.number}"
 
     @property
     def quarter_label(self) -> str:
+        if self.number == FOUNDERS_SEASON:
+            return "Before Season 1"
         return f"Q{self.quarter} {self.year}"
 
     def contains(self, d: date) -> bool:
@@ -49,8 +57,16 @@ class Season:
 
 
 def get_season(number: int) -> Season:
-    if number < 1:
+    if number < 0:
         raise ValueError(f"Invalid season number: {number}")
+    if number == FOUNDERS_SEASON:
+        return Season(
+            number=FOUNDERS_SEASON,
+            year=0,
+            quarter=0,
+            start=_FOUNDERS_START,
+            end_exclusive=_quarter_start(SEASON_1_YEAR, SEASON_1_QUARTER),
+        )
     idx = _SEASON_1_INDEX + (number - 1)
     year, quarter = idx // 4, idx % 4 + 1
     next_idx = idx + 1
@@ -63,23 +79,24 @@ def get_season(number: int) -> Season:
     )
 
 
-def season_number_for_date(d: date) -> Optional[int]:
-    """Season number a date falls in, or None for preseason."""
+def season_number_for_date(d: date) -> int:
+    """Season number a date falls in (0 = Founder's Season, before Season 1)."""
     if isinstance(d, datetime):
         d = d.date()
     n = (d.year * 4 + (d.month - 1) // 3) - _SEASON_1_INDEX + 1
-    return n if n >= 1 else None
+    return max(n, FOUNDERS_SEASON)
 
 
 def current_season(today: date) -> Optional[Season]:
+    """The quarterly season in progress (None before Season 1 starts)."""
     n = season_number_for_date(today)
-    return get_season(n) if n else None
+    return get_season(n) if n >= 1 else None
 
 
 def list_seasons(today: date) -> list[Season]:
-    """All seasons that have started as of today, newest first."""
+    """Seasons that have started as of today, newest first, ending with the Founder's Season."""
     n = season_number_for_date(today)
-    return [get_season(i) for i in range(n, 0, -1)] if n else []
+    return [get_season(i) for i in range(n, -1, -1)] if n >= 1 else []
 
 
 def days_remaining(season: Season, today: date) -> int:
@@ -159,7 +176,7 @@ def parse_season_param(raw: Optional[str], today: date) -> SeasonScope:
         n = int(value)
     except ValueError:
         raise ValueError(f"Invalid season: {raw!r}")
-    current_n = season_number_for_date(today) or 0
-    if n < 1 or n > current_n:
+    current_n = season_number_for_date(today)
+    if n < 0 or n > current_n or (current_n == 0 and n == 0):
         raise ValueError(f"Season {n} does not exist yet")
     return SeasonScope(kind="season", season=get_season(n))

@@ -11,6 +11,7 @@ from app.models.season import SeasonAward, SeasonFinalization
 from app.routers.leaderboard import build_deck_leaderboard, build_player_leaderboard, load_pod_stats_data
 from app.services.pod_data import get_pod
 from app.services.season_awards import ensure_pod_seasons_finalized, finalize_season
+from app.services.season_recap import build_season_recap, pending_recap, recap_key
 from app.services.seasons import (
     SeasonScope,
     get_season,
@@ -31,8 +32,8 @@ def _award_out(award: SeasonAward, pod_names: Optional[dict[str, str]] = None) -
 
 
 def _check_season(season_number: int) -> None:
-    current_n = season_number_for_date(season_today()) or 0
-    if season_number < 1 or season_number > current_n:
+    current_n = season_number_for_date(season_today())
+    if current_n < 1 or season_number < 0 or season_number > current_n:
         raise HTTPException(status_code=404, detail=f"Season {season_number} not found")
 
 
@@ -115,6 +116,48 @@ async def get_hall_of_fame(
             "awards": [_award_out(a) for a in season_awards],
         })
     return result
+
+
+@router.get("/recap/pending/")
+async def get_pending_recap(
+    current_player: Player = Depends(get_current_player),
+) -> Optional[Dict[str, Any]]:
+    """End-of-season recap to show this player (null if none or already seen)."""
+    return await pending_recap(current_player)
+
+
+def _require_completed_pod_season(current_player: Player, season_number: int) -> str:
+    _check_season(season_number)
+    if get_season(season_number).end_exclusive > season_today():
+        raise HTTPException(status_code=400, detail="Season has not ended yet")
+    if not current_player.current_pod_id:
+        raise HTTPException(status_code=400, detail="No pod selected")
+    return current_player.current_pod_id
+
+
+@router.get("/{season_number}/recap/")
+async def get_season_recap(
+    season_number: int,
+    current_player: Player = Depends(get_current_player),
+) -> Dict[str, Any]:
+    """The current player's recap for a finished season (re-opening the popup)."""
+    pod_id = _require_completed_pod_season(current_player, season_number)
+    await ensure_pod_seasons_finalized(pod_id)
+    return await build_season_recap(pod_id, season_number, str(current_player.id))
+
+
+@router.post("/{season_number}/recap/seen/")
+async def mark_recap_seen(
+    season_number: int,
+    current_player: Player = Depends(get_current_player),
+) -> Dict[str, Any]:
+    """Dismiss the recap popup for a season (it can still be reopened from the Hall of Fame)."""
+    pod_id = _require_completed_pod_season(current_player, season_number)
+    await Player.get_pymongo_collection().update_one(
+        {"_id": current_player.id},
+        {"$addToSet": {"seen_season_recaps": recap_key(pod_id, season_number)}},
+    )
+    return {"ok": True}
 
 
 @router.get("/{season_number}/standings/")

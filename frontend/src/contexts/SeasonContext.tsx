@@ -27,7 +27,7 @@ const readStoredSelection = (): SeasonParam => {
     const raw = sessionStorage.getItem(SELECTED_SEASON_KEY);
     if (raw === 'all' || raw === 'current' || raw === null) return (raw ?? 'current') as SeasonParam;
     const n = Number(raw);
-    return Number.isInteger(n) && n > 0 ? n : 'current';
+    return Number.isInteger(n) && n >= 0 ? n : 'current';  // 0 = Founder's Season
   } catch {
     return 'current';
   }

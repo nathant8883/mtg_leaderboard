@@ -9,10 +9,12 @@ import { useSeason } from '../contexts/SeasonContext';
 import {
   seasonApi,
   type HallOfFameSeason,
+  type SeasonRecap,
   type SeasonAward,
   type SeasonStandings,
 } from '../services/api';
 import { getSeasonBadgeStyle } from '../utils/seasonBadges';
+import SeasonRecapModal from '../components/SeasonRecapModal';
 
 const PODIUM_ORDER = [2, 1, 3]; // Visual order: 2nd, 1st, 3rd
 
@@ -67,16 +69,31 @@ function DeckRow({ award }: { award: SeasonAward }) {
   );
 }
 
-function SeasonCard({ entry, onPlayerClick }: { entry: HallOfFameSeason; onPlayerClick: (id: string) => void }) {
+function SeasonCard({ entry, onPlayerClick, onOpenRecap }: {
+  entry: HallOfFameSeason;
+  onPlayerClick: (id: string) => void;
+  onOpenRecap?: () => void;
+}) {
   const players = entry.awards.filter(a => a.award_type === 'player_placement');
   const decks = entry.awards.filter(a => a.award_type === 'deck_placement').sort((a, b) => a.placement - b.placement);
   const peak = entry.awards.find(a => a.award_type === 'peak_elo');
 
   return (
     <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-4 md:p-6">
-      <div className="flex items-baseline justify-between gap-2 mb-4">
-        <h2 className="text-white text-xl font-bold m-0">{entry.season.label}</h2>
-        <span className="text-[#909296] text-sm">{entry.season.quarter_label}</span>
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="min-w-0">
+          <h2 className="text-white text-xl font-bold m-0">{entry.season.label}</h2>
+          <span className="text-[#909296] text-sm">{entry.season.quarter_label}</span>
+        </div>
+        {onOpenRecap && (
+          <button
+            type="button"
+            onClick={onOpenRecap}
+            className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[#2C2E33] bg-[#25262B] text-[#C1C2C5] text-xs font-semibold cursor-pointer transition-colors hover:border-[#667eea] hover:text-white"
+          >
+            Your recap
+          </button>
+        )}
       </div>
 
       {players.length === 0 ? (
@@ -158,6 +175,13 @@ export function Seasons() {
   const [history, setHistory] = useState<HallOfFameSeason[]>([]);
   const [live, setLive] = useState<SeasonStandings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recap, setRecap] = useState<SeasonRecap | null>(null);
+
+  const openRecap = (seasonNumber: number) => {
+    seasonApi.getRecap(seasonNumber)
+      .then(setRecap)
+      .catch(err => console.error('Error loading season recap:', err));
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -200,7 +224,12 @@ export function Seasons() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {live && <LiveStandingsCard standings={live} onPlayerClick={goToPlayer} />}
           {history.map(entry => (
-            <SeasonCard key={entry.season.number} entry={entry} onPlayerClick={goToPlayer} />
+            <SeasonCard
+              key={entry.season.number}
+              entry={entry}
+              onPlayerClick={goToPlayer}
+              onOpenRecap={currentPlayer && !isGuest ? () => openRecap(entry.season.number) : undefined}
+            />
           ))}
           {!live && history.length === 0 && (
             <p className="text-[#909296] text-center py-10 md:col-span-2">
@@ -209,6 +238,8 @@ export function Seasons() {
           )}
         </div>
       )}
+
+      {recap && <SeasonRecapModal recap={recap} onClose={() => setRecap(null)} />}
     </div>
   );
 }

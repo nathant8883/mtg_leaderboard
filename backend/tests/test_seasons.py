@@ -12,8 +12,8 @@ from app.services.seasons import (
 
 
 @pytest.mark.parametrize("d, expected", [
-    (date(2026, 9, 30), None),
-    (date(2020, 1, 1), None),
+    (date(2026, 9, 30), 0),
+    (date(2020, 1, 1), 0),
     (date(2026, 10, 1), 1),
     (date(2026, 12, 31), 1),
     (date(2027, 1, 1), 2),
@@ -47,12 +47,20 @@ def test_get_season_round_trip(n):
 
 def test_get_season_invalid():
     with pytest.raises(ValueError):
-        get_season(0)
+        get_season(-1)
+
+
+def test_founders_season():
+    s = get_season(0)
+    assert s.label == "Founder's Season"
+    assert s.end_exclusive == date(2026, 10, 1)
+    assert s.contains(date(2025, 3, 1)) and not s.contains(date(2026, 10, 1))
+    assert days_remaining(s, date(2026, 10, 14)) == 0
 
 
 def test_list_seasons():
     assert list_seasons(date(2026, 9, 1)) == []
-    assert [s.number for s in list_seasons(date(2027, 5, 1))] == [3, 2, 1]
+    assert [s.number for s in list_seasons(date(2027, 5, 1))] == [3, 2, 1, 0]
 
 
 def test_days_remaining():
@@ -82,10 +90,18 @@ class TestParseSeasonParam:
         assert scope.includes(date(2026, 12, 31))
         assert not scope.includes(date(2027, 1, 1))
 
-    @pytest.mark.parametrize("raw", ["0", "-1", "3", "99", "abc", "1.5"])
+    def test_founders(self):
+        scope = parse_season_param("0", self.today)
+        assert scope.season.number == 0
+        start, end = scope.date_bounds()
+        assert start == datetime(2000, 1, 1) and end == datetime(2026, 10, 1)
+
+    @pytest.mark.parametrize("raw", ["-1", "3", "99", "abc", "1.5"])
     def test_invalid(self, raw):
         with pytest.raises(ValueError):
             parse_season_param(raw, self.today)
 
     def test_preseason_current_is_all_time(self):
         assert parse_season_param("current", date(2026, 9, 1)).is_all
+        with pytest.raises(ValueError):
+            parse_season_param("0", date(2026, 9, 1))  # Founder's Season only exists once Season 1 starts

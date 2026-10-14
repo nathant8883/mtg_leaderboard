@@ -17,7 +17,7 @@ from pymongo.errors import DuplicateKeyError
 from app.models.match import Match
 from app.models.player import Deck, Player
 from app.models.season import SeasonAward, SeasonFinalization
-from app.services.pod_data import ENABLED_DECK_FILTER, NON_GUEST_FILTER, fetch_pod_matches
+from app.services.pod_data import NON_GUEST_FILTER, fetch_pod_matches
 from app.services.season_stats import (
     build_season_awards,
     compute_deck_standings,
@@ -55,12 +55,10 @@ async def compute_season_standings(pod_id: str, season_number: int, matches: Opt
     player_ids = {mp.player_id for m in matches for mp in m.players}
     deck_ids = {mp.deck_id for m in matches for mp in m.players}
 
-    decks = await Deck.find({
-        "$and": [
-            {"_id": {"$in": [PydanticObjectId(d) for d in deck_ids if PydanticObjectId.is_valid(d)]}},
-            ENABLED_DECK_FILTER,
-        ]
-    }).to_list()
+    # Retired (disabled) decks still earn awards for seasons they played in
+    decks = await Deck.find(
+        {"_id": {"$in": [PydanticObjectId(d) for d in deck_ids if PydanticObjectId.is_valid(d)]}}
+    ).to_list()
 
     people_ids = player_ids | {d.player_id for d in decks}
     players = await Player.find({
@@ -189,7 +187,7 @@ async def mark_season_stale(pod_id: Optional[str], dates: Iterable[Optional[date
     today = season_today()
     seasons = {
         n for d in dates
-        if d is not None and (n := season_number_for_date(d)) and _is_complete(n, today)
+        if d is not None and _is_complete(n := season_number_for_date(d), today)
     }
     if not seasons:
         return

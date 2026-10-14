@@ -101,7 +101,10 @@ async def build_deck_leaderboard(data: PodStatsData) -> list[Dict[str, Any]]:
     if not data.pod:
         return []
 
-    leaderboard = compute_deck_standings(data.enabled_decks, data.matches, data.owner_lookup())
+    # Finished seasons include since-retired decks, matching the season awards
+    season = data.scope.season
+    decks = data.decks if season and season.end_exclusive <= season_today() else data.enabled_decks
+    leaderboard = compute_deck_standings(decks, data.matches, data.owner_lookup())
 
     badges = await badges_by_deck([e["deck_id"] for e in leaderboard])
     for entry in leaderboard:
