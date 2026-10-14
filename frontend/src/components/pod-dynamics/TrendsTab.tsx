@@ -162,9 +162,6 @@ export function TrendsTab({ playerId }: TrendsTabProps) {
             <TrendingUp size={18} className="text-[#667eea]" />
             {season === 'all' ? 'Elo Progression' : 'Season Elo'}
           </h3>
-          {season !== 'all' && (
-            <p className="text-xs text-[#909296] -mt-2 mb-3">Everyone starts each season at 1000.</p>
-          )}
           <EloChart data={eloData} />
         </div>
       )}

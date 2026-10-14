@@ -346,8 +346,7 @@ function PlayerDetail() {
               )}
             </div>
             <div className="text-center text-[#909296] text-sm mb-3">
-              {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'}
-              {playerDetail.season ? ` in ${playerDetail.season.label}` : ''} • Member since {formatMemberSince(playerDetail.member_since)}
+              {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'} • Member since {formatMemberSince(playerDetail.member_since)}
             </div>
             <div className="flex justify-center mb-4">
               <SeasonSelector />
@@ -387,11 +386,6 @@ function PlayerDetail() {
                       <span className="text-xs font-semibold text-[#909296] ml-2">peak {playerDetail.season_peak_elo}</span>
                     )}
                   </span>
-                </div>
-              )}
-              {playerDetail.season && playerDetail.total_games === 0 && (
-                <div className="text-center text-[#909296] text-xs">
-                  No games in this pod during {playerDetail.season.label} yet
                 </div>
               )}
               <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">

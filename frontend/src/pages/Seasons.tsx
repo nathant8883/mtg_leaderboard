@@ -80,9 +80,7 @@ function SeasonCard({ entry, onPlayerClick }: { entry: HallOfFameSeason; onPlaye
       </div>
 
       {players.length === 0 ? (
-        <p className="text-[#909296] text-sm text-center py-6 m-0">
-          Nobody played the 4 games needed to place this season.
-        </p>
+        <p className="text-[#909296] text-sm text-center py-6 m-0">No ranked players</p>
       ) : (
         <div className="flex items-start justify-center gap-2 mb-5">
           {PODIUM_ORDER.map(place => {
@@ -121,20 +119,15 @@ function LiveStandingsCard({ standings, onPlayerClick }: { standings: SeasonStan
   const { season } = standings;
   return (
     <div className="bg-gradient-card border border-[rgba(102,126,234,0.4)] rounded-[16px] p-4 md:p-6">
-      <div className="flex items-center justify-between gap-2 mb-1">
+      <div className="flex items-center justify-between gap-2 mb-4">
         <h2 className="text-white text-xl font-bold m-0">{season.label}</h2>
         <span className="text-[10px] uppercase tracking-wide font-bold px-2 py-0.5 rounded-full bg-[rgba(51,217,178,0.15)] text-[#33D9B2]">
-          In progress
+          Live
         </span>
       </div>
-      <p className="text-[#909296] text-sm mt-0 mb-4">
-        {season.quarter_label} · {standings.total_games} games · ends in {season.days_remaining} days
-      </p>
 
       {standings.players.length === 0 ? (
-        <p className="text-[#909296] text-sm text-center py-4 m-0">
-          No one has the 4 games needed to rank yet. Get playing!
-        </p>
+        <p className="text-[#909296] text-sm text-center py-4 m-0">No ranked players yet</p>
       ) : (
         <div className="flex flex-col gap-2">
           {standings.players.map((p, i) => (
@@ -197,12 +190,7 @@ export function Seasons() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-white m-0">👑 Hall of Fame</h1>
-        <p className="text-[#909296] text-sm mt-1 mb-0">
-          Seasons run each quarter. Elo resets to 1000, and the top players and decks earn badges when the season ends.
-        </p>
-      </div>
+      <h1 className="text-2xl font-bold text-white mt-0 mb-4">👑 Hall of Fame</h1>
 
       {loading ? (
         <div className="text-center py-16">
