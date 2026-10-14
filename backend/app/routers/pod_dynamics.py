@@ -19,6 +19,9 @@ from app.models.player import Player
 from app.models.match import Match
 from app.models.analytics import PlayerEloRating, EloHistoryEntry
 from app.middleware.auth import get_optional_player
+from app.services.pod_data import fetch_pod_matches, season_match_filter, season_scope_dep
+from app.services.season_stats import replay_elo
+from app.services.seasons import SeasonScope
 from beanie import PydanticObjectId
 
 router = APIRouter()
@@ -27,7 +30,8 @@ router = APIRouter()
 @router.get("/elo-history")
 async def get_elo_history(
     player_id: Optional[str] = Query(None, description="Player ID (defaults to current player)"),
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get Elo history for a player within their current pod.
@@ -45,6 +49,28 @@ async def get_elo_history(
 
     # Use provided player_id or default to current player
     target_player_id = player_id or str(current_player.id)
+
+    if not scope.is_all:
+        # Season Elo: everyone starts the season at 1000; replay just this season's matches
+        matches = await fetch_pod_matches(current_player.current_pod_id, scope)
+        state = replay_elo(matches).get(target_player_id)
+        if not state:
+            return {"history": [], "current_elo": 1000, "peak_elo": 1000, "lowest_elo": 1000, "games_rated": 0}
+        return {
+            "history": [
+                {
+                    "match_id": pt.match_id,
+                    "elo": round(pt.elo_after),
+                    "change": round(pt.elo_change, 1),
+                    "date": pt.match_date.isoformat(),
+                }
+                for pt in state.history
+            ],
+            "current_elo": round(state.elo),
+            "peak_elo": round(state.peak),
+            "lowest_elo": round(state.lowest),
+            "games_rated": state.games_rated,
+        }
 
     # Get current rating
     rating = await PlayerEloRating.find_one(
@@ -80,7 +106,8 @@ async def get_elo_history(
 @router.get("/player-trends")
 async def get_player_trends(
     player_id: Optional[str] = Query(None, description="Player ID (defaults to current player)"),
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get comprehensive trend data for a player.
@@ -106,7 +133,7 @@ async def get_player_trends(
 
     # Get all matches in pod where this player participated
     all_matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).sort(-Match.match_date, -Match.created_at).to_list()
 
     # Filter to matches where target player participated
@@ -281,7 +308,8 @@ async def get_player_trends(
 
 @router.get("/overview")
 async def get_pod_dynamics_overview(
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get overview stats for the Pod Dynamics page header.
@@ -297,7 +325,7 @@ async def get_pod_dynamics_overview(
         }
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).to_list()
 
     if not matches:
@@ -338,7 +366,8 @@ async def get_pod_dynamics_overview(
 
 @router.get("/matchups")
 async def get_head_to_head_matchups(
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get head-to-head win rates between all players in the pod.
@@ -349,7 +378,7 @@ async def get_head_to_head_matchups(
         return {"players": [], "matchups": {}}
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).to_list()
 
     if not matches:
@@ -416,7 +445,8 @@ async def get_head_to_head_matchups(
 @router.get("/games-together")
 async def get_games_together_stats(
     player_id: Optional[str] = Query(None, description="Player ID (defaults to current player)"),
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get statistics about how often players have played together.
@@ -436,7 +466,7 @@ async def get_games_together_stats(
     target_player_id = player_id or str(current_player.id)
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).to_list()
 
     # Filter to matches where target player participated
@@ -519,7 +549,8 @@ async def get_games_together_stats(
 
 @router.get("/deck-stats")
 async def get_deck_stats(
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get deck/commander performance statistics for the pod.
@@ -534,7 +565,7 @@ async def get_deck_stats(
         }
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).to_list()
 
     if not matches:
@@ -645,7 +676,8 @@ async def get_deck_stats(
 
 @router.get("/color-stats")
 async def get_color_stats(
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get color performance statistics for the pod.
@@ -661,7 +693,7 @@ async def get_color_stats(
         }
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).to_list()
 
     if not matches:
@@ -749,7 +781,8 @@ async def get_color_stats(
 
 @router.get("/insights")
 async def get_auto_insights(
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Generate auto-generated insights for the pod.
@@ -761,7 +794,7 @@ async def get_auto_insights(
         return {"insights": [], "pod_health": {}}
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).sort(-Match.match_date, -Match.created_at).to_list()
 
     if not matches:
@@ -1042,7 +1075,8 @@ async def get_play_frequency_calendar(
 
 @router.get("/elimination-stats")
 async def get_elimination_stats(
-    current_player: Optional[Player] = Depends(get_optional_player)
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
 ) -> Dict[str, Any]:
     """
     Get elimination/scoop statistics for the pod.
@@ -1068,7 +1102,7 @@ async def get_elimination_stats(
         }
 
     matches = await Match.find(
-        Match.pod_id == current_player.current_pod_id
+        season_match_filter(current_player.current_pod_id, scope)
     ).to_list()
 
     if not matches:

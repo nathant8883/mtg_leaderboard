@@ -1,3 +1,6 @@
+from datetime import date
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,6 +38,10 @@ class Settings(BaseSettings):
 
     # Logfire observability
     logfire_token: str = ""
+
+    # Seasons: quarter rollover happens at midnight in this timezone
+    season_timezone: str = "America/Chicago"
+    season_today_override: Optional[date] = None  # Dev only: pretend "today" is this date
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

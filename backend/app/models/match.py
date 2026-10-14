@@ -72,6 +72,9 @@ class Match(Document):
 
     class Settings:
         name = "matches"
+        indexes = [
+            [("pod_id", 1), ("match_date", -1)],
+        ]
         use_state_management = True
         use_revision = False
 

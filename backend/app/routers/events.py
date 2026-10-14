@@ -7,6 +7,7 @@ import random
 
 from app.models.event import Event, EventPlayer, PlayerDeckInfo, PodAssignment, Round, RoundResult, StandingsEntry, DraftSet, DraftDeck
 from app.services.scryfall import scryfall_service
+from app.services.season_awards import mark_season_stale
 from app.models.match import Match
 from app.models.player import Player, Deck
 from app.models.pod import Pod
@@ -483,7 +484,10 @@ async def delete_event(
         )
 
     # Delete all matches associated with this event
+    event_matches = await Match.find(Match.event_id == str(event_id)).to_list()
     await Match.find(Match.event_id == str(event_id)).delete()
+    for pod_id in {m.pod_id for m in event_matches if m.pod_id}:
+        await mark_season_stale(pod_id, [m.match_date for m in event_matches if m.pod_id == pod_id])
 
     await event.delete()
 

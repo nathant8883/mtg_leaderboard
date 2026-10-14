@@ -7,6 +7,7 @@ from app.models.match import Match
 from app.models.pod import Pod, PodInvite
 from app.models.analytics import PlayerEloRating, EloHistoryEntry
 from app.models.event import Event
+from app.models.season import SeasonAward, SeasonFinalization
 
 
 async def init_db():
@@ -17,7 +18,8 @@ async def init_db():
     # Initialize Beanie with all document models
     await init_beanie(
         database=database,
-        document_models=[Player, Deck, Match, Pod, PodInvite, PlayerEloRating, EloHistoryEntry, Event]
+        document_models=[Player, Deck, Match, Pod, PodInvite, PlayerEloRating, EloHistoryEntry, Event,
+                         SeasonAward, SeasonFinalization]
     )
 
     print(f"Connected to MongoDB: {settings.database_name}")

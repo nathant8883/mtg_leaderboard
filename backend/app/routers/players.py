@@ -8,6 +8,10 @@ from app.models.match import Match
 from app.models.pod import Pod
 from app.models.event import Event
 from app.middleware.auth import get_current_player, get_optional_player
+from app.routers.leaderboard import build_player_leaderboard, load_pod_stats_data
+from app.services.pod_data import season_scope_dep
+from app.services.season_awards import badges_by_deck
+from app.services.seasons import SeasonScope, season_to_dict, season_today
 
 logger = logging.getLogger(__name__)
 
@@ -109,8 +113,17 @@ async def get_player(player_id: PydanticObjectId):
 
 
 @router.get("/{player_id}/detail")
-async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
-    """Get detailed player information including rank, stats, and deck performance"""
+async def get_player_detail(
+    player_id: PydanticObjectId,
+    current_player: Optional[Player] = Depends(get_optional_player),
+    scope: SeasonScope = Depends(season_scope_dep),
+) -> Dict[str, Any]:
+    """
+    Get detailed player information including rank, stats, and deck performance.
+
+    All-time view counts every match across pods. A season view is scoped to
+    the viewer's current pod, ranked by season Elo like the leaderboard.
+    """
     # Get the player
     player = await Player.get(player_id)
     if not player:
@@ -125,32 +138,49 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
 
     player_id_str = str(player.id)
 
-    # Get all matches and players for rank calculation
-    all_matches = await Match.find_all().to_list()
-    all_players = await Player.find_all().to_list()
+    season_elo = None
+    season_peak_elo = None
+
+    if scope.is_all:
+        # Get all matches and players for rank calculation
+        all_matches = await Match.find_all().to_list()
+        all_players = await Player.find_all().to_list()
+
+        # Calculate rank by comparing with all players
+        player_records = []
+        for p in all_players:
+            p_id = str(p.id)
+            p_games = sum(1 for match in all_matches if any(mp.player_id == p_id for mp in match.players))
+            p_wins = sum(1 for match in all_matches if match.winner_player_id == p_id)
+            p_win_rate = (p_wins / p_games * 100) if p_games > 0 else 0
+            player_records.append({
+                "player_id": p_id,
+                "win_rate": p_win_rate,
+                "wins": p_wins
+            })
+
+        # Sort by win rate, then wins
+        player_records.sort(key=lambda x: (x["win_rate"], x["wins"]), reverse=True)
+        rank = next((i + 1 for i, p in enumerate(player_records) if p["player_id"] == player_id_str), None)
+    else:
+        data = await load_pod_stats_data(current_player, scope)
+        all_matches = data.matches
+        leaderboard = await build_player_leaderboard(data)
+        # Same ordering as the season leaderboard; unranked players (< min games) get no rank
+        rank = next(
+            (i + 1 for i, e in enumerate(leaderboard) if e["player_id"] == player_id_str and e["ranked"]),
+            None,
+        )
+        state = data.season_elo.get(player_id_str)
+        if state and state.games_rated > 0:
+            season_elo = round(state.elo)
+            season_peak_elo = round(state.peak)
 
     # Calculate this player's stats
     games_played = sum(1 for match in all_matches if any(p.player_id == player_id_str for p in match.players))
     wins = sum(1 for match in all_matches if match.winner_player_id == player_id_str)
     losses = games_played - wins
     win_rate = (wins / games_played * 100) if games_played > 0 else 0
-
-    # Calculate rank by comparing with all players
-    player_records = []
-    for p in all_players:
-        p_id = str(p.id)
-        p_games = sum(1 for match in all_matches if any(mp.player_id == p_id for mp in match.players))
-        p_wins = sum(1 for match in all_matches if match.winner_player_id == p_id)
-        p_win_rate = (p_wins / p_games * 100) if p_games > 0 else 0
-        player_records.append({
-            "player_id": p_id,
-            "win_rate": p_win_rate,
-            "wins": p_wins
-        })
-
-    # Sort by win rate, then wins
-    player_records.sort(key=lambda x: (x["win_rate"], x["wins"]), reverse=True)
-    rank = next((i + 1 for i, p in enumerate(player_records) if p["player_id"] == player_id_str), None)
 
     # Get player's decks with stats
     player_decks = await Deck.find(Deck.player_id == player_id_str).to_list()
@@ -178,6 +208,10 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
 
     # Sort decks by win rate
     deck_stats.sort(key=lambda x: (x["win_rate"], x["wins"]), reverse=True)
+
+    deck_badges = await badges_by_deck([d["deck_id"] for d in deck_stats])
+    for d in deck_stats:
+        d["season_badges"] = deck_badges.get(d["deck_id"], [])
 
     # Calculate favorite colors (only from enabled decks)
     from collections import Counter
@@ -218,7 +252,10 @@ async def get_player_detail(player_id: PydanticObjectId) -> Dict[str, Any]:
         "member_since": player.created_at,
         "favorite_single_color": favorite_single_color,
         "favorite_color_combo": favorite_color_combo,
-        "decks": deck_stats  # Include all decks (enabled and disabled) with disabled flag
+        "decks": deck_stats,  # Include all decks (enabled and disabled) with disabled flag
+        "season": season_to_dict(scope.season, season_today()) if scope.season else None,
+        "season_elo": season_elo,
+        "season_peak_elo": season_peak_elo,
     }
 
 

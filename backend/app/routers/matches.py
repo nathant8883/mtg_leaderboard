@@ -9,6 +9,7 @@ from app.models.player import Player, Deck
 from app.models.pod import Pod
 from app.middleware.auth import get_optional_player
 from app.services.elo_service import process_match_elo, recalculate_pod_elo
+from app.services.season_awards import mark_season_stale
 
 router = APIRouter()
 
@@ -238,6 +239,8 @@ async def create_match(
     # Process Elo ratings for this match
     if match.pod_id:
         await process_match_elo(match)
+        # Late/offline-synced matches can land in an already-finished season
+        await mark_season_stale(match.pod_id, [match.match_date])
 
     # Return serialized match
     return serialize_match(match)
@@ -253,6 +256,9 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
     match = await Match.get(match_id)
     if not match:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found")
+
+    # Captured before edits so moving a match between seasons refreshes both
+    original_match_date = match.match_date
 
     # Update match date if provided
     if request.match_date is not None:
@@ -364,6 +370,7 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
     # Recalculate Elo for the pod since match was modified
     if match.pod_id:
         await recalculate_pod_elo(match.pod_id)
+        await mark_season_stale(match.pod_id, [original_match_date, match.match_date])
 
     return serialize_match(match)
 
@@ -377,9 +384,11 @@ async def delete_match(match_id: PydanticObjectId):
 
     # Store pod_id before deleting
     pod_id = match.pod_id
+    match_date = match.match_date
 
     await match.delete()
 
     # Recalculate Elo for the pod since match was deleted
     if pod_id:
         await recalculate_pod_elo(pod_id)
+        await mark_season_stale(pod_id, [match_date])

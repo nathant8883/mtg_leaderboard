@@ -6,7 +6,7 @@ import logfire
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.routers import players, decks, matches, leaderboard, scryfall, auth, pods, analytics, pod_dynamics, events
+from app.routers import players, decks, matches, leaderboard, scryfall, auth, pods, analytics, pod_dynamics, events, seasons
 
 if settings.logfire_token:
     logfire.configure(token=settings.logfire_token)
@@ -58,6 +58,7 @@ app.include_router(scryfall.router, prefix="/api/scryfall", tags=["scryfall"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(pod_dynamics.router, prefix="/api/pod-dynamics", tags=["pod-dynamics"])
 app.include_router(events.router, prefix="/api/events", tags=["events"])
+app.include_router(seasons.router, prefix="/api/seasons", tags=["seasons"])
 
 
 @app.get("/")
