@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { leaderboardApi, type PlayerLeaderboardEntry } from '../services/api';
+import { useSeason } from '../contexts/SeasonContext';
 import PlayerAvatar from './PlayerAvatar';
 import TierBadge from './TierBadge';
 import { getEloTier, TIER_CONFIG } from '../utils/tierConfig';
+import SeasonBadgeChips from './SeasonBadgeChips';
 
 interface TopPlayersProps {
   onViewLeaderboard: () => void;
@@ -10,6 +12,7 @@ interface TopPlayersProps {
 }
 
 function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
+  const { selected: season } = useSeason();
   const [players, setPlayers] = useState<PlayerLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,12 +28,12 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
     return () => {
       window.removeEventListener('podSwitched', handlePodSwitch);
     };
-  }, []);
+  }, [season]);
 
   const loadTopPlayers = async () => {
     try {
       setLoading(true);
-      const data = await leaderboardApi.getPlayerLeaderboard();
+      const data = await leaderboardApi.getPlayerLeaderboard(season);
       // Only show ranked players (4+ games) on the dashboard
       setPlayers(data.filter(p => p.ranked).slice(0, 3));
     } catch (err) {
@@ -136,6 +139,7 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
                       >
                         {player.player_name}
                       </span>
+                      <SeasonBadgeChips badges={player.season_badges} />
                     </div>
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">
@@ -198,7 +202,10 @@ function TopPlayers({ onViewLeaderboard, onPlayerClick }: TopPlayersProps) {
               <div className="flex-1 min-w-0 flex gap-2">
                 {/* Left column - name and record */}
                 <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                  <div className="text-base font-semibold text-white whitespace-nowrap">{player.player_name}</div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-base font-semibold text-white whitespace-nowrap truncate">{player.player_name}</span>
+                    <SeasonBadgeChips badges={player.season_badges} max={1} />
+                  </div>
                   <div className="text-xs text-text-muted mt-1.5">{player.wins}-{player.losses} ({player.win_rate.toFixed(0)}%)</div>
                 </div>
 

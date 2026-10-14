@@ -3,6 +3,8 @@ import PlayerAvatar from './PlayerAvatar';
 import TierBadge from './TierBadge';
 import { getEloTier } from '../utils/tierConfig';
 import { PlayerLeaderboardCard } from './leaderboard';
+import SeasonBadgeChips from './SeasonBadgeChips';
+import { useSeason } from '../contexts/SeasonContext';
 
 const MIN_GAMES_FOR_RANKING = 4;
 
@@ -20,6 +22,8 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
     if (rank === 3) return `${baseClass} rank-badge-bronze`;
     return baseClass;
   };
+
+  const seasonView = useSeason().selected !== 'all';
 
   // Get all ranked player Elos for percentile calculation
   const rankedElos = players
@@ -79,7 +83,7 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
             <tr>
               <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Rank</th>
               <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-left uppercase border-b border-[#2C2E33]">Player</th>
-              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Elo</th>
+              <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">{seasonView ? 'Season Elo' : 'Elo'}</th>
               <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Record</th>
               <th className="text-[#909296] text-xs font-semibold py-3 px-3 text-center uppercase border-b border-[#2C2E33]">Tier</th>
             </tr>
@@ -116,6 +120,7 @@ function PlayerLeaderboard({ players, loading = false, onPlayerClick }: PlayerLe
                       >
                         {player.player_name}
                       </span>
+                      <SeasonBadgeChips badges={player.season_badges} />
                     </div>
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33] text-center">

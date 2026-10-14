@@ -3,6 +3,7 @@ import { IconCards, IconTrophy, IconSword, IconScale, IconChartBar, IconCrown } 
 import ColorPips from './ColorPips';
 import PlayerAvatar from './PlayerAvatar';
 import { leaderboardApi, type DashboardStats } from '../services/api';
+import { useSeason } from '../contexts/SeasonContext';
 
 const COLOR_NAMES: Record<string, string> = {
   W: 'White',
@@ -199,6 +200,7 @@ function StatsCards() {
   const getColorName = (color: string): string => {
     return COLOR_NAMES[color] || color;
   };
+  const { selected: season } = useSeason();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
@@ -215,12 +217,12 @@ function StatsCards() {
     return () => {
       window.removeEventListener('podSwitched', handlePodSwitch);
     };
-  }, []);
+  }, [season]);
 
   const loadStats = async () => {
     try {
       setLoading(true);
-      const data = await leaderboardApi.getStats();
+      const data = await leaderboardApi.getStats(season);
       setStats(data);
     } catch (err) {
       console.error('Error loading stats:', err);

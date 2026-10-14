@@ -5,6 +5,8 @@ import PlayerAvatar from '../PlayerAvatar';
 import TierBadge from '../TierBadge';
 import { EloTrendIndicator } from './EloTrendIndicator';
 import { RankBadgeOverlay } from './RankBadgeOverlay';
+import SeasonBadgeChips from '../SeasonBadgeChips';
+import { useSeason } from '../../contexts/SeasonContext';
 
 const MIN_GAMES_FOR_RANKING = 4;
 
@@ -22,6 +24,7 @@ export function PlayerLeaderboardCard({
   onTap,
 }: PlayerLeaderboardCardProps) {
   const isRanked = player.ranked;
+  const seasonView = useSeason().selected !== 'all';
   const isTopThree = rank !== null && rank <= 3;
   const gamesNeeded = MIN_GAMES_FOR_RANKING - player.games_played;
 
@@ -64,6 +67,7 @@ export function PlayerLeaderboardCard({
             <h3 className="text-lg font-bold text-white truncate">
               {player.player_name}
             </h3>
+            <SeasonBadgeChips badges={player.season_badges} className="mb-0.5" />
             <p className="text-sm text-[#909296]">
               {isRanked
                 ? `Rank #${rank}`
@@ -76,7 +80,7 @@ export function PlayerLeaderboardCard({
         <div className="flex gap-3 mb-4">
           <div className="flex-1 p-3 bg-[#25262B] rounded-[10px]">
             <div className="text-[10px] uppercase text-[#909296] mb-1 tracking-wide">
-              Elo Rating
+              {seasonView ? 'Season Elo' : 'Elo Rating'}
             </div>
             {player.elo ? (
               <EloTrendIndicator

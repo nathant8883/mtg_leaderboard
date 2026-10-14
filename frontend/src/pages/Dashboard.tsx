@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatsCards from '../components/StatsCards';
+import SeasonBanner from '../components/SeasonBanner';
 import TopPlayers from '../components/TopPlayers';
 import TopDecks from '../components/TopDecks';
 import RecentMatches from '../components/RecentMatches';
@@ -100,7 +101,7 @@ export function Dashboard() {
       await Promise.all(
         Array.from(playerIds).map(async (playerId) => {
           try {
-            const data = await podDynamicsApi.getEloHistory(playerId);
+            const data = await podDynamicsApi.getEloHistory(playerId, 'all');
             if (data.history && data.history.length > 0) {
               historyMap.set(playerId, data.history);
             }
@@ -200,6 +201,7 @@ export function Dashboard() {
 
   return (
     <div>
+      <SeasonBanner />
       <StatsCards />
 
       {activeEvent && (

@@ -4,9 +4,11 @@ import { PlayFrequencyCalendar } from './PlayFrequencyCalendar';
 import { PodHealthMetrics } from './PodHealthMetrics';
 import { podDynamicsApi } from '../../services/api';
 import type { InsightsData, CalendarData } from '../../services/api';
+import { useSeason } from '../../contexts/SeasonContext';
 import { Lightbulb, Calendar, Heart, Sparkles } from 'lucide-react';
 
 export function InsightsTab() {
+  const { selected: season } = useSeason();
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
   const [calendarData, setCalendarData] = useState<CalendarData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -14,14 +16,14 @@ export function InsightsTab() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [season]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
       const [insights, calendar] = await Promise.all([
-        podDynamicsApi.getInsights(),
+        podDynamicsApi.getInsights(season),
         podDynamicsApi.getCalendar(),
       ]);
       setInsightsData(insights);

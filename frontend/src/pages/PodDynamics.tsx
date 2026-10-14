@@ -7,6 +7,8 @@ import { DecksTab } from '../components/pod-dynamics/DecksTab';
 import { InsightsTab } from '../components/pod-dynamics/InsightsTab';
 import { podDynamicsApi } from '../services/api';
 import type { PodDynamicsOverview } from '../services/api';
+import { useSeason } from '../contexts/SeasonContext';
+import SeasonSelector from '../components/SeasonSelector';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
 import { NoPodPlaceholder } from '../components/NoPodPlaceholder';
@@ -31,6 +33,7 @@ const TABS: Tab[] = [
 export function PodDynamics() {
   const { currentPlayer, isGuest } = useAuth();
   const { currentPod, loading: podLoading } = usePod();
+  const { selected: season } = useSeason();
   const [activeTab, setActiveTab] = useState<TabId>('trends');
   const [overview, setOverview] = useState<PodDynamicsOverview | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
@@ -40,12 +43,12 @@ export function PodDynamics() {
     if (currentPod) {
       loadOverview();
     }
-  }, [currentPod]);
+  }, [currentPod, season]);
 
   const loadOverview = async () => {
     try {
       setLoadingOverview(true);
-      const data = await podDynamicsApi.getOverview();
+      const data = await podDynamicsApi.getOverview(season);
       setOverview(data);
     } catch (err) {
       console.error('Error loading overview:', err);
@@ -66,7 +69,10 @@ export function PodDynamics() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <h1 className="text-2xl font-bold text-white mb-4">Pod Dynamics</h1>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h1 className="text-2xl font-bold text-white m-0">Pod Dynamics</h1>
+        <SeasonSelector alignRight />
+      </div>
 
       {/* Overview Stats Cards - Compact */}
       {overview && !loadingOverview && (

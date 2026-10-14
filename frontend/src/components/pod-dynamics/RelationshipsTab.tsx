@@ -3,6 +3,7 @@ import { MatchupMatrix } from './MatchupMatrix';
 import { GamesTogetherStats } from './GamesTogetherStats';
 import { podDynamicsApi } from '../../services/api';
 import type { MatchupsData, GamesTogetherData } from '../../services/api';
+import { useSeason } from '../../contexts/SeasonContext';
 import { Grid3X3, Users } from 'lucide-react';
 
 interface RelationshipsTabProps {
@@ -10,6 +11,7 @@ interface RelationshipsTabProps {
 }
 
 export function RelationshipsTab({ playerId }: RelationshipsTabProps) {
+  const { selected: season } = useSeason();
   const [matchupsData, setMatchupsData] = useState<MatchupsData | null>(null);
   const [gamesTogetherData, setGamesTogetherData] = useState<GamesTogetherData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,15 +19,15 @@ export function RelationshipsTab({ playerId }: RelationshipsTabProps) {
 
   useEffect(() => {
     loadData();
-  }, [playerId]);
+  }, [playerId, season]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
       const [matchups, gamesTogether] = await Promise.all([
-        podDynamicsApi.getMatchups(),
-        podDynamicsApi.getGamesTogether(playerId),
+        podDynamicsApi.getMatchups(season),
+        podDynamicsApi.getGamesTogether(playerId, season),
       ]);
       setMatchupsData(matchups);
       setGamesTogetherData(gamesTogether);

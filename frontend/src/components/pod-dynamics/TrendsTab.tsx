@@ -5,6 +5,7 @@ import { PlacementChart } from './PlacementChart';
 import { PodSizeChart } from './PodSizeChart';
 import { podDynamicsApi } from '../../services/api';
 import type { EloHistoryData, PlayerTrendsData } from '../../services/api';
+import { useSeason } from '../../contexts/SeasonContext';
 import { TrendingUp, TrendingDown, Target, Users, Zap, Info, X, Minus } from 'lucide-react';
 
 interface TrendsTabProps {
@@ -12,6 +13,7 @@ interface TrendsTabProps {
 }
 
 export function TrendsTab({ playerId }: TrendsTabProps) {
+  const { selected: season } = useSeason();
   const [eloData, setEloData] = useState<EloHistoryData | null>(null);
   const [trendsData, setTrendsData] = useState<PlayerTrendsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,15 +22,15 @@ export function TrendsTab({ playerId }: TrendsTabProps) {
 
   useEffect(() => {
     loadData();
-  }, [playerId]);
+  }, [playerId, season]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
       const [elo, trends] = await Promise.all([
-        podDynamicsApi.getEloHistory(playerId),
-        podDynamicsApi.getPlayerTrends(playerId),
+        podDynamicsApi.getEloHistory(playerId, season),
+        podDynamicsApi.getPlayerTrends(playerId, season),
       ]);
       setEloData(elo);
       setTrendsData(trends);
@@ -158,8 +160,11 @@ export function TrendsTab({ playerId }: TrendsTabProps) {
         <div className="bg-[#1A1B1E] border border-[#2C2E33] rounded-xl p-4">
           <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
             <TrendingUp size={18} className="text-[#667eea]" />
-            Elo Progression
+            {season === 'all' ? 'Elo Progression' : 'Season Elo'}
           </h3>
+          {season !== 'all' && (
+            <p className="text-xs text-[#909296] -mt-2 mb-3">Everyone starts each season at 1000.</p>
+          )}
           <EloChart data={eloData} />
         </div>
       )}

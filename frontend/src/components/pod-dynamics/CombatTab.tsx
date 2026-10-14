@@ -5,9 +5,11 @@ import { ScoopShame } from './ScoopShame';
 import HuntingAsymmetry from './HuntingAsymmetry';
 import { podDynamicsApi } from '../../services/api';
 import type { EliminationStatsData } from '../../services/api';
+import { useSeason } from '../../contexts/SeasonContext';
 import { Swords, Skull, Flag, Sparkles, Info, X } from 'lucide-react';
 
 export function CombatTab() {
+  const { selected: season } = useSeason();
   const [data, setData] = useState<EliminationStatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,13 +17,13 @@ export function CombatTab() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [season]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const eliminationStats = await podDynamicsApi.getEliminationStats();
+      const eliminationStats = await podDynamicsApi.getEliminationStats(season);
       setData(eliminationStats);
     } catch (err) {
       console.error('Error loading elimination stats:', err);

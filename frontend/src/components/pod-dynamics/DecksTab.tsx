@@ -3,6 +3,7 @@ import { CommanderTierList } from './CommanderTierList';
 import { ColorPerformance } from './ColorPerformance';
 import { podDynamicsApi } from '../../services/api';
 import type { DeckStatsData, ColorStatsData } from '../../services/api';
+import { useSeason } from '../../contexts/SeasonContext';
 import { Trophy, Palette } from 'lucide-react';
 
 interface DecksTabProps {
@@ -10,6 +11,7 @@ interface DecksTabProps {
 }
 
 export function DecksTab({ playerName }: DecksTabProps) {
+  const { selected: season } = useSeason();
   const [deckStats, setDeckStats] = useState<DeckStatsData | null>(null);
   const [colorStats, setColorStats] = useState<ColorStatsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,15 +19,15 @@ export function DecksTab({ playerName }: DecksTabProps) {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [season]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
       const [decks, colors] = await Promise.all([
-        podDynamicsApi.getDeckStats(),
-        podDynamicsApi.getColorStats(),
+        podDynamicsApi.getDeckStats(season),
+        podDynamicsApi.getColorStats(season),
       ]);
       setDeckStats(decks);
       setColorStats(colors);

@@ -67,7 +67,7 @@ export function MatchHistory() {
       await Promise.all(
         Array.from(playerIds).map(async (playerId) => {
           try {
-            const data = await podDynamicsApi.getEloHistory(playerId);
+            const data = await podDynamicsApi.getEloHistory(playerId, 'all');
             if (data.history && data.history.length > 0) {
               historyMap.set(playerId, data.history);
             }

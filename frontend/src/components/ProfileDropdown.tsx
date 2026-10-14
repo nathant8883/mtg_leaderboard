@@ -63,6 +63,11 @@ export const ProfileDropdown: React.FC = () => {
     setIsOpen(false);
   };
 
+  const handleViewSeasons = () => {
+    navigate('/seasons');
+    setIsOpen(false);
+  };
+
   const handleViewAdmin = () => {
     navigate('/admin');
     setIsOpen(false);
@@ -125,6 +130,9 @@ export const ProfileDropdown: React.FC = () => {
           </button>
           <button className="profile-menu-item" onClick={handleViewLeaderboard}>
             🏆 Leaderboard
+          </button>
+          <button className="profile-menu-item" onClick={handleViewSeasons}>
+            👑 Hall of Fame
           </button>
           {!isGuest && currentPlayer?.is_superuser && (
             <button className="profile-menu-item" onClick={handleViewAdmin}>

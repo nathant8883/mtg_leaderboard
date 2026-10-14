@@ -3,6 +3,7 @@ import type { DeckLeaderboardEntry } from '../services/api';
 import TierBadge from './TierBadge';
 import { getWinRateTier, TIER_CONFIG } from '../utils/tierConfig';
 import { DeckLeaderboardCard } from './leaderboard';
+import SeasonBadgeChips from './SeasonBadgeChips';
 
 interface DeckLeaderboardProps {
   decks: DeckLeaderboardEntry[];
@@ -113,6 +114,7 @@ function DeckLeaderboard({ decks, loading = false, onPlayerClick }: DeckLeaderbo
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33]">
                     <span className="text-white font-medium text-[15px]">{deck.deck_name}</span>
+                    <SeasonBadgeChips badges={deck.season_badges} className="ml-2 align-middle" />
                   </td>
                   <td className="py-4 px-3 border-b border-[#2C2E33]">
                     <div className="flex items-center gap-3">

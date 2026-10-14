@@ -14,6 +14,7 @@ import { LoadingScreen } from './components/LoadingScreen.tsx'
 import PlayerDetail from './components/PlayerDetail.tsx'
 import MatchDetail from './components/MatchDetail.tsx'
 import Leaderboard from './components/Leaderboard.tsx'
+import { Seasons } from './pages/Seasons.tsx'
 import AdminPanel from './components/AdminPanel.tsx'
 import { EventsList } from './pages/EventsList.tsx'
 import { EventCreate } from './pages/EventCreate.tsx'
@@ -22,6 +23,7 @@ import EventMatchTracker from './pages/EventMatchTracker.tsx'
 import { EventLiveView } from './pages/EventLiveView.tsx'
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx'
 import { PodProvider } from './contexts/PodContext.tsx'
+import { SeasonProvider } from './contexts/SeasonContext.tsx'
 import { PendingDecksProvider } from './contexts/PendingDecksContext.tsx'
 import { Toaster } from 'react-hot-toast'
 
@@ -52,6 +54,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <PodProvider>
+          <SeasonProvider>
           <PendingDecksProvider>
             <Toaster />
             <Routes>
@@ -85,6 +88,7 @@ createRoot(document.getElementById('root')!).render(
               <Route index element={<Dashboard />} />
               <Route path="matches" element={<MatchHistory />} />
               <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="seasons" element={<Seasons />} />
               <Route path="pod-dynamics" element={<PodDynamics />} />
               <Route path="events" element={<EventsList />} />
               <Route path="players/:playerId" element={<PlayerDetail />} />
@@ -102,6 +106,7 @@ createRoot(document.getElementById('root')!).render(
             </Route>
             </Routes>
           </PendingDecksProvider>
+          </SeasonProvider>
         </PodProvider>
       </AuthProvider>
     </BrowserRouter>

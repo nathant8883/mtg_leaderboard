@@ -51,8 +51,8 @@ export const playerApi = {
     return response.data;
   },
 
-  getDetail: async (id: string): Promise<PlayerDetail> => {
-    const response = await api.get(`/players/${id}/detail`);
+  getDetail: async (id: string, season?: SeasonParam): Promise<PlayerDetail> => {
+    const response = await api.get(`/players/${id}/detail`, { params: season !== undefined ? { season } : undefined });
     return response.data;
   },
 
@@ -314,6 +314,73 @@ export interface CreateMatchRequest {
   }>;
 }
 
+// Season Types
+/** `?season=` value: the current season, all time, or a season number */
+export type SeasonParam = 'current' | 'all' | number;
+
+export interface Season {
+  number: number;
+  label: string;          // "Season 1"
+  quarter_label: string;  // "Q4 2026"
+  start: string;
+  end: string;            // inclusive
+  is_current: boolean;
+  is_complete: boolean;
+  days_remaining: number;
+  finalized?: boolean;
+}
+
+export interface SeasonsResponse {
+  current: Season | null;
+  seasons: Season[];  // newest first
+  today: string;
+}
+
+export type SeasonAwardType = 'player_placement' | 'deck_placement' | 'peak_elo';
+
+/** Compact badge reference attached to leaderboard/deck rows */
+export interface SeasonBadgeRef {
+  season: number;
+  award_type: SeasonAwardType;
+  placement: number;
+}
+
+export interface SeasonAward extends SeasonBadgeRef {
+  id: string;
+  pod_id: string;
+  pod_name?: string | null;
+  player_id: string;
+  player_name: string;
+  player_picture?: string | null;
+  player_custom_avatar?: string | null;
+  deck_id?: string | null;
+  deck_name?: string | null;
+  commander?: string | null;
+  commander_image_url?: string | null;
+  colors: string[];
+  stats: {
+    games_played?: number;
+    wins?: number;
+    losses?: number;
+    win_rate?: number;
+    elo?: number | null;
+    peak_elo?: number | null;
+  };
+  awarded_at: string;
+}
+
+export interface HallOfFameSeason {
+  season: Season;
+  awards: SeasonAward[];
+}
+
+export interface SeasonStandings {
+  season: Season;
+  total_games: number;
+  players: PlayerLeaderboardEntry[];
+  decks: DeckLeaderboardEntry[];
+}
+
 // Leaderboard Types
 export interface PlayerLeaderboardEntry {
   player_id: string;
@@ -327,9 +394,10 @@ export interface PlayerLeaderboardEntry {
   win_rate: number;
   deck_count: number;
   ranked: boolean;
-  // Elo analytics
+  // Elo analytics (season Elo when scoped to a season)
   elo?: number;
   elo_change?: number;
+  season_badges?: SeasonBadgeRef[];
 }
 
 export interface DeckLeaderboardEntry {
@@ -347,6 +415,7 @@ export interface DeckLeaderboardEntry {
   losses: number;
   win_rate: number;
   ranked: boolean;
+  season_badges?: SeasonBadgeRef[];
 }
 
 export interface DashboardStats {
@@ -414,6 +483,7 @@ export interface PlayerDeckStats {
   commander_image_url?: string;
   colors: string[];
   disabled?: boolean;
+  season_badges?: SeasonBadgeRef[];
   games_played: number;
   wins: number;
   losses: number;
@@ -436,6 +506,9 @@ export interface PlayerDetail {
   favorite_single_color: string | null;
   favorite_color_combo: string[] | null;
   decks: PlayerDeckStats[];
+  season?: Season | null;
+  season_elo?: number | null;
+  season_peak_elo?: number | null;
 }
 
 // Event Placement Types
@@ -586,20 +659,51 @@ export const matchApi = {
   },
 };
 
+/** Query params for season-scoped endpoints (omitted season = server default, the current season) */
+const seasonParams = (season?: SeasonParam, extra?: Record<string, string | undefined>) => {
+  const params: Record<string, string | number> = {};
+  if (season !== undefined) params.season = season;
+  for (const [k, v] of Object.entries(extra ?? {})) if (v) params[k] = v;
+  return Object.keys(params).length ? params : undefined;
+};
+
 // Leaderboard API Functions
 export const leaderboardApi = {
-  getPlayerLeaderboard: async (): Promise<PlayerLeaderboardEntry[]> => {
-    const response = await api.get('/leaderboard/players');
+  getPlayerLeaderboard: async (season?: SeasonParam): Promise<PlayerLeaderboardEntry[]> => {
+    const response = await api.get('/leaderboard/players', { params: seasonParams(season) });
     return response.data;
   },
 
-  getDeckLeaderboard: async (): Promise<DeckLeaderboardEntry[]> => {
-    const response = await api.get('/leaderboard/decks');
+  getDeckLeaderboard: async (season?: SeasonParam): Promise<DeckLeaderboardEntry[]> => {
+    const response = await api.get('/leaderboard/decks', { params: seasonParams(season) });
     return response.data;
   },
 
-  getStats: async (): Promise<DashboardStats> => {
-    const response = await api.get('/leaderboard/stats');
+  getStats: async (season?: SeasonParam): Promise<DashboardStats> => {
+    const response = await api.get('/leaderboard/stats', { params: seasonParams(season) });
+    return response.data;
+  },
+};
+
+// Season API Functions
+export const seasonApi = {
+  list: async (): Promise<SeasonsResponse> => {
+    const response = await api.get('/seasons/');
+    return response.data;
+  },
+
+  getAwards: async (filter: { player_id?: string; deck_id?: string; pod_id?: string }): Promise<SeasonAward[]> => {
+    const response = await api.get('/seasons/awards/', { params: filter });
+    return response.data;
+  },
+
+  getHallOfFame: async (): Promise<HallOfFameSeason[]> => {
+    const response = await api.get('/seasons/hall-of-fame/');
+    return response.data;
+  },
+
+  getStandings: async (seasonNumber: number, limit = 3): Promise<SeasonStandings> => {
+    const response = await api.get(`/seasons/${seasonNumber}/standings/`, { params: { limit } });
     return response.data;
   },
 };
@@ -1023,59 +1127,60 @@ export interface EliminationStatsData {
 
 // Pod Dynamics API Functions
 export const podDynamicsApi = {
-  getEloHistory: async (playerId?: string): Promise<EloHistoryData> => {
+  getEloHistory: async (playerId?: string, season?: SeasonParam): Promise<EloHistoryData> => {
     const response = await api.get('/pod-dynamics/elo-history', {
-      params: playerId ? { player_id: playerId } : undefined
+      params: seasonParams(season, { player_id: playerId })
     });
     return response.data;
   },
 
-  getPlayerTrends: async (playerId?: string): Promise<PlayerTrendsData> => {
+  getPlayerTrends: async (playerId?: string, season?: SeasonParam): Promise<PlayerTrendsData> => {
     const response = await api.get('/pod-dynamics/player-trends', {
-      params: playerId ? { player_id: playerId } : undefined
+      params: seasonParams(season, { player_id: playerId })
     });
     return response.data;
   },
 
-  getOverview: async (): Promise<PodDynamicsOverview> => {
-    const response = await api.get('/pod-dynamics/overview');
+  getOverview: async (season?: SeasonParam): Promise<PodDynamicsOverview> => {
+    const response = await api.get('/pod-dynamics/overview', { params: seasonParams(season) });
     return response.data;
   },
 
-  getMatchups: async (): Promise<MatchupsData> => {
-    const response = await api.get('/pod-dynamics/matchups');
+  getMatchups: async (season?: SeasonParam): Promise<MatchupsData> => {
+    const response = await api.get('/pod-dynamics/matchups', { params: seasonParams(season) });
     return response.data;
   },
 
-  getGamesTogether: async (playerId?: string): Promise<GamesTogetherData> => {
+  getGamesTogether: async (playerId?: string, season?: SeasonParam): Promise<GamesTogetherData> => {
     const response = await api.get('/pod-dynamics/games-together', {
-      params: playerId ? { player_id: playerId } : undefined
+      params: seasonParams(season, { player_id: playerId })
     });
     return response.data;
   },
 
-  getDeckStats: async (): Promise<DeckStatsData> => {
-    const response = await api.get('/pod-dynamics/deck-stats');
+  getDeckStats: async (season?: SeasonParam): Promise<DeckStatsData> => {
+    const response = await api.get('/pod-dynamics/deck-stats', { params: seasonParams(season) });
     return response.data;
   },
 
-  getColorStats: async (): Promise<ColorStatsData> => {
-    const response = await api.get('/pod-dynamics/color-stats');
+  getColorStats: async (season?: SeasonParam): Promise<ColorStatsData> => {
+    const response = await api.get('/pod-dynamics/color-stats', { params: seasonParams(season) });
     return response.data;
   },
 
-  getInsights: async (): Promise<InsightsData> => {
-    const response = await api.get('/pod-dynamics/insights');
+  getInsights: async (season?: SeasonParam): Promise<InsightsData> => {
+    const response = await api.get('/pod-dynamics/insights', { params: seasonParams(season) });
     return response.data;
   },
 
+  // Always the last 365 days (not season-scoped)
   getCalendar: async (): Promise<CalendarData> => {
     const response = await api.get('/pod-dynamics/calendar');
     return response.data;
   },
 
-  getEliminationStats: async (): Promise<EliminationStatsData> => {
-    const response = await api.get('/pod-dynamics/elimination-stats');
+  getEliminationStats: async (season?: SeasonParam): Promise<EliminationStatsData> => {
+    const response = await api.get('/pod-dynamics/elimination-stats', { params: seasonParams(season) });
     return response.data;
   },
 };

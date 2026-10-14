@@ -6,15 +6,21 @@ import ProfileEditModal from './ProfileEditModal';
 import PendingDeckReview from './PendingDeckReview';
 import { useAuth } from '../contexts/AuthContext';
 import { usePod } from '../contexts/PodContext';
-import { playerApi, deckApi, analyticsApi, podDynamicsApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck, type EventPlacement } from '../services/api';
+import { playerApi, deckApi, analyticsApi, podDynamicsApi, seasonApi, type PlayerDetail as PlayerDetailType, type Deck, type PlayerDeckStats, type KingmakerData, type PendingQuickDeck, type EventPlacement, type SeasonAward } from '../services/api';
 import PlayerAvatar from './PlayerAvatar';
 import EventBadges from './EventBadges';
+import SeasonBadges from './SeasonBadges';
+import SeasonBadgeChips from './SeasonBadgeChips';
+import SeasonSelector from './SeasonSelector';
+import { useSeason } from '../contexts/SeasonContext';
 
 function PlayerDetail() {
   const { playerId } = useParams<{ playerId: string }>();
   const navigate = useNavigate();
   const { currentPlayer, isGuest, refreshPlayer } = useAuth();
-  const { currentPod, loading: podLoading } = usePod();
+  const { currentPod, loading: podLoading, userPods } = usePod();
+  const { selected: season } = useSeason();
+  const [seasonAwards, setSeasonAwards] = useState<SeasonAward[]>([]);
   const [playerDetail, setPlayerDetail] = useState<PlayerDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeckForm, setShowDeckForm] = useState(false);
@@ -55,6 +61,17 @@ function PlayerDetail() {
     return () => {
       window.removeEventListener('podSwitched', handlePodSwitch);
     };
+  }, [playerId, season]);
+
+  // Load season badges (every pod the player has earned them in)
+  useEffect(() => {
+    if (!playerId) return;
+    seasonApi.getAwards({ player_id: playerId })
+      .then(setSeasonAwards)
+      .catch(err => {
+        console.error('Error loading season awards:', err);
+        setSeasonAwards([]);
+      });
   }, [playerId]);
 
   // Load kingmaker data
@@ -122,7 +139,7 @@ function PlayerDetail() {
     const loadArchetype = async () => {
       if (!playerId || !currentPod) return;
       try {
-        const data = await podDynamicsApi.getEliminationStats();
+        const data = await podDynamicsApi.getEliminationStats(season);
         const player = data.kill_leaders.find(p => p.player_id === playerId);
         setArchetype(player?.archetype || null);
       } catch {
@@ -130,13 +147,13 @@ function PlayerDetail() {
       }
     };
     loadArchetype();
-  }, [playerId, currentPod]);
+  }, [playerId, currentPod, season]);
 
   const loadPlayerDetail = async () => {
     if (!playerId) return;
     try {
       setLoading(true);
-      const data = await playerApi.getDetail(playerId);
+      const data = await playerApi.getDetail(playerId, season);
       setPlayerDetail(data);
     } catch (err) {
       console.error('Error loading player detail:', err);
@@ -266,7 +283,8 @@ function PlayerDetail() {
     }
   };
 
-  if (loading) {
+  // Full-page spinner only for a different player; season switches refresh in place
+  if (loading && playerDetail?.player_id !== playerId) {
     return (
       <div className="w-full min-h-screen">
         <div className="text-center py-[60px] px-5">
@@ -328,7 +346,11 @@ function PlayerDetail() {
               )}
             </div>
             <div className="text-center text-[#909296] text-sm mb-3">
-              {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'} • Member since {formatMemberSince(playerDetail.member_since)}
+              {playerDetail.rank ? `Rank #${playerDetail.rank}` : 'Unranked'}
+              {playerDetail.season ? ` in ${playerDetail.season.label}` : ''} • Member since {formatMemberSince(playerDetail.member_since)}
+            </div>
+            <div className="flex justify-center mb-4">
+              <SeasonSelector />
             </div>
 
             {archetype && (() => {
@@ -356,6 +378,22 @@ function PlayerDetail() {
             })()}
 
             <div className="flex flex-col gap-4">
+              {playerDetail.season && (
+                <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
+                  <span className="text-[#909296] text-[13px]">Season Elo</span>
+                  <span className="text-lg font-bold text-[#667eea]">
+                    {playerDetail.season_elo ?? '—'}
+                    {playerDetail.season_peak_elo != null && playerDetail.season_peak_elo > (playerDetail.season_elo ?? 0) && (
+                      <span className="text-xs font-semibold text-[#909296] ml-2">peak {playerDetail.season_peak_elo}</span>
+                    )}
+                  </span>
+                </div>
+              )}
+              {playerDetail.season && playerDetail.total_games === 0 && (
+                <div className="text-center text-[#909296] text-xs">
+                  No games in this pod during {playerDetail.season.label} yet
+                </div>
+              )}
               <div className="flex justify-between items-center p-3 bg-[#25262B] rounded-[8px]">
                 <span className="text-[#909296] text-[13px]">Win Rate</span>
                 <span className="text-lg font-bold text-[#667eea]">{playerDetail.win_rate.toFixed(1)}%</span>
@@ -394,6 +432,9 @@ function PlayerDetail() {
               )}
             </div>
           </div>
+
+          {/* Season Badges Section */}
+          <SeasonBadges awards={seasonAwards} showPod={userPods.length > 1} />
 
           {/* Event Badges Section */}
           {eventPlacementsLoading ? (
@@ -575,6 +616,7 @@ function PlayerDetail() {
                         {/* Deck Info */}
                         <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
                           <h3 className="text-base font-semibold text-white leading-tight">{deck.deck_name}</h3>
+                          <SeasonBadgeChips badges={deck.season_badges} className="mt-1" />
                           <div className="text-xs text-[#909296] leading-tight opacity-70">{deck.commander}</div>
                           <div className="flex items-center gap-1 mt-0.5">
                             <ColorPips colors={deck.colors} />
@@ -653,6 +695,7 @@ function PlayerDetail() {
                       <div className="flex items-start justify-between mb-4 px-5">
                         <div>
                           <h3 className="text-lg font-semibold mb-1 text-white">{deck.deck_name}</h3>
+                          <SeasonBadgeChips badges={deck.season_badges} className="mb-1" />
                           <div className="text-[13px] text-[#909296] mb-3">{deck.commander}</div>
                         </div>
                         <div className="flex gap-1">

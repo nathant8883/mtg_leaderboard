@@ -347,6 +347,15 @@ export function MainLayout() {
                 <span>🏆</span>
                 <span> Events</span>
               </button>
+              <button
+                className={`px-4 py-2 border-none rounded-[6px] cursor-pointer font-medium text-sm transition-all duration-200 nav-btn-hover max-md:hidden desktop-nav-item ${
+                  location.pathname === '/seasons' ? 'bg-[#667eea] text-white' : 'bg-transparent text-[#909296]'
+                }`}
+                onClick={() => navigate('/seasons')}
+              >
+                <span>👑</span>
+                <span> Seasons</span>
+              </button>
               {pendingCount > 0 && (
                 <button
                   onClick={() => setShowSyncQueue(true)}

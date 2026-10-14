@@ -4,6 +4,7 @@ import { getColorIdentityStyle } from '../../utils/manaColors';
 import ColorPips from '../ColorPips';
 import TierBadge from '../TierBadge';
 import { RankBadgeOverlay } from './RankBadgeOverlay';
+import SeasonBadgeChips from '../SeasonBadgeChips';
 
 const MIN_GAMES_FOR_RANKING = 4;
 
@@ -64,6 +65,7 @@ export function DeckLeaderboardCard({
             <h3 className="text-lg font-bold text-white truncate">
               {deck.deck_name}
             </h3>
+            <SeasonBadgeChips badges={deck.season_badges} className="mb-1" />
             <p className="text-sm text-[#909296] truncate mb-2">
               {deck.commander}
             </p>

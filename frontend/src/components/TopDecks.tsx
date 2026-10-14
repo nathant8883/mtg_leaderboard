@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import ColorPips from './ColorPips';
 import { leaderboardApi, type DeckLeaderboardEntry } from '../services/api';
+import { useSeason } from '../contexts/SeasonContext';
 import { getColorIdentityStyle } from '../utils/manaColors';
 import TierBadge from './TierBadge';
 import { getWinRateTier, TIER_CONFIG } from '../utils/tierConfig';
+import SeasonBadgeChips from './SeasonBadgeChips';
 
 interface TopDecksProps {
   onViewLeaderboard: () => void;
@@ -11,6 +13,7 @@ interface TopDecksProps {
 }
 
 function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecksProps) {
+  const { selected: season } = useSeason();
   const [decks, setDecks] = useState<DeckLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,12 +29,12 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
     return () => {
       window.removeEventListener('podSwitched', handlePodSwitch);
     };
-  }, []);
+  }, [season]);
 
   const loadTopDecks = async () => {
     try {
       setLoading(true);
-      const data = await leaderboardApi.getDeckLeaderboard();
+      const data = await leaderboardApi.getDeckLeaderboard(season);
       // Only show ranked decks (4+ games) on the dashboard
       setDecks(data.filter(d => d.ranked).slice(0, 3));
     } catch (err) {
@@ -131,7 +134,10 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
                         </div>
                       )}
                       <div>
-                        <div className="text-white font-medium text-[15px]">{deck.deck_name}</div>
+                        <div className="text-white font-medium text-[15px]">
+                          {deck.deck_name}
+                          <SeasonBadgeChips badges={deck.season_badges} className="ml-2 align-middle" />
+                        </div>
                         <div className="text-[#C1C2C5] text-[13px] opacity-70 mt-0.5">
                           {deck.commander}
                         </div>
@@ -198,7 +204,10 @@ function TopDecks({ onViewLeaderboard, onPlayerClick: _onPlayerClick }: TopDecks
               <div className="flex-1 min-w-0 flex gap-2">
                 {/* Left column */}
                 <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-                  <div className="text-base font-semibold text-white whitespace-nowrap">{deck.deck_name}</div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-base font-semibold text-white whitespace-nowrap truncate">{deck.deck_name}</span>
+                    <SeasonBadgeChips badges={deck.season_badges} max={1} />
+                  </div>
                   <div className="text-xs text-[#909296] overflow-hidden text-ellipsis whitespace-nowrap opacity-70">{deck.commander}</div>
                   <div className="text-[11px] text-[#9ca3af]">
                     by {deck.player_name}
