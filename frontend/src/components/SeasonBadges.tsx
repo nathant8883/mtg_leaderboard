@@ -26,7 +26,7 @@ function BadgeIcon({ award, size = 48 }: { award: SeasonAward; size?: number }) 
   );
 }
 
-/** "Season Badges" card on player profiles: one medal per end-of-season award. */
+/** Season award medals for the profile Badges card (renders badge buttons only). */
 function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
   const [active, setActive] = useState<SeasonAward | null>(null);
 
@@ -35,14 +35,8 @@ function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
   const activeStyle = active ? getSeasonBadgeStyle(active) : null;
 
   return (
-    <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-6 mb-4 md:mb-5">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-xl">👑</span>
-        <h3 className="text-lg font-semibold text-white">Season Badges</h3>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        {sortBadges(awards).map(award => {
+    <>
+      {sortBadges(awards).map(award => {
           const style = getSeasonBadgeStyle(award);
           return (
             <button
@@ -62,7 +56,6 @@ function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
             </button>
           );
         })}
-      </div>
 
       {/* Bottom drawer - portal to escape scroll containers */}
       {active && activeStyle && createPortal(
@@ -146,7 +139,7 @@ function SeasonBadges({ awards, showPod = false }: SeasonBadgesProps) {
         </div>,
         document.body
       )}
-    </div>
+    </>
   );
 }
 

@@ -427,24 +427,20 @@ function PlayerDetail() {
             </div>
           </div>
 
-          {/* Season Badges Section */}
-          <SeasonBadges awards={seasonAwards} showPod={userPods.length > 1} />
-
-          {/* Event Badges Section */}
-          {eventPlacementsLoading ? (
+          {/* Badges: season awards + event placements */}
+          {(eventPlacementsLoading || seasonAwards.length > 0 || eventPlacements.length > 0) && (
             <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-6 mb-4 md:mb-5">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-xl">🏆</span>
-                <h3 className="text-lg font-semibold text-white">Event Badges</h3>
+                <h3 className="text-lg font-semibold text-white">Badges</h3>
               </div>
-              <div className="text-center py-4">
-                <div className="loading-spinner"></div>
-                <p className="text-[#909296] text-sm mt-2">Loading badges...</p>
+              <div className="flex flex-wrap gap-3">
+                <SeasonBadges awards={seasonAwards} showPod={userPods.length > 1} />
+                <EventBadges placements={eventPlacements} />
+                {eventPlacementsLoading && <div className="loading-spinner"></div>}
               </div>
             </div>
-          ) : eventPlacements.length > 0 ? (
-            <EventBadges placements={eventPlacements} />
-          ) : null}
+          )}
 
           {/* Kingmaker Section */}
           {kingmakerLoading ? (

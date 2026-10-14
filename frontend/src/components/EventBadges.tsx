@@ -43,14 +43,8 @@ function EventBadges({ placements }: EventBadgesProps) {
     : null;
 
   return (
-    <div className="bg-gradient-card border border-[#2C2E33] rounded-[16px] p-3 md:p-6 mb-4 md:mb-5">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-xl">🏆</span>
-        <h3 className="text-lg font-semibold text-white">Event Badges</h3>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        {placements.map((placement) => {
+    <>
+      {placements.map((placement) => {
           const config = PLACEMENT_CONFIG[placement.placement as 1 | 2 | 3];
           if (!config) return null;
 
@@ -110,7 +104,6 @@ function EventBadges({ placements }: EventBadgesProps) {
             </button>
           );
         })}
-      </div>
 
       {/* Bottom drawer - portal to escape scroll containers */}
       {activePlacement && activeConfig && createPortal(
@@ -197,7 +190,7 @@ function EventBadges({ placements }: EventBadgesProps) {
         </div>,
         document.body
       )}
-    </div>
+    </>
   );
 }
 
