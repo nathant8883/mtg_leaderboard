@@ -17,6 +17,9 @@ function CommanderAutocomplete({ value, onChange, disabled = false, dropdownDire
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Set when a suggestion is picked so the resulting inputValue change doesn't re-open the dropdown
+  const skipNextSearch = useRef(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,6 +34,11 @@ function CommanderAutocomplete({ value, onChange, disabled = false, dropdownDire
 
   // Debounced search
   useEffect(() => {
+    if (skipNextSearch.current) {
+      skipNextSearch.current = false;
+      return;
+    }
+
     if (inputValue.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -69,6 +77,11 @@ function CommanderAutocomplete({ value, onChange, disabled = false, dropdownDire
   };
 
   const selectCommander = (commander: CommanderCard) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    skipNextSearch.current = commander.name !== inputValue;
+    setIsLoading(false);
     setInputValue(commander.name);
     onChange(
       commander.name,
@@ -77,6 +90,8 @@ function CommanderAutocomplete({ value, onChange, disabled = false, dropdownDire
     );
     setShowSuggestions(false);
     setSuggestions([]);
+    // Dismiss the mobile keyboard so the layout doesn't shift under the next tap
+    inputRef.current?.blur();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -108,6 +123,7 @@ function CommanderAutocomplete({ value, onChange, disabled = false, dropdownDire
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <input
+        ref={inputRef}
         type="text"
         value={inputValue}
         onChange={handleInputChange}

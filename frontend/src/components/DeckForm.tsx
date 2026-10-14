@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { Deck, Player } from '../services/api';
 import CommanderAutocomplete from './CommanderAutocomplete';
@@ -24,6 +24,8 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [showArtSelector, setShowArtSelector] = useState(false);
+  // Only dismiss when the press both starts and ends on the backdrop itself
+  const backdropPressed = useRef(false);
 
   const handleCommanderChange = (
     commanderName: string,
@@ -97,7 +99,11 @@ function DeckForm({ onSubmit, onCancel, players = [], initialData, isEdit = fals
         zIndex: 1000,
         backdropFilter: 'blur(4px)',
       }}
-      onClick={onCancel}
+      onMouseDown={(e) => { backdropPressed.current = e.target === e.currentTarget; }}
+      onClick={(e) => {
+        if (backdropPressed.current && e.target === e.currentTarget) onCancel();
+        backdropPressed.current = false;
+      }}
     >
       <div
         style={{
