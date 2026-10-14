@@ -3,4 +3,4 @@
 // - Service worker cache naming
 // - UI version display
 // - Build identification
-export const APP_VERSION = '2.1.2';
+export const APP_VERSION = '2.2.0';
