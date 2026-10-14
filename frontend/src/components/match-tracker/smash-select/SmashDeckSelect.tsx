@@ -18,7 +18,7 @@ interface SmashDeckSelectProps {
 
 // Calculate optimal grid layout based on deck count
 // Goal: Fill screen with no scrolling, Smash Bros style
-function getGridLayout(deckCount: number): { cols: number; rows: number } {
+export function getGridLayout(deckCount: number): { cols: number; rows: number } {
   if (deckCount <= 2) return { cols: 2, rows: 1 };
   if (deckCount <= 4) return { cols: 2, rows: 2 };
   if (deckCount <= 6) return { cols: 3, rows: 2 };
@@ -123,6 +123,12 @@ function SmashDeckSelect({
                 onClick={() => setShowQuickDeckForm(true)}
               >
                 + Quick Add Deck
+              </button>
+              <button
+                className="smash-quick-add-button"
+                onClick={() => setShowBorrowSelect(true)}
+              >
+                ⇄ Borrow a Deck
               </button>
             </div>
           ) : (

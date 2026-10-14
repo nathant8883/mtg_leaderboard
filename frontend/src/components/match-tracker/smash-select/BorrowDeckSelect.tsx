@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { deckApi, playerApi, type Deck } from '../../../services/api';
+import { deckApi, playerApi, type Deck, type Player } from '../../../services/api';
 import SmashHeader from './SmashHeader';
 import DeckTile from './DeckTile';
+import PlayerTile from './PlayerTile';
+import { getGridLayout } from './SmashDeckSelect';
 
 interface BorrowDeckSelectProps {
   seatNumber: number;
@@ -12,10 +14,8 @@ interface BorrowDeckSelectProps {
   onBack: () => void;
 }
 
-interface DeckGroup {
-  playerId: string;
-  playerName: string;
-  avatar?: string | null;
+interface DeckOwner {
+  player: Player;
   decks: Deck[];
 }
 
@@ -27,8 +27,9 @@ function BorrowDeckSelect({
   onSelect,
   onBack,
 }: BorrowDeckSelectProps) {
-  const [deckGroups, setDeckGroups] = useState<DeckGroup[]>([]);
+  const [owners, setOwners] = useState<DeckOwner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOwner, setSelectedOwner] = useState<DeckOwner | null>(null);
 
   const shouldRotate = (() => {
     if (playerCount === 2) return seatNumber === 1;
@@ -49,27 +50,19 @@ function BorrowDeckSelect({
         playerApi.getAll(),
       ]);
 
-      const otherDecks = allDecks.filter(
-        d => d.player_id !== currentPlayerId && !d.disabled
-      );
-
-      const playerMap = new Map(allPlayers.map(p => [p.id, p]));
-      const grouped = new Map<string, DeckGroup>();
-
-      for (const deck of otherDecks) {
-        if (!grouped.has(deck.player_id)) {
-          const owner = playerMap.get(deck.player_id);
-          grouped.set(deck.player_id, {
-            playerId: deck.player_id,
-            playerName: owner?.name || 'Unknown',
-            avatar: owner?.picture || owner?.custom_avatar || owner?.avatar,
-            decks: [],
-          });
-        }
-        grouped.get(deck.player_id)!.decks.push(deck);
+      const decksByOwner = new Map<string, Deck[]>();
+      for (const deck of allDecks) {
+        if (deck.player_id === currentPlayerId || deck.disabled) continue;
+        if (!decksByOwner.has(deck.player_id)) decksByOwner.set(deck.player_id, []);
+        decksByOwner.get(deck.player_id)!.push(deck);
       }
 
-      setDeckGroups(Array.from(grouped.values()).sort((a, b) => a.playerName.localeCompare(b.playerName)));
+      const result: DeckOwner[] = allPlayers
+        .filter(p => p.id && decksByOwner.has(p.id))
+        .map(p => ({ player: p, decks: decksByOwner.get(p.id!)! }))
+        .sort((a, b) => a.player.name.localeCompare(b.player.name));
+
+      setOwners(result);
     } catch (err) {
       console.error('[BorrowDeckSelect] Error loading decks:', err);
     } finally {
@@ -77,8 +70,90 @@ function BorrowDeckSelect({
     }
   };
 
-  const handleSelect = (deck: Deck, group: DeckGroup) => {
-    onSelect(deck, group.playerId, group.playerName);
+  const handleOwnerSelect = (player: Player) => {
+    const owner = owners.find(o => o.player.id === player.id);
+    if (owner) setSelectedOwner(owner);
+  };
+
+  const renderOwnerStep = () => (
+    <>
+      <SmashHeader
+        seatNumber={seatNumber}
+        title="Borrow a Deck"
+        subtitle="Whose deck?"
+        onBack={onBack}
+      />
+
+      {loading ? (
+        <div className="smash-deck-grid-container">
+          <div className="smash-loading">
+            <div className="smash-loading-spinner" />
+            <div className="smash-loading-text">Loading decks...</div>
+          </div>
+        </div>
+      ) : owners.length === 0 ? (
+        <div className="smash-deck-grid-container">
+          <div className="smash-empty">
+            <div className="smash-empty-title">No decks available</div>
+            <div className="smash-empty-subtitle">
+              No other players have decks to borrow
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="smash-player-grid">
+          {owners.map((owner, index) => (
+            <PlayerTile
+              key={owner.player.id}
+              player={owner.player}
+              onSelect={handleOwnerSelect}
+              animationDelay={index * 30}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  const renderDeckStep = (owner: DeckOwner) => {
+    const gridLayout = getGridLayout(owner.decks.length);
+    return (
+      <>
+        <SmashHeader
+          seatNumber={seatNumber}
+          title={`${owner.player.name}'s Decks`}
+          subtitle="Choose Deck to Borrow"
+          onBack={() => setSelectedOwner(null)}
+        />
+
+        <div className="smash-deck-grid-container">
+          <div
+            className="smash-deck-grid"
+            style={{
+              gridTemplateColumns: `repeat(${gridLayout.cols}, 1fr)`,
+              gridTemplateRows: `repeat(${gridLayout.rows}, 1fr)`,
+            }}
+          >
+            {owner.decks.map((deck, index) => {
+              const isAssigned = assignedDeckIds.includes(deck.id!);
+              return (
+                <div
+                  key={deck.id}
+                  className="smash-borrow-tile-wrap"
+                  style={{ opacity: isAssigned ? 0.3 : 1, pointerEvents: isAssigned ? 'none' : 'auto' }}
+                >
+                  <DeckTile
+                    deck={deck}
+                    onSelect={() => onSelect(deck, owner.player.id!, owner.player.name)}
+                    animationDelay={index * 50}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </>
+    );
   };
 
   return (
@@ -87,67 +162,13 @@ function BorrowDeckSelect({
         className="smash-screen-content"
         style={shouldRotate ? { transform: 'rotate(180deg)' } : undefined}
       >
-        <SmashHeader
-          seatNumber={seatNumber}
-          title="Borrow a Deck"
-          subtitle="Pick from another player"
-          onBack={onBack}
-        />
-
-        <div className="smash-deck-grid-container" style={{ overflowY: 'auto' }}>
-          {loading ? (
-            <div className="smash-loading">
-              <div className="smash-loading-spinner" />
-              <div className="smash-loading-text">Loading decks...</div>
-            </div>
-          ) : deckGroups.length === 0 ? (
-            <div className="smash-empty">
-              <div className="smash-empty-title">No decks available</div>
-              <div className="smash-empty-subtitle">
-                No other players have decks to borrow
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4 p-3 flex-1 w-full">
-              {deckGroups.map(group => (
-                <div key={group.playerId}>
-                  <div className="flex items-center gap-2 mb-2 px-1">
-                    <img
-                      src={group.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${group.playerName}`}
-                      alt={group.playerName}
-                      className="w-6 h-6 rounded-full"
-                    />
-                    <span className="text-white/70 text-sm font-medium">
-                      {group.playerName}'s Decks
-                    </span>
-                  </div>
-                  <div
-                    className="grid gap-2"
-                    style={{
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-                    }}
-                  >
-                    {group.decks.map((deck, index) => {
-                      const isAssigned = assignedDeckIds.includes(deck.id!);
-                      return (
-                        <div
-                          key={deck.id}
-                          className="smash-borrow-tile-wrap"
-                          style={{ opacity: isAssigned ? 0.3 : 1, pointerEvents: isAssigned ? 'none' : 'auto' }}
-                        >
-                          <DeckTile
-                            deck={deck}
-                            onSelect={() => handleSelect(deck, group)}
-                            animationDelay={index * 50}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Slide-in lives on an inner wrapper: its transform keyframes would
+            otherwise override the rotation above */}
+        <div
+          key={selectedOwner ? selectedOwner.player.id : 'owners'}
+          className="smash-screen-content smash-slide-in"
+        >
+          {selectedOwner ? renderDeckStep(selectedOwner) : renderOwnerStep()}
         </div>
       </div>
     </div>

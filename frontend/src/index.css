@@ -3312,11 +3312,11 @@
   min-height: 0;
 }
 
-/* Borrow view: grid rows have no intrinsic height, so give each cell
-   an aspect-ratio and let the tile fill it. */
+/* Borrow view: tiles sit inside a wrapper (for the dimmed/taken state),
+   so let the wrapper fill its grid cell and the tile fill the wrapper. */
 .smash-borrow-tile-wrap {
-  aspect-ratio: 1.4 / 1;
   display: flex;
+  min-height: 0;
 }
 .smash-borrow-tile-wrap > .smash-deck-tile {
   width: 100%;
