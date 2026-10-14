@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { Player, Deck, CreateMatchRequest } from '../services/api';
+import { toLocalDateString } from '../utils/localDate';
 
 interface MatchFormProps {
   onSubmit: (match: CreateMatchRequest) => Promise<void>;
@@ -12,13 +13,7 @@ function MatchForm({ onSubmit, onCancel, players, decks }: MatchFormProps) {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [playerDeckMap, setPlayerDeckMap] = useState<Record<string, string>>({});
   const [winnerId, setWinnerId] = useState<string>('');
-  const [matchDate, setMatchDate] = useState(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  });
+  const [matchDate, setMatchDate] = useState(() => toLocalDateString());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 

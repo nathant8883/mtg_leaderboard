@@ -15,6 +15,7 @@ import { useOrientationLock } from '../hooks/useOrientationLock';
 
 // Types from MatchTracker
 import type { PlayerSlot, ActiveGameState, MatchState, LayoutType } from './MatchTracker';
+import { toLocalDateString } from '../utils/localDate';
 
 const EVENT_MATCH_POINTER_KEY = 'mtg_active_event_match';
 
@@ -318,7 +319,7 @@ export function EventMatchTracker() {
         .filter((p) => p.playerId && p.deckId)
         .map((p) => ({ player_id: p.playerId!, deck_id: p.deckId! }));
 
-      const matchDate = matchState.gameState.startTime.toISOString().split('T')[0];
+      const matchDate = toLocalDateString(matchState.gameState.startTime);
 
       // Calculate first player position index
       let firstPlayerPosition: number | undefined;

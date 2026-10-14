@@ -14,6 +14,7 @@ import offlineQueue from '../services/offlineQueue';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { useOrientationLock } from '../hooks/useOrientationLock';
+import { toLocalDateString } from '../utils/localDate';
 
 export type LayoutType = 'table';
 export type StepType = 'setup' | 'assignment' | 'game' | 'winner';
@@ -320,7 +321,7 @@ function MatchTracker() {
       }
 
       // Use the game start time as match date (format as YYYY-MM-DD)
-      const matchDate = matchState.gameState.startTime.toISOString().split('T')[0];
+      const matchDate = toLocalDateString(matchState.gameState.startTime);
 
       // Map first player position to index in playerDeckPairs array
       let firstPlayerPosition: number | undefined;
@@ -464,7 +465,7 @@ function MatchTracker() {
       }
 
       // Use the game start time as match date (format as YYYY-MM-DD)
-      const matchDate = matchState.gameState.startTime.toISOString().split('T')[0];
+      const matchDate = toLocalDateString(matchState.gameState.startTime);
 
       // Map first player position to index in playerDeckPairs array
       let firstPlayerPosition: number | undefined;
