@@ -68,12 +68,9 @@ function SmashDeckSelect({
       const playerDecks = allDecks.filter(
         (d) => d.player_id === playerId && !d.disabled
       );
+      // No auto-select for single-deck players: they must still be able to
+      // Quick Add or Borrow (e.g. two players swapping decks)
       setDecks(playerDecks);
-
-      // Auto-select if only one deck
-      if (playerDecks.length === 1) {
-        setTimeout(() => onSelect(playerDecks[0]), 200);
-      }
     } catch (err) {
       console.error('[SmashDeckSelect] Error loading decks:', err);
     } finally {
@@ -139,14 +136,23 @@ function SmashDeckSelect({
                 gridTemplateRows: `repeat(${gridLayout.rows}, 1fr)`,
               }}
             >
-              {decks.map((deck, index) => (
-                <DeckTile
-                  key={deck.id}
-                  deck={deck}
-                  onSelect={onSelect}
-                  animationDelay={index * 50}
-                />
-              ))}
+              {decks.map((deck, index) => {
+                // Grey out own decks another seat is already playing (lent out)
+                const isAssigned = assignedDeckIds.includes(deck.id!);
+                return (
+                  <div
+                    key={deck.id}
+                    className="smash-borrow-tile-wrap"
+                    style={{ opacity: isAssigned ? 0.3 : 1, pointerEvents: isAssigned ? 'none' : 'auto' }}
+                  >
+                    <DeckTile
+                      deck={deck}
+                      onSelect={onSelect}
+                      animationDelay={index * 50}
+                    />
+                  </div>
+                );
+              })}
               {/* Quick Add Deck tile */}
               <button
                 className="smash-deck-tile smash-quick-add-tile"

@@ -294,10 +294,18 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
         winner_player_id = request.winner_player_id if request.winner_player_id is not None else match.winner_player_id
         winner_deck_id = request.winner_deck_id if request.winner_deck_id is not None else match.winner_deck_id
 
+        # Edit clients don't send borrow info, so keep it for unchanged pairings
+        existing_borrows = {
+            (p.player_id, p.deck_id): (p.borrowed_from_player_id, p.borrowed_from_player_name)
+            for p in match.players
+            if p.borrowed_from_player_id
+        }
+
         for pair in request.player_deck_pairs:
             player_id = pair["player_id"]
             deck_id = pair["deck_id"]
             player_ids.append(player_id)
+            borrowed_from_player_id, borrowed_from_player_name = existing_borrows.get((player_id, deck_id), (None, None))
 
             # Fetch player and deck data
             player = await Player.get(PydanticObjectId(player_id))
@@ -330,7 +338,9 @@ async def update_match(match_id: PydanticObjectId, request: UpdateMatchRequest):
                 elimination_order=elimination_order,
                 is_winner=is_winner,
                 eliminated_by_player_id=elim_detail.get('eliminated_by_player_id'),
-                elimination_type=elim_detail.get('elimination_type')
+                elimination_type=elim_detail.get('elimination_type'),
+                borrowed_from_player_id=borrowed_from_player_id,
+                borrowed_from_player_name=borrowed_from_player_name,
             ))
 
         # Validate winner is in the match

@@ -299,8 +299,11 @@ function PlayerAssignment({ playerCount, players: initialPlayers, layout, onComp
     }
   };
 
+  // Decks in use by other seats (the seat being edited is excluded so its
+  // current deck can be re-picked)
+  const editingPosition = selectionPhase.type === 'grid' ? null : selectionPhase.position;
   const assignedDeckIds = players
-    .filter(p => p.deckId)
+    .filter(p => p.deckId && p.position !== editingPosition)
     .map(p => p.deckId!);
 
   const allSlotsFilled = players.filter(p => p.playerId !== null).length >= playerCount;
